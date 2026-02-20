@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id // Discord User ID
+  chips        BigInt        @default(10000)
+  totalWon     BigInt        @default(0)
+  totalLost    BigInt        @default(0)
+  totalGames   Int           @default(0)
+  lastDaily    DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+  bets         RaceBet[]
+}
+
+model Transaction {
+  id           String          @id @default(cuid())
+  userId       String
+  user         User            @relation(fields: [userId], references: [id])
+  type         TransactionType
+  game         GameType?
+  amount       BigInt // positive = win, negative = loss
+  balanceAfter BigInt
+  metadata     Json?
+  createdAt    DateTime        @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model RaceSession {
+  id        String     @id @default(cuid())
+  channelId String
+  status    RaceStatus @default(BETTING)
+  horses    Json // Horse[]
+  results   Json? // RaceResult[]
+  startsAt  DateTime // betting deadline
+  createdAt DateTime   @default(now())
+  bets      RaceBet[]
+
+  @@index([channelId, status])
+}
+
+model RaceBet {
+  id         String      @id @default(cuid())
+  sessionId  String
+  session    RaceSession @relation(fields: [sessionId], references: [id])
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  horseIndex Int
+  amount     BigInt
+  createdAt  DateTime    @default(now())
+
+  @@unique([sessionId, userId]) // 1 bet per session per user
+}
+
+enum TransactionType {
+  WIN
+  LOSS
+  DAILY
+  ADMIN_GIVE
+  ADMIN_RESET
+}
+
+enum GameType {
+  SLOTS
+  BLACKJACK
+  HORSE_RACE
+  COINFLIP
+}
+
+enum RaceStatus {
+  BETTING
+  RUNNING
+  FINISHED
+  CANCELLED
+}
