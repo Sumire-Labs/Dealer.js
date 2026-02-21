@@ -2,30 +2,30 @@ bot:
   token: "your_discord_bot_token_here"
   client-id: "your_discord_client_id_here"
   # guild-id: "your_guild_id_here"  # optional: set for dev, omit for global
-  database-url: "postgresql://casino:casino@db:5432/casino_bot"  # docker: db, local: localhost
+  database-url: "postgresql://casino:casino@db:5432/casino_bot" # docker: db, local: localhost
 
 horse-race:
   names:
-    - Thunder Bolt
-    - Lucky Strike
-    - Dark Shadow
-    - Golden Dream
-    - Long Shot
-    - Silver Bullet
-    - Night Rider
-    - Blazing Sun
-    - Iron Will
-    - Wild Card
-    - Fast Eddie
-    - Diamond Dust
-    - Phantom Ace
-    - Royal Flush
-    - Neon Flash
-    - Storm Chaser
-    - Velvet Thunder
-    - Chrome Horse
-    - Desert Eagle
-    - Black Mamba
+    - らがぞう
+    - すみれ
+    - かぼちゃ
+    - かにぽんず
+    - ちくわちゃん
+    - なめこ
+    - てつしろ
+    - さりぇんてん
+    - ぺぺゆっけ
+    - むぎを
+    - はやてあ
+    - suna
+    - hag
+    - ひまじん
+    - はるまき
+    - べるくと
+    - さかもと
+    - 養命酒
+    - 岸田
+    - しーしぇん
     - Quick Silver
     - High Roller
     - Lucky Seven

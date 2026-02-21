@@ -3,7 +3,7 @@ import { loadYamlConfig } from './yaml-loader.js';
 const configPath = process.env['CONFIG_PATH'] || './config.yaml';
 const yaml = loadYamlConfig(configPath);
 
-function require(key: string, value: string | undefined): string {
+function requireConfig(key: string, value: string | undefined): string {
   if (!value) {
     throw new Error(`Missing required config: "${key}" in config.yaml`);
   }
@@ -11,9 +11,12 @@ function require(key: string, value: string | undefined): string {
 }
 
 export const config = {
-  discordToken: require('bot.token', yaml.bot?.token),
-  clientId: require('bot.client-id', yaml.bot?.clientId),
+  discordToken: requireConfig('bot.token', yaml.bot?.token),
+  clientId: requireConfig('bot.client-id', yaml.bot?.clientId),
   guildId: yaml.bot?.guildId,
-  databaseUrl: require('bot.database-url', yaml.bot?.databaseUrl),
+  databaseUrl: requireConfig('bot.database-url', yaml.bot?.databaseUrl),
   configPath,
 } as const;
+
+// Prisma Client reads DATABASE_URL from process.env at runtime
+process.env.DATABASE_URL = config.databaseUrl;
