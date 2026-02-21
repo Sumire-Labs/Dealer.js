@@ -25,12 +25,21 @@ export async function deployCommands(): Promise<void> {
   const rest = new REST({ version: '10' }).setToken(config.discordToken);
   const commandData = [...commands.values()].map(c => c.data);
 
-  logger.info(`Deploying ${commandData.length} commands to guild ${config.guildId}`);
-
-  await rest.put(
-    Routes.applicationGuildCommands(config.clientId, config.guildId),
-    { body: commandData },
-  );
+  if (config.guildId) {
+    // Guild-scoped: instant update, useful for development
+    logger.info(`Deploying ${commandData.length} commands to guild ${config.guildId}`);
+    await rest.put(
+      Routes.applicationGuildCommands(config.clientId, config.guildId),
+      { body: commandData },
+    );
+  } else {
+    // Global: works on all servers, takes up to 1 hour to propagate
+    logger.info(`Deploying ${commandData.length} commands globally`);
+    await rest.put(
+      Routes.applicationCommands(config.clientId),
+      { body: commandData },
+    );
+  }
 
   logger.info('Commands deployed successfully');
 }

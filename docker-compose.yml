@@ -9,7 +9,7 @@ services:
       - DATABASE_URL=postgresql://casino:casino@db:5432/casino_bot
       - DISCORD_TOKEN=${DISCORD_TOKEN}
       - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
-      - GUILD_ID=${GUILD_ID}
+      - GUILD_ID=${GUILD_ID:-}  # optional: set for dev, omit for global multi-server
     volumes:
       - ./src:/app/src
 
@@ -23,7 +23,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U casino"]
+      test: ["CMD-SHELL", "pg_isready -U casino -d casino_bot"]
       interval: 5s
       timeout: 5s
       retries: 5
