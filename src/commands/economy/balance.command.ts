@@ -27,7 +27,8 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   const rank = await getUserRank(targetUser.id);
 
   const container = buildBalanceView({
-    userId: targetUser.id,
+    userId: interaction.user.id,
+    targetId: targetUser.id,
     username: targetUser.displayName,
     chips: dbUser.chips,
     totalWon: dbUser.totalWon,
@@ -39,7 +40,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
 
   await interaction.reply({
     components: [container],
-    flags: MessageFlags.IsComponentsV2,
+    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
   });
 }
 
