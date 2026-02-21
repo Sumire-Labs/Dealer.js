@@ -9,12 +9,63 @@ import {
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
+import { MIN_BET, MAX_BET_COINFLIP } from '../../config/constants.js';
 import type { CoinSide } from '../../games/coinflip/coinflip.engine.js';
+import type { TodayStats } from '../../database/repositories/user.repository.js';
 
 const SIDE_DISPLAY: Record<CoinSide, { emoji: string; label: string }> = {
   heads: { emoji: '👑', label: 'オモテ' },
   tails: { emoji: '🦅', label: 'ウラ' },
 };
+
+function buildCoinflipButtons(bet: bigint, userId: string): ActionRowBuilder<ButtonBuilder> {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`coinflip:bet_down:${userId}`)
+      .setLabel('◀ BET')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(bet <= MIN_BET),
+    new ButtonBuilder()
+      .setCustomId(`coinflip:heads:${userId}`)
+      .setLabel('👑 オモテ')
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(`coinflip:tails:${userId}`)
+      .setLabel('🦅 ウラ')
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setCustomId(`coinflip:bet_up:${userId}`)
+      .setLabel('BET ▶')
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(bet >= MAX_BET_COINFLIP),
+  );
+}
+
+function formatTodayStats(stats: TodayStats): string {
+  const sign = stats.netAmount >= 0n ? '+' : '';
+  return `📊 今日: ${stats.wins}勝${stats.losses}敗（${sign}${formatChips(stats.netAmount)}）`;
+}
+
+export function buildCoinflipIdleView(
+  bet: bigint,
+  balance: bigint,
+  userId: string,
+): ContainerBuilder {
+  return new ContainerBuilder()
+    .setAccentColor(CasinoTheme.colors.silver)
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.coinflip),
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(
+        `BET: **${formatChips(bet)}** | 残高: ${formatChips(balance)}\n\n面を選んでください:`,
+      ),
+    )
+    .addActionRowComponents(buildCoinflipButtons(bet, userId));
+}
 
 export function buildCoinflipChoiceView(
   bet: bigint,
@@ -31,21 +82,10 @@ export function buildCoinflipChoiceView(
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `BET: **${formatChips(bet)}**\n残高: ${formatChips(balance)}\n\n面を選んでください:`,
+        `BET: **${formatChips(bet)}** | 残高: ${formatChips(balance)}\n\n面を選んでください:`,
       ),
     )
-    .addActionRowComponents(
-      new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(`coinflip:heads:${userId}`)
-          .setLabel('👑 オモテ')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId(`coinflip:tails:${userId}`)
-          .setLabel('🦅 ウラ')
-          .setStyle(ButtonStyle.Primary),
-      ),
-    );
+    .addActionRowComponents(buildCoinflipButtons(bet, userId));
 }
 
 export function buildCoinflipFlippingView(): ContainerBuilder {
@@ -69,6 +109,8 @@ export function buildCoinflipResultView(
   bet: bigint,
   payout: bigint,
   newBalance: bigint,
+  userId: string,
+  todayStats?: TodayStats,
 ): ContainerBuilder {
   const outcomeDisplay = SIDE_DISPLAY[outcome];
   const choiceDisplay = SIDE_DISPLAY[playerChoice];
@@ -78,6 +120,11 @@ export function buildCoinflipResultView(
     resultText = `✅ **勝ち！** +${formatChips(payout - bet)}`;
   } else {
     resultText = `❌ **負け！** -${formatChips(bet)}`;
+  }
+
+  let balanceLine = `残高: ${formatChips(newBalance)}`;
+  if (todayStats) {
+    balanceLine += `\n${formatTodayStats(todayStats)}`;
   }
 
   return new ContainerBuilder()
@@ -105,6 +152,7 @@ export function buildCoinflipResultView(
       new TextDisplayBuilder().setContent(resultText),
     )
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`残高: ${formatChips(newBalance)}`),
-    );
+      new TextDisplayBuilder().setContent(balanceLine),
+    )
+    .addActionRowComponents(buildCoinflipButtons(bet, userId));
 }

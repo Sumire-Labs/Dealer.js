@@ -13,6 +13,7 @@ model User {
   totalWon     BigInt        @default(0)
   totalLost    BigInt        @default(0)
   totalGames   Int           @default(0)
+  dailyStreak  Int           @default(0)
   lastDaily    DateTime?
   bankruptAt   DateTime?
   createdAt    DateTime      @default(now())

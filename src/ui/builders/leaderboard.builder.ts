@@ -3,9 +3,14 @@ import {
   TextDisplayBuilder,
   SeparatorBuilder,
   SeparatorSpacingSize,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
+
+export const LEADERBOARD_PAGE_SIZE = 10;
 
 export interface LeaderboardDisplayEntry {
   userId: string;
@@ -18,15 +23,19 @@ export interface LeaderboardDisplayData {
   requesterId: string;
   requesterRank: number;
   requesterChips: bigint;
+  page: number;
+  totalPages: number;
 }
 
 const RANK_MEDALS = ['🥇', '🥈', '🥉'];
 
 export function buildLeaderboardView(data: LeaderboardDisplayData): ContainerBuilder {
-  const { entries, requesterId, requesterRank, requesterChips } = data;
+  const { entries, requesterId, requesterRank, requesterChips, page, totalPages } = data;
 
+  const offset = page * LEADERBOARD_PAGE_SIZE;
   const lines = entries.map((entry, i) => {
-    const medal = RANK_MEDALS[i] ?? `**${i + 1}.**`;
+    const absoluteRank = offset + i;
+    const medal = RANK_MEDALS[absoluteRank] ?? `**${absoluteRank + 1}.**`;
     const isRequester = entry.userId === requesterId;
     const name = isRequester ? '**あなた**' : `<@${entry.userId}>`;
     const highlight = isRequester ? ' ◀' : '';
@@ -53,9 +62,26 @@ export function buildLeaderboardView(data: LeaderboardDisplayData): ContainerBui
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `あなたの順位: **#${requesterRank}** | ${formatChips(requesterChips)}`,
+        `あなたの順位: **#${requesterRank}** | ${formatChips(requesterChips)}\nページ: ${page + 1} / ${totalPages}`,
       ),
     );
+
+  if (totalPages > 1) {
+    container.addActionRowComponents(
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`lb:prev:${requesterId}:${page}`)
+          .setLabel('◀')
+          .setStyle(ButtonStyle.Secondary)
+          .setDisabled(page <= 0),
+        new ButtonBuilder()
+          .setCustomId(`lb:next:${requesterId}:${page}`)
+          .setLabel('▶')
+          .setStyle(ButtonStyle.Secondary)
+          .setDisabled(page >= totalPages - 1),
+      ),
+    );
+  }
 
   return container;
 }

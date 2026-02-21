@@ -5,6 +5,7 @@ import { generateRandomReelDisplay, type SlotsResult } from '../../games/slots/s
 import { SPIN_EMOJIS } from '../../games/slots/slots.symbols.js';
 import { buildSlotsSpinningView, buildSlotsResultView } from '../builders/slots.builder.js';
 import { secureRandomInt } from '../../utils/random.js';
+import type { TodayStats } from '../../database/repositories/user.repository.js';
 
 function pickRandomEmoji(): string {
   return SPIN_EMOJIS[secureRandomInt(0, SPIN_EMOJIS.length - 1)];
@@ -17,6 +18,7 @@ export async function playSlotsAnimation(
   payout: bigint,
   newBalance: bigint,
   userId: string,
+  todayStats?: TodayStats,
 ): Promise<void> {
   const { animationSpinFrames, animationSpinInterval, animationStopInterval } = SLOTS_CONFIG;
 
@@ -71,6 +73,7 @@ export async function playSlotsAnimation(
     payout,
     newBalance,
     userId,
+    todayStats,
   );
   await interaction.editReply({
     components: [resultView],

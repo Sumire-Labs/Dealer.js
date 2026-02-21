@@ -11,6 +11,7 @@ import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
 import type { SlotSymbol } from '../../games/slots/slots.symbols.js';
 import type { PaytableResult } from '../../games/slots/slots.paytable.js';
+import type { TodayStats } from '../../database/repositories/user.repository.js';
 
 function renderReels(symbols: [string, string, string]): string {
   return `【 ${symbols[0]} 】【 ${symbols[1]} 】【 ${symbols[2]} 】`;
@@ -94,6 +95,7 @@ export function buildSlotsResultView(
   payout: bigint,
   newBalance: bigint,
   userId: string,
+  todayStats?: TodayStats,
 ): ContainerBuilder {
   const reelEmojis = reels.map(r => r.emoji) as [string, string, string];
   const isJackpot = paytable.multiplier >= 500;
@@ -105,6 +107,12 @@ export function buildSlotsResultView(
     resultText = `**${paytable.label}** (${paytable.multiplier}x)\nBET: ${formatChips(bet)} → 獲得: ${formatChips(payout)}! 🎉`;
   } else {
     resultText = `**${paytable.label}**\nBET: ${formatChips(bet)} → ハズレ`;
+  }
+
+  let balanceLine = `残高: ${formatChips(newBalance)}`;
+  if (todayStats) {
+    const sign = todayStats.netAmount >= 0n ? '+' : '';
+    balanceLine += `\n📊 今日: ${todayStats.wins}勝${todayStats.losses}敗（${sign}${formatChips(todayStats.netAmount)}）`;
   }
 
   return new ContainerBuilder()
@@ -125,7 +133,7 @@ export function buildSlotsResultView(
       new TextDisplayBuilder().setContent(resultText),
     )
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`残高: ${formatChips(newBalance)}`),
+      new TextDisplayBuilder().setContent(balanceLine),
     )
     .addActionRowComponents(
       new ActionRowBuilder<ButtonBuilder>().addComponents(

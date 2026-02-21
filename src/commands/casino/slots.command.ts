@@ -5,7 +5,7 @@ import {
 } from 'discord.js';
 import { registerCommand } from '../registry.js';
 import { MIN_BET, MAX_BET_SLOTS } from '../../config/constants.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
+import { findOrCreateUser, getTodayStats } from '../../database/repositories/user.repository.js';
 import { processGameResult } from '../../database/services/economy.service.js';
 import { spin } from '../../games/slots/slots.engine.js';
 import { buildSlotsSpinningView } from '../../ui/builders/slots.builder.js';
@@ -62,6 +62,9 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   const result = spin();
   const gameResult = await processGameResult(userId, 'SLOTS', bet, result.paytable.multiplier);
 
+  // Get today's stats
+  const todayStats = await getTodayStats(userId);
+
   // Play animation
   await playSlotsAnimation(
     interaction,
@@ -70,6 +73,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     gameResult.payout,
     gameResult.newBalance,
     userId,
+    todayStats,
   );
 }
 

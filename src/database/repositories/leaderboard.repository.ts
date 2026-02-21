@@ -8,7 +8,7 @@ export interface LeaderboardEntry {
   totalGames: number;
 }
 
-export async function getTopPlayers(limit = 10): Promise<LeaderboardEntry[]> {
+export async function getTopPlayers(limit = 10, offset = 0): Promise<LeaderboardEntry[]> {
   return prisma.user.findMany({
     select: {
       id: true,
@@ -19,7 +19,12 @@ export async function getTopPlayers(limit = 10): Promise<LeaderboardEntry[]> {
     },
     orderBy: { chips: 'desc' },
     take: limit,
+    skip: offset,
   });
+}
+
+export async function getTotalPlayerCount(): Promise<number> {
+  return prisma.user.count();
 }
 
 export async function getUserRank(userId: string): Promise<number> {

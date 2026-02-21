@@ -8,6 +8,8 @@ export interface DailyResult {
   amount?: bigint;
   newBalance?: bigint;
   remainingCooldown?: number;
+  streak?: number;
+  nextClaimAt?: number;
 }
 
 export async function claimDaily(userId: string): Promise<DailyResult> {
@@ -20,9 +22,11 @@ export async function claimDaily(userId: string): Promise<DailyResult> {
     if (user.lastDaily) {
       const elapsed = Date.now() - user.lastDaily.getTime();
       if (elapsed < DAILY_COOLDOWN_MS) {
+        const nextClaimAt = user.lastDaily.getTime() + DAILY_COOLDOWN_MS;
         return {
           success: false,
           remainingCooldown: DAILY_COOLDOWN_MS - elapsed,
+          nextClaimAt,
         };
       }
     }
@@ -30,11 +34,21 @@ export async function claimDaily(userId: string): Promise<DailyResult> {
     const isBroke = user.chips <= 0n;
     const amount = isBroke ? DAILY_BONUS_BROKE : DAILY_BONUS;
 
+    // Streak calculation: within 48h of lastDaily → increment, otherwise reset to 1
+    const STREAK_WINDOW_MS = 48 * 60 * 60 * 1000;
+    let newStreak: number;
+    if (user.lastDaily && (Date.now() - user.lastDaily.getTime()) <= STREAK_WINDOW_MS) {
+      newStreak = user.dailyStreak + 1;
+    } else {
+      newStreak = 1;
+    }
+
     const updated = await tx.user.update({
       where: { id: userId },
       data: {
         chips: { increment: amount },
         lastDaily: new Date(),
+        dailyStreak: newStreak,
       },
     });
 
@@ -52,6 +66,7 @@ export async function claimDaily(userId: string): Promise<DailyResult> {
       success: true,
       amount,
       newBalance: updated.chips,
+      streak: newStreak,
     };
   });
 }

@@ -43,6 +43,41 @@ export async function incrementGameStats(
   });
 }
 
+export interface TodayStats {
+  wins: number;
+  losses: number;
+  netAmount: bigint;
+}
+
+export async function getTodayStats(userId: string): Promise<TodayStats> {
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const transactions = await prisma.transaction.findMany({
+    where: {
+      userId,
+      createdAt: { gte: startOfDay },
+      type: { in: ['WIN', 'LOSS'] },
+    },
+    select: { type: true, amount: true },
+  });
+
+  let wins = 0;
+  let losses = 0;
+  let netAmount = 0n;
+
+  for (const tx of transactions) {
+    if (tx.type === 'WIN') {
+      wins++;
+    } else {
+      losses++;
+    }
+    netAmount += tx.amount;
+  }
+
+  return { wins, losses, netAmount };
+}
+
 export async function resetUser(userId: string) {
   return prisma.user.update({
     where: { id: userId },

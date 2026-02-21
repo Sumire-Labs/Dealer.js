@@ -25,6 +25,7 @@ async function loadModules(): Promise<void> {
   await import('./interactions/buttons/poker.buttons.js');
   await import('./interactions/buttons/bank.buttons.js');
   await import('./interactions/buttons/balance.buttons.js');
+  await import('./interactions/buttons/leaderboard.buttons.js');
 
   // Modal handlers
   await import('./interactions/modals/bet-amount.modal.js');
