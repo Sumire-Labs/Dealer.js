@@ -15,6 +15,7 @@ import { advanceGame } from '../../commands/casino/poker.command.js';
 import { formatChips } from '../../utils/formatters.js';
 import {
   buildPokerLobbyView,
+  buildActionConfirmation,
 } from '../../ui/builders/poker.builder.js';
 import { logger } from '../../utils/logger.js';
 
@@ -158,8 +159,6 @@ async function handleRaise(
     return;
   }
 
-  await interaction.deferUpdate();
-
   // Update min raise for next raise
   const raiseIncrement = raiseTotal - session.currentBet;
   if (raiseIncrement > session.minRaise) {
@@ -176,6 +175,13 @@ async function handleRaise(
       p.acted = false;
     }
   }
+
+  // Confirm to user via ephemeral
+  const confirmText = buildActionConfirmation('raise', raiseTotal);
+  await interaction.reply({
+    content: confirmText,
+    flags: MessageFlags.Ephemeral,
+  });
 
   await advanceGame(interaction.channel, session);
 }

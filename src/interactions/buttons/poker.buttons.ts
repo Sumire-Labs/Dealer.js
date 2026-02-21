@@ -17,7 +17,7 @@ import {
   canCheck,
 } from '../../games/poker/poker.engine.js';
 import { advanceGame, tryStartGame } from '../../commands/casino/poker.command.js';
-import { formatCard } from '../../games/poker/poker.deck.js';
+import { buildPlayerPanel, buildActionConfirmation } from '../../ui/builders/poker.builder.js';
 import { formatChips } from '../../utils/formatters.js';
 
 async function handlePokerButton(interaction: ButtonInteraction): Promise<void> {
@@ -38,13 +38,13 @@ async function handlePokerButton(interaction: ButtonInteraction): Promise<void> 
 
   switch (action) {
     case 'join':
-      await handleJoin(interaction, channelId, sessionId);
+      await handleJoin(interaction, channelId);
       break;
     case 'start':
       await handleStart(interaction, parts);
       break;
-    case 'view_hand':
-      await handleViewHand(interaction, channelId);
+    case 'panel':
+      await handlePanel(interaction, channelId);
       break;
     case 'fold':
       await handleGameAction(interaction, channelId, 'fold');
@@ -61,10 +61,11 @@ async function handlePokerButton(interaction: ButtonInteraction): Promise<void> 
   }
 }
 
+// ─── Lobby handlers ───────────────────────────────────
+
 async function handleJoin(
   interaction: ButtonInteraction,
   channelId: string,
-  _sessionId: string,
 ): Promise<void> {
   const session = getActiveSession(channelId);
   if (!session || session.status !== 'waiting') {
@@ -91,7 +92,6 @@ async function handleJoin(
     return;
   }
 
-  // Show buy-in modal
   const modal = new ModalBuilder()
     .setCustomId(`poker_modal:buyin:${channelId}`)
     .setTitle('テキサスホールデム — バイイン')
@@ -135,14 +135,15 @@ async function handleStart(
     return;
   }
 
-  // Force close lobby
   session.lobbyDeadline = Date.now();
   if (session.lobbyTimer) clearInterval(session.lobbyTimer);
   await interaction.deferUpdate();
   await tryStartGame(interaction.channel, session);
 }
 
-async function handleViewHand(
+// ─── Personal panel (Ephemeral) ───────────────────────
+
+async function handlePanel(
   interaction: ButtonInteraction,
   channelId: string,
 ): Promise<void> {
@@ -164,12 +165,16 @@ async function handleViewHand(
     return;
   }
 
-  const handDisplay = player.holeCards.map(c => formatCard(c)).join(' ');
+  const panel = buildPlayerPanel(session, player);
+
   await interaction.reply({
-    content: `🃏 あなたの手札: **${handDisplay}**`,
+    content: panel.content,
+    components: panel.components,
     flags: MessageFlags.Ephemeral,
   });
 }
+
+// ─── Game actions (from Ephemeral panel buttons) ──────
 
 async function handleGameAction(
   interaction: ButtonInteraction,
@@ -194,7 +199,6 @@ async function handleGameAction(
     return;
   }
 
-  // Validate the action
   if (action === 'check' && !canCheck(currentPlayer, session.currentBet)) {
     await interaction.reply({
       content: 'チェックはできません。コールまたはレイズしてください。',
@@ -203,11 +207,20 @@ async function handleGameAction(
     return;
   }
 
-  await interaction.deferUpdate();
+  // Calculate call amount before processing
+  const callAmount = session.currentBet - currentPlayer.currentBet;
 
   const { newCurrentBet } = processAction(action, currentPlayer, session.currentBet);
   session.currentBet = newCurrentBet;
 
+  // Update the Ephemeral message with confirmation (replaces buttons)
+  const confirmText = buildActionConfirmation(action, action === 'call' ? callAmount : undefined);
+  await interaction.update({
+    content: confirmText,
+    components: [],
+  });
+
+  // Advance game + update shared table
   await advanceGame(interaction.channel, session);
 }
 
