@@ -29,7 +29,7 @@ async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> 
   // Only the original user can interact
   if (interaction.user.id !== ownerId) {
     await interaction.reply({
-      content: 'This is not your slot machine! Use `/slots` to play.',
+      content: 'これはあなたのスロットではありません！ `/slots` で遊んでください。',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -81,7 +81,7 @@ async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> 
 
     if (user.chips < currentBet) {
       await interaction.reply({
-        content: `Insufficient chips! You have ${formatChips(user.chips)}. Lower your bet.`,
+        content: `チップが不足しています！ 残高: ${formatChips(user.chips)}。ベット額を下げてください。`,
         flags: MessageFlags.Ephemeral,
       });
       return;
@@ -146,7 +146,7 @@ function buildSlotsIdleViewWithButtons(
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `BET: ${formatChips(bet)} | Balance: ${formatChips(balance)}`,
+        `BET: ${formatChips(bet)} | 残高: ${formatChips(balance)}`,
       ),
     )
     .addActionRowComponents(
@@ -158,7 +158,7 @@ function buildSlotsIdleViewWithButtons(
           .setDisabled(bet <= MIN_BET),
         new ButtonBuilder()
           .setCustomId(`slots:spin:${userId}`)
-          .setLabel('🎰 SPIN')
+          .setLabel('🎰 スピン')
           .setStyle(ButtonStyle.Primary),
         new ButtonBuilder()
           .setCustomId(`slots:bet_up:${userId}`)

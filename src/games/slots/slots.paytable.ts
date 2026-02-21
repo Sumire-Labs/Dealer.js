@@ -16,12 +16,12 @@ export function evaluatePaytable(reels: SlotSymbol[]): PaytableResult {
 
   // 2x special
   if (specialCount === 2) {
-    return { multiplier: SLOTS_CONFIG.payouts.specialTwo, label: '💎 Double Diamond!' };
+    return { multiplier: SLOTS_CONFIG.payouts.specialTwo, label: '💎 ダブルダイヤモンド！' };
   }
 
   // 1x special
   if (specialCount === 1) {
-    return { multiplier: SLOTS_CONFIG.payouts.specialOne, label: '💎 Diamond!' };
+    return { multiplier: SLOTS_CONFIG.payouts.specialOne, label: '💎 ダイヤモンド！' };
   }
 
   // All three match (no specials)
@@ -29,21 +29,21 @@ export function evaluatePaytable(reels: SlotSymbol[]): PaytableResult {
     const rank = reels[0].rank;
     switch (rank) {
       case 'high':
-        return { multiplier: SLOTS_CONFIG.payouts.threeHighRank, label: `${reels[0].emoji} Triple High!` };
+        return { multiplier: SLOTS_CONFIG.payouts.threeHighRank, label: `${reels[0].emoji} トリプル・ハイ！` };
       case 'medium':
-        return { multiplier: SLOTS_CONFIG.payouts.threeMediumRank, label: `${reels[0].emoji} Triple!` };
+        return { multiplier: SLOTS_CONFIG.payouts.threeMediumRank, label: `${reels[0].emoji} トリプル！` };
       case 'low':
-        return { multiplier: SLOTS_CONFIG.payouts.threeLowRank, label: `${reels[0].emoji} Triple!` };
+        return { multiplier: SLOTS_CONFIG.payouts.threeLowRank, label: `${reels[0].emoji} トリプル！` };
       default:
-        return { multiplier: SLOTS_CONFIG.payouts.threeLowRank, label: `${reels[0].emoji} Triple!` };
+        return { multiplier: SLOTS_CONFIG.payouts.threeLowRank, label: `${reels[0].emoji} トリプル！` };
     }
   }
 
   // Two match
   if (reels[0].id === reels[1].id || reels[1].id === reels[2].id || reels[0].id === reels[2].id) {
-    return { multiplier: SLOTS_CONFIG.payouts.twoMatch, label: 'Pair!' };
+    return { multiplier: SLOTS_CONFIG.payouts.twoMatch, label: 'ペア！' };
   }
 
   // No match
-  return { multiplier: SLOTS_CONFIG.payouts.loss, label: 'No luck...' };
+  return { multiplier: SLOTS_CONFIG.payouts.loss, label: 'ハズレ...' };
 }

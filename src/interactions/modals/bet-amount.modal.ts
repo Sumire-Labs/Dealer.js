@@ -21,7 +21,7 @@ async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promis
   const session = getActiveSession(channelId);
   if (!session || session.status !== 'betting') {
     await interaction.reply({
-      content: 'This race is no longer accepting bets.',
+      content: 'このレースのベット受付は終了しています。',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -30,7 +30,7 @@ async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promis
   // Validate horseIndex bounds
   if (isNaN(horseIndex) || horseIndex < 0 || horseIndex >= session.horses.length) {
     await interaction.reply({
-      content: 'Invalid horse selection.',
+      content: '無効な馬の選択です。',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -41,7 +41,7 @@ async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promis
   const parsed = parseInt(amountStr);
   if (isNaN(parsed) || parsed <= 0) {
     await interaction.reply({
-      content: 'Please enter a valid number.',
+      content: '有効な数値を入力してください。',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -50,7 +50,7 @@ async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promis
   const amount = BigInt(parsed);
   if (amount < MIN_BET || amount > MAX_BET_HORSE_RACE) {
     await interaction.reply({
-      content: `Bet must be between ${formatChips(MIN_BET)} and ${formatChips(MAX_BET_HORSE_RACE)}.`,
+      content: `ベット額は${formatChips(MIN_BET)}〜${formatChips(MAX_BET_HORSE_RACE)}の範囲で指定してください。`,
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -59,7 +59,7 @@ async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promis
   const user = await findOrCreateUser(interaction.user.id);
   if (user.chips < amount) {
     await interaction.reply({
-      content: `Insufficient chips! You have ${formatChips(user.chips)}.`,
+      content: `チップが不足しています！ 残高: ${formatChips(user.chips)}`,
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -73,7 +73,7 @@ async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promis
 
   if (!added) {
     await interaction.reply({
-      content: 'You already placed a bet in this race!',
+      content: 'このレースには既にベット済みです！',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -84,7 +84,7 @@ async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promis
 
   const horse = session.horses[horseIndex];
   await interaction.reply({
-    content: `✅ Bet placed! **${formatChips(amount)}** on **${horse.name}** (x${horse.odds})`,
+    content: `✅ ベット完了！ **${horse.name}** に **${formatChips(amount)}**（x${horse.odds}）`,
     flags: MessageFlags.Ephemeral,
   });
 }

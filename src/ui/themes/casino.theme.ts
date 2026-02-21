@@ -13,8 +13,8 @@ export const CasinoTheme = {
     race: '🏇 ━━━ DIAMOND CASINO RACE ━━━ 🏇',
     blackjack: '🃏 ━━━ BLACKJACK ━━━ 🃏',
     coinflip: '🪙 ━━━ COIN FLIP ━━━ 🪙',
-    balance: '💰 ━━━ BALANCE ━━━ 💰',
-    leaderboard: '🏆 ━━━ LEADERBOARD ━━━ 🏆',
-    daily: '🎁 ━━━ DAILY BONUS ━━━ 🎁',
+    balance: '💰 ━━━ 残高 ━━━ 💰',
+    leaderboard: '🏆 ━━━ ランキング ━━━ 🏆',
+    daily: '🎁 ━━━ デイリーボーナス ━━━ 🎁',
   },
 } as const;

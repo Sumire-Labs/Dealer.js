@@ -17,11 +17,11 @@ import { formatChips } from '../../utils/formatters.js';
 
 const data = new SlashCommandBuilder()
   .setName('blackjack')
-  .setDescription('Play Blackjack against the dealer')
+  .setDescription('ディーラーとブラックジャックで対戦')
   .addIntegerOption(option =>
     option
       .setName('bet')
-      .setDescription('Bet amount')
+      .setDescription('ベット額')
       .setRequired(true)
       .setMinValue(Number(MIN_BET))
       .setMaxValue(Number(MAX_BET_BLACKJACK)),
@@ -35,7 +35,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   // Check for existing session
   if (bjSessionManager.has(userId)) {
     await interaction.reply({
-      content: 'You already have an active Blackjack game! Finish it first.',
+      content: '進行中のブラックジャックがあります！ 先にそちらを終わらせてください。',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -44,7 +44,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   const user = await findOrCreateUser(userId);
   if (user.chips < bet) {
     await interaction.reply({
-      content: `Insufficient chips! You have ${formatChips(user.chips)}.`,
+      content: `チップが不足しています！ 残高: ${formatChips(user.chips)}`,
       flags: MessageFlags.Ephemeral,
     });
     return;

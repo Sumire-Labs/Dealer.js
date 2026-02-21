@@ -5,13 +5,13 @@ export function chipDisplay(amount: bigint): string {
 }
 
 export function betAndBalanceDisplay(bet: bigint, balance: bigint): string {
-  return `BET: ${formatChips(bet)} | Balance: ${formatChips(balance)}`;
+  return `BET: ${formatChips(bet)} | 残高: ${formatChips(balance)}`;
 }
 
 export function winDisplay(bet: bigint, payout: bigint): string {
-  return `BET: ${formatChips(bet)} → WIN: ${formatChips(payout)}!`;
+  return `BET: ${formatChips(bet)} → 獲得: ${formatChips(payout)}!`;
 }
 
 export function lossDisplay(bet: bigint): string {
-  return `BET: ${formatChips(bet)} → LOST`;
+  return `BET: ${formatChips(bet)} → ハズレ`;
 }

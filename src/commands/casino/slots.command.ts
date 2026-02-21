@@ -15,11 +15,11 @@ import { slotsSessionManager } from '../../interactions/buttons/slots.buttons.js
 
 const data = new SlashCommandBuilder()
   .setName('slots')
-  .setDescription('Play the Diamond Casino slot machine')
+  .setDescription('ダイヤモンドカジノのスロットマシンで遊ぶ')
   .addIntegerOption(option =>
     option
       .setName('bet')
-      .setDescription('Bet amount')
+      .setDescription('ベット額')
       .setRequired(false)
       .setMinValue(Number(MIN_BET))
       .setMaxValue(Number(MAX_BET_SLOTS)),
@@ -33,7 +33,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
 
   if (bet < MIN_BET || bet > MAX_BET_SLOTS) {
     await interaction.reply({
-      content: `Bet must be between ${formatChips(MIN_BET)} and ${formatChips(MAX_BET_SLOTS)}.`,
+      content: `ベット額は${formatChips(MIN_BET)}〜${formatChips(MAX_BET_SLOTS)}の範囲で指定してください。`,
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -42,7 +42,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   const user = await findOrCreateUser(userId);
   if (user.chips < bet) {
     await interaction.reply({
-      content: `Insufficient chips! You have ${formatChips(user.chips)}.`,
+      content: `チップが不足しています！ 残高: ${formatChips(user.chips)}`,
       flags: MessageFlags.Ephemeral,
     });
     return;

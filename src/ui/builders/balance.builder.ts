@@ -27,8 +27,8 @@ export function buildBalanceView(data: BalanceDisplayData): ContainerBuilder {
     : '0.0';
 
   const title = isSelf
-    ? `${CasinoTheme.prefixes.balance}\n**Your Balance**`
-    : `${CasinoTheme.prefixes.balance}\n**${username}'s Balance**`;
+    ? `${CasinoTheme.prefixes.balance}\n**あなたの残高**`
+    : `${CasinoTheme.prefixes.balance}\n**${username} の残高**`;
 
   const container = new ContainerBuilder()
     .setAccentColor(CasinoTheme.colors.gold)
@@ -40,12 +40,12 @@ export function buildBalanceView(data: BalanceDisplayData): ContainerBuilder {
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `💰 **Chips**: ${formatChips(chips)}`,
+        `💰 **チップ**: ${formatChips(chips)}`,
       ),
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `🏆 **Rank**: #${rank}`,
+        `🏆 **ランク**: #${rank}`,
       ),
     )
     .addSeparatorComponents(
@@ -54,12 +54,12 @@ export function buildBalanceView(data: BalanceDisplayData): ContainerBuilder {
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
         [
-          '📊 **Stats**',
-          `> Games Played: **${totalGames}**`,
-          `> Total Won: **${formatChips(totalWon)}**`,
-          `> Total Lost: **${formatChips(totalLost)}**`,
-          `> Net: **${net >= 0n ? '+' : ''}${formatChips(net)}**`,
-          `> Win Rate: **${winRate}%**`,
+          '📊 **統計**',
+          `> プレイ回数: **${totalGames}**`,
+          `> 総獲得額: **${formatChips(totalWon)}**`,
+          `> 総損失額: **${formatChips(totalLost)}**`,
+          `> 収支: **${net >= 0n ? '+' : ''}${formatChips(net)}**`,
+          `> 勝率: **${winRate}%**`,
         ].join('\n'),
       ),
     );

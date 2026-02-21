@@ -15,7 +15,7 @@ import { formatTimeDelta } from '../../utils/formatters.js';
 
 const data = new SlashCommandBuilder()
   .setName('daily')
-  .setDescription('Claim your daily chip bonus')
+  .setDescription('デイリーチップボーナスを受け取る')
   .toJSON();
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -33,7 +33,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
       )
       .addTextDisplayComponents(
         new TextDisplayBuilder().setContent(
-          `⏰ You already claimed your daily bonus!\nCome back in **${remaining}**`,
+          `⏰ 本日のボーナスは受取済みです！\n次回まで **${remaining}**`,
         ),
       );
 
@@ -46,7 +46,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
 
   const isBroke = result.amount! > 2500n;
   const bonusNote = isBroke
-    ? '\n💸 *Broke bonus! Extra chips to get you back in the game.*'
+    ? '\n💸 *救済ボーナス！ 復帰用の追加チップです。*'
     : '';
 
   const container = new ContainerBuilder()
@@ -59,7 +59,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `✅ You received **${formatChips(result.amount!)}**!${bonusNote}\n\n💰 Balance: **${formatChips(result.newBalance!)}**`,
+        `✅ **${formatChips(result.amount!)}** を受け取りました！${bonusNote}\n\n💰 残高: **${formatChips(result.newBalance!)}**`,
       ),
     );
 

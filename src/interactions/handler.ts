@@ -45,7 +45,7 @@ export async function handleInteraction(interaction: Interaction): Promise<void>
       if (isOnCooldown(cooldownKey)) {
         const remaining = getRemainingCooldown(cooldownKey);
         await interaction.reply({
-          content: `Please wait **${formatTimeDelta(remaining)}** before using this command again.`,
+          content: `このコマンドは **${formatTimeDelta(remaining)}** 後に再使用できます。`,
           flags: MessageFlags.Ephemeral,
         });
         return;

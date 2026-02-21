@@ -12,8 +12,8 @@ import { formatChips } from '../../utils/formatters.js';
 import type { CoinSide } from '../../games/coinflip/coinflip.engine.js';
 
 const SIDE_DISPLAY: Record<CoinSide, { emoji: string; label: string }> = {
-  heads: { emoji: '👑', label: 'HEADS' },
-  tails: { emoji: '🦅', label: 'TAILS' },
+  heads: { emoji: '👑', label: 'オモテ' },
+  tails: { emoji: '🦅', label: 'ウラ' },
 };
 
 export function buildCoinflipChoiceView(
@@ -31,18 +31,18 @@ export function buildCoinflipChoiceView(
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `BET: **${formatChips(bet)}**\nBalance: ${formatChips(balance)}\n\nChoose your side:`,
+        `BET: **${formatChips(bet)}**\n残高: ${formatChips(balance)}\n\n面を選んでください:`,
       ),
     )
     .addActionRowComponents(
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId(`coinflip:heads:${userId}`)
-          .setLabel('👑 Heads')
+          .setLabel('👑 オモテ')
           .setStyle(ButtonStyle.Primary),
         new ButtonBuilder()
           .setCustomId(`coinflip:tails:${userId}`)
-          .setLabel('🦅 Tails')
+          .setLabel('🦅 ウラ')
           .setStyle(ButtonStyle.Primary),
       ),
     );
@@ -58,7 +58,7 @@ export function buildCoinflipFlippingView(): ContainerBuilder {
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     )
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent('🪙 *The coin is spinning...*'),
+      new TextDisplayBuilder().setContent('🪙 *コインが回っています...*'),
     );
 }
 
@@ -75,9 +75,9 @@ export function buildCoinflipResultView(
 
   let resultText: string;
   if (won) {
-    resultText = `✅ **YOU WIN!** +${formatChips(payout - bet)}`;
+    resultText = `✅ **勝ち！** +${formatChips(payout - bet)}`;
   } else {
-    resultText = `❌ **YOU LOSE!** -${formatChips(bet)}`;
+    resultText = `❌ **負け！** -${formatChips(bet)}`;
   }
 
   return new ContainerBuilder()
@@ -90,12 +90,12 @@ export function buildCoinflipResultView(
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `🪙 The coin lands... **${outcomeDisplay.label}!** ${outcomeDisplay.emoji}`,
+        `🪙 コインの結果は... **${outcomeDisplay.label}！** ${outcomeDisplay.emoji}`,
       ),
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `Your pick: ${choiceDisplay.emoji} ${choiceDisplay.label}`,
+        `あなたの選択: ${choiceDisplay.emoji} ${choiceDisplay.label}`,
       ),
     )
     .addSeparatorComponents(
@@ -105,6 +105,6 @@ export function buildCoinflipResultView(
       new TextDisplayBuilder().setContent(resultText),
     )
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`Balance: ${formatChips(newBalance)}`),
+      new TextDisplayBuilder().setContent(`残高: ${formatChips(newBalance)}`),
     );
 }

@@ -10,11 +10,11 @@ import { buildBalanceView } from '../../ui/builders/balance.builder.js';
 
 const data = new SlashCommandBuilder()
   .setName('balance')
-  .setDescription('Check your chip balance and stats')
+  .setDescription('チップ残高と統計を確認')
   .addUserOption(option =>
     option
       .setName('user')
-      .setDescription('Check another user\'s balance')
+      .setDescription('他のユーザーの残高を確認')
       .setRequired(false),
   )
   .toJSON();

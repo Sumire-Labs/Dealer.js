@@ -10,7 +10,7 @@ import { buildLeaderboardView } from '../../ui/builders/leaderboard.builder.js';
 
 const data = new SlashCommandBuilder()
   .setName('leaderboard')
-  .setDescription('View the top chip holders')
+  .setDescription('チップ保有量ランキングを表示')
   .toJSON();
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {

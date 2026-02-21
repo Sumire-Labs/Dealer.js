@@ -29,12 +29,12 @@ import { logger } from '../../utils/logger.js';
 
 const data = new SlashCommandBuilder()
   .setName('race')
-  .setDescription('Start or manage a horse race')
+  .setDescription('競馬レースの開始・管理')
   .addSubcommand(sub =>
-    sub.setName('start').setDescription('Start a new horse race in this channel'),
+    sub.setName('start').setDescription('新しいレースを開始'),
   )
   .addSubcommand(sub =>
-    sub.setName('close').setDescription('Close betting and start the race early'),
+    sub.setName('close').setDescription('ベットを締め切ってレース開始'),
   )
   .toJSON();
 
@@ -55,7 +55,7 @@ async function handleStart(interaction: ChatInputCommandInteraction): Promise<vo
   const existing = getActiveSession(channelId);
   if (existing) {
     await interaction.reply({
-      content: 'A race is already in progress in this channel!',
+      content: 'このチャンネルではすでにレースが進行中です！',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -103,14 +103,14 @@ async function handleClose(interaction: ChatInputCommandInteraction): Promise<vo
 
   if (!session || session.status !== 'betting') {
     await interaction.reply({
-      content: 'No active betting session in this channel.',
+      content: 'このチャンネルにはベット受付中のレースがありません。',
       flags: MessageFlags.Ephemeral,
     });
     return;
   }
 
   await interaction.reply({
-    content: '⏰ Betting closed! Starting the race...',
+    content: '⏰ ベット締め切り！ レースを開始します...',
     flags: MessageFlags.Ephemeral,
   });
 
@@ -174,7 +174,7 @@ async function runRace(
     }
 
     const cancelView = buildRaceCancelledView(
-      `Not enough players (${session.bets.length}/${RACE_MIN_PLAYERS}). All bets refunded.`,
+      `参加者不足（${session.bets.length}/${RACE_MIN_PLAYERS}）。全ベットを返金しました。`,
     );
 
     try {

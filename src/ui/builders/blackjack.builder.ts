@@ -25,9 +25,9 @@ function handValueText(cards: { suit: string; rank: string }[], hideSecond = fal
     return '?';
   }
   const value = evaluateHand(cards as never);
-  if (value.isBlackjack) return '**21 Blackjack!**';
-  if (value.isBust) return `~~${value.best}~~ BUST`;
-  return value.isSoft ? `${value.best} (soft)` : `${value.best}`;
+  if (value.isBlackjack) return '**21 ブラックジャック！**';
+  if (value.isBust) return `~~${value.best}~~ バスト`;
+  return value.isSoft ? `${value.best}（ソフト）` : `${value.best}`;
 }
 
 export function buildBlackjackPlayingView(
@@ -49,7 +49,7 @@ export function buildBlackjackPlayingView(
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `**Dealer**: ${dealerDisplay}  →  ${dealerValueText}`,
+        `**ディーラー**: ${dealerDisplay}  →  ${dealerValueText}`,
       ),
     );
 
@@ -60,8 +60,8 @@ export function buildBlackjackPlayingView(
     const valueText = handValueText(hand.cards);
     const isActive = state.phase === 'playing' && i === state.activeHandIndex;
     const pointer = isActive ? ' 👈' : '';
-    const handLabel = state.playerHands.length > 1 ? `Hand ${i + 1}` : 'You';
-    const betLabel = hand.doubled ? `${formatChips(hand.bet)} (Doubled)` : formatChips(hand.bet);
+    const handLabel = state.playerHands.length > 1 ? `ハンド ${i + 1}` : 'あなた';
+    const betLabel = hand.doubled ? `${formatChips(hand.bet)}（ダブル）` : formatChips(hand.bet);
 
     container.addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
@@ -75,7 +75,7 @@ export function buildBlackjackPlayingView(
   );
 
   container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(`Balance: ${formatChips(balance)}`),
+    new TextDisplayBuilder().setContent(`残高: ${formatChips(balance)}`),
   );
 
   // Action buttons (only if playing)
@@ -91,11 +91,11 @@ export function buildBlackjackPlayingView(
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId(`bj:hit:${userId}`)
-        .setLabel('🂠 Hit')
+        .setLabel('🂠 ヒット')
         .setStyle(ButtonStyle.Primary),
       new ButtonBuilder()
         .setCustomId(`bj:stand:${userId}`)
-        .setLabel('✋ Stand')
+        .setLabel('✋ スタンド')
         .setStyle(ButtonStyle.Secondary),
     );
 
@@ -103,7 +103,7 @@ export function buildBlackjackPlayingView(
       row.addComponents(
         new ButtonBuilder()
           .setCustomId(`bj:double:${userId}`)
-          .setLabel('💰 Double')
+          .setLabel('💰 ダブル')
           .setStyle(ButtonStyle.Success),
       );
     }
@@ -112,7 +112,7 @@ export function buildBlackjackPlayingView(
       row.addComponents(
         new ButtonBuilder()
           .setCustomId(`bj:split:${userId}`)
-          .setLabel('✂️ Split')
+          .setLabel('✂️ スプリット')
           .setStyle(ButtonStyle.Success),
       );
     }
@@ -124,7 +124,7 @@ export function buildBlackjackPlayingView(
         new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
             .setCustomId(`bj:insurance:${userId}`)
-            .setLabel('🛡️ Insurance')
+            .setLabel('🛡️ インシュランス')
             .setStyle(ButtonStyle.Secondary),
         ),
       );
@@ -160,7 +160,7 @@ export function buildBlackjackResultView(
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `**Dealer**: ${dealerDisplay}  →  ${dealerValueText}`,
+        `**ディーラー**: ${dealerDisplay}  →  ${dealerValueText}`,
       ),
     );
 
@@ -169,7 +169,7 @@ export function buildBlackjackResultView(
     const handDisplay = renderHand(hand.cards);
     const valueText = handValueText(hand.cards);
     const outcome = state.outcomes[i];
-    const handLabel = state.playerHands.length > 1 ? `Hand ${i + 1}` : 'You';
+    const handLabel = state.playerHands.length > 1 ? `ハンド ${i + 1}` : 'あなた';
 
     const outcomeText = outcomeToText(outcome);
 
@@ -183,8 +183,8 @@ export function buildBlackjackResultView(
   // Insurance result
   if (state.insuranceBet > 0n) {
     const insResult = state.insurancePaid
-      ? `🛡️ Insurance pays! +${formatChips(state.insuranceBet * 2n)}`
-      : `🛡️ Insurance lost: -${formatChips(state.insuranceBet)}`;
+      ? `🛡️ インシュランス的中！ +${formatChips(state.insuranceBet * 2n)}`
+      : `🛡️ インシュランス失敗: -${formatChips(state.insuranceBet)}`;
     container.addTextDisplayComponents(
       new TextDisplayBuilder().setContent(insResult),
     );
@@ -196,18 +196,18 @@ export function buildBlackjackResultView(
 
   let summaryText: string;
   if (isWin) {
-    summaryText = `✅ **WIN!** +${formatChips(net)}`;
+    summaryText = `✅ **勝ち！** +${formatChips(net)}`;
   } else if (isPush) {
-    summaryText = '🤝 **PUSH** — Bet returned';
+    summaryText = '🤝 **引き分け** — ベット返却';
   } else {
-    summaryText = `❌ **LOSE** ${formatChips(net)}`;
+    summaryText = `❌ **負け** ${formatChips(net)}`;
   }
 
   container.addTextDisplayComponents(
     new TextDisplayBuilder().setContent(summaryText),
   );
   container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(`Balance: ${formatChips(newBalance)}`),
+    new TextDisplayBuilder().setContent(`残高: ${formatChips(newBalance)}`),
   );
 
   return container;
@@ -215,12 +215,12 @@ export function buildBlackjackResultView(
 
 function outcomeToText(outcome: string): string {
   switch (outcome) {
-    case 'blackjack': return '🂡 **BLACKJACK!** (3:2)';
-    case 'win': return '✅ **WIN!**';
-    case 'dealer_bust': return '✅ **Dealer BUST — You win!**';
-    case 'push': return '🤝 **PUSH**';
-    case 'bust': return '💥 **BUST**';
-    case 'lose': return '❌ **LOSE**';
+    case 'blackjack': return '🂡 **ブラックジャック！** (3:2)';
+    case 'win': return '✅ **勝ち！**';
+    case 'dealer_bust': return '✅ **ディーラーバスト — あなたの勝ち！**';
+    case 'push': return '🤝 **引き分け**';
+    case 'bust': return '💥 **バスト**';
+    case 'lose': return '❌ **負け**';
     default: return outcome;
   }
 }

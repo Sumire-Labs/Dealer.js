@@ -12,11 +12,11 @@ import { formatChips } from '../../utils/formatters.js';
 
 const data = new SlashCommandBuilder()
   .setName('coinflip')
-  .setDescription('Flip a coin — double or nothing!')
+  .setDescription('コイントス — 一か八かの勝負！')
   .addIntegerOption(option =>
     option
       .setName('bet')
-      .setDescription('Bet amount')
+      .setDescription('ベット額')
       .setRequired(true)
       .setMinValue(Number(MIN_BET))
       .setMaxValue(Number(MAX_BET_COINFLIP)),
@@ -30,7 +30,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   const user = await findOrCreateUser(userId);
   if (user.chips < bet) {
     await interaction.reply({
-      content: `Insufficient chips! You have ${formatChips(user.chips)}.`,
+      content: `チップが不足しています！ 残高: ${formatChips(user.chips)}`,
       flags: MessageFlags.Ephemeral,
     });
     return;

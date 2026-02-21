@@ -17,9 +17,9 @@ import { formatChips } from '../../utils/formatters.js';
 
 const data = new SlashCommandBuilder()
   .setName('reset')
-  .setDescription('[Admin] Reset a user\'s chips and stats')
+  .setDescription('[管理者] ユーザーのデータをリセット')
   .addUserOption(option =>
-    option.setName('user').setDescription('Target user').setRequired(true),
+    option.setName('user').setDescription('対象ユーザー').setRequired(true),
   )
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   .toJSON();
@@ -40,14 +40,14 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   const container = new ContainerBuilder()
     .setAccentColor(CasinoTheme.colors.red)
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent('🔧 **ADMIN — RESET USER**'),
+      new TextDisplayBuilder().setContent('🔧 **管理者 — ユーザーリセット**'),
     )
     .addSeparatorComponents(
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `Reset <@${targetUser.id}>'s account.\nChips set to **${formatChips(INITIAL_CHIPS)}**, all stats cleared.`,
+        `<@${targetUser.id}> のアカウントをリセットしました。\nチップを **${formatChips(INITIAL_CHIPS)}** に設定し、統計をクリアしました。`,
       ),
     );
 

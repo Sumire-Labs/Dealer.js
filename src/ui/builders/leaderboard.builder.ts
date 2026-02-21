@@ -28,14 +28,14 @@ export function buildLeaderboardView(data: LeaderboardDisplayData): ContainerBui
   const lines = entries.map((entry, i) => {
     const medal = RANK_MEDALS[i] ?? `**${i + 1}.**`;
     const isRequester = entry.userId === requesterId;
-    const name = isRequester ? '**You**' : `<@${entry.userId}>`;
+    const name = isRequester ? '**あなた**' : `<@${entry.userId}>`;
     const highlight = isRequester ? ' ◀' : '';
-    return `${medal} ${name} — ${formatChips(entry.chips)} (${entry.totalGames} games)${highlight}`;
+    return `${medal} ${name} — ${formatChips(entry.chips)}（${entry.totalGames}回）${highlight}`;
   });
 
   const boardText = lines.length > 0
     ? lines.join('\n')
-    : '*No players yet.*';
+    : '*まだプレイヤーがいません。*';
 
   const container = new ContainerBuilder()
     .setAccentColor(CasinoTheme.colors.gold)
@@ -53,7 +53,7 @@ export function buildLeaderboardView(data: LeaderboardDisplayData): ContainerBui
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `Your Rank: **#${requesterRank}** | ${formatChips(requesterChips)}`,
+        `あなたの順位: **#${requesterRank}** | ${formatChips(requesterChips)}`,
       ),
     );
 

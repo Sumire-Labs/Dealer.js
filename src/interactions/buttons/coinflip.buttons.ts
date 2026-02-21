@@ -19,7 +19,7 @@ async function handleCoinflipButton(interaction: ButtonInteraction): Promise<voi
 
   if (interaction.user.id !== ownerId) {
     await interaction.reply({
-      content: 'This is not your coin flip! Use `/coinflip` to play.',
+      content: 'これはあなたのコインフリップではありません！ `/coinflip` で遊んでください。',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -29,7 +29,7 @@ async function handleCoinflipButton(interaction: ButtonInteraction): Promise<voi
   const bet = coinflipSessionManager.get(userId);
   if (!bet) {
     await interaction.reply({
-      content: 'Session expired. Use `/coinflip` to start a new game.',
+      content: 'セッションが期限切れです。`/coinflip` で新しいゲームを始めてください。',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -38,7 +38,7 @@ async function handleCoinflipButton(interaction: ButtonInteraction): Promise<voi
   const user = await findOrCreateUser(userId);
   if (user.chips < bet) {
     await interaction.reply({
-      content: `Insufficient chips! You have ${formatChips(user.chips)}.`,
+      content: `チップが不足しています！ 残高: ${formatChips(user.chips)}`,
       flags: MessageFlags.Ephemeral,
     });
     return;

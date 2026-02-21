@@ -26,7 +26,7 @@ async function handleRaceButton(interaction: ButtonInteraction): Promise<void> {
   const session = getActiveSession(channelId);
   if (!session || session.id !== sessionId || session.status !== 'betting') {
     await interaction.reply({
-      content: 'This race is no longer accepting bets.',
+      content: 'このレースのベット受付は終了しています。',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -34,7 +34,7 @@ async function handleRaceButton(interaction: ButtonInteraction): Promise<void> {
 
   if (hasUserBet(channelId, interaction.user.id)) {
     await interaction.reply({
-      content: 'You already placed a bet in this race!',
+      content: 'このレースには既にベット済みです！',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -45,13 +45,13 @@ async function handleRaceButton(interaction: ButtonInteraction): Promise<void> {
   // Show modal for bet amount
   const modal = new ModalBuilder()
     .setCustomId(`racebet:${channelId}:${horseIndex}`)
-    .setTitle(`Bet on ${horse.name}`)
+    .setTitle(`${horse.name} にベット`)
     .addComponents(
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
           .setCustomId('bet_amount')
-          .setLabel(`Bet amount (x${horse.odds} odds)`)
-          .setPlaceholder('e.g. 5000')
+          .setLabel(`ベット額（x${horse.odds} オッズ）`)
+          .setPlaceholder('例: 5000')
           .setStyle(TextInputStyle.Short)
           .setRequired(true)
           .setMinLength(3)

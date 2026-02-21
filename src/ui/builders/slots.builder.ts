@@ -40,7 +40,7 @@ export function buildSlotsIdleView(
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `BET: ${formatChips(bet)} | Balance: ${formatChips(balance)}`,
+        `BET: ${formatChips(bet)} | 残高: ${formatChips(balance)}`,
       ),
     )
     .addActionRowComponents(
@@ -51,7 +51,7 @@ export function buildSlotsIdleView(
           .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
           .setCustomId(`slots:spin:${userId}`)
-          .setLabel('🎰 SPIN')
+          .setLabel('🎰 スピン')
           .setStyle(ButtonStyle.Primary),
         new ButtonBuilder()
           .setCustomId(`slots:bet_up:${userId}`)
@@ -83,7 +83,7 @@ export function buildSlotsSpinningView(
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     )
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent('🔄 *Spinning...*'),
+      new TextDisplayBuilder().setContent('🔄 *回転中...*'),
     );
 }
 
@@ -102,9 +102,9 @@ export function buildSlotsResultView(
 
   let resultText: string;
   if (isWin) {
-    resultText = `**${paytable.label}** (${paytable.multiplier}x)\nBET: ${formatChips(bet)} → WIN: ${formatChips(payout)}! 🎉`;
+    resultText = `**${paytable.label}** (${paytable.multiplier}x)\nBET: ${formatChips(bet)} → 獲得: ${formatChips(payout)}! 🎉`;
   } else {
-    resultText = `**${paytable.label}**\nBET: ${formatChips(bet)} → LOST`;
+    resultText = `**${paytable.label}**\nBET: ${formatChips(bet)} → ハズレ`;
   }
 
   return new ContainerBuilder()
@@ -125,7 +125,7 @@ export function buildSlotsResultView(
       new TextDisplayBuilder().setContent(resultText),
     )
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`Balance: ${formatChips(newBalance)}`),
+      new TextDisplayBuilder().setContent(`残高: ${formatChips(newBalance)}`),
     )
     .addActionRowComponents(
       new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -135,7 +135,7 @@ export function buildSlotsResultView(
           .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
           .setCustomId(`slots:spin:${userId}`)
-          .setLabel('🎰 SPIN AGAIN')
+          .setLabel('🎰 もう一回')
           .setStyle(ButtonStyle.Primary),
         new ButtonBuilder()
           .setCustomId(`slots:bet_up:${userId}`)

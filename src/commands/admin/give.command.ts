@@ -16,14 +16,14 @@ import { formatChips } from '../../utils/formatters.js';
 
 const data = new SlashCommandBuilder()
   .setName('give')
-  .setDescription('[Admin] Give chips to a user')
+  .setDescription('[管理者] ユーザーにチップを付与')
   .addUserOption(option =>
-    option.setName('user').setDescription('Target user').setRequired(true),
+    option.setName('user').setDescription('対象ユーザー').setRequired(true),
   )
   .addIntegerOption(option =>
     option
       .setName('amount')
-      .setDescription('Amount of chips to give')
+      .setDescription('付与するチップ量')
       .setRequired(true)
       .setMinValue(1),
   )
@@ -40,14 +40,14 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   const container = new ContainerBuilder()
     .setAccentColor(CasinoTheme.colors.diamondBlue)
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent('🔧 **ADMIN — GIVE CHIPS**'),
+      new TextDisplayBuilder().setContent('🔧 **管理者 — チップ付与**'),
     )
     .addSeparatorComponents(
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `Gave **${formatChips(amount)}** to <@${targetUser.id}>\nNew balance: **${formatChips(newBalance)}**`,
+        `<@${targetUser.id}> に **${formatChips(amount)}** を付与しました\n新しい残高: **${formatChips(newBalance)}**`,
       ),
     );
 

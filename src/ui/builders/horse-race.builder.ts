@@ -39,7 +39,7 @@ export function buildBettingView(
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `Bettors: **${bets.length}** | Pool: **${formatChips(pool)}**\n⏰ Betting closes in: **${remainingSeconds}s**`,
+        `参加者: **${bets.length}人** | プール: **${formatChips(pool)}**\n⏰ ベット締切まで: **${remainingSeconds}秒**`,
       ),
     )
     .addActionRowComponents(
@@ -72,7 +72,7 @@ export function buildRaceFrameView(
   return new ContainerBuilder()
     .setAccentColor(CasinoTheme.colors.purple)
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent('🏇 ━━━ **RACE IN PROGRESS** ━━━ 🏇'),
+      new TextDisplayBuilder().setContent('🏇 ━━━ **レース進行中** ━━━ 🏇'),
     )
     .addSeparatorComponents(
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
@@ -91,24 +91,24 @@ export function buildRaceResultView(
   const placementLines = placements.slice(0, 3).map((horseIdx, rank) => {
     const h = horses[horseIdx];
     const medals = ['🥇', '🥈', '🥉'];
-    const ordinals = ['1st', '2nd', '3rd'];
+    const ordinals = ['1着', '2着', '3着'];
     return `${medals[rank]} **${ordinals[rank]}**: ${h.name} (x${h.odds})`;
   }).join('\n');
 
   let payoutText: string;
   if (payouts.length > 0) {
     const payoutLines = payouts.map(p =>
-      `<@${p.userId}> — Bet ${formatChips(p.betAmount)} → Won **${formatChips(p.payout)}**`,
+      `<@${p.userId}> — ベット ${formatChips(p.betAmount)} → 獲得 **${formatChips(p.payout)}**`,
     ).join('\n');
-    payoutText = `**Winners:**\n${payoutLines}`;
+    payoutText = `**当選者:**\n${payoutLines}`;
   } else {
-    payoutText = '*No winners this race.*';
+    payoutText = '*今回の当選者はいませんでした。*';
   }
 
   return new ContainerBuilder()
     .setAccentColor(CasinoTheme.colors.gold)
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent('🏆 ━━━ **RACE RESULTS** ━━━ 🏆'),
+      new TextDisplayBuilder().setContent('🏆 ━━━ **レース結果** ━━━ 🏆'),
     )
     .addSeparatorComponents(
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
@@ -134,6 +134,6 @@ export function buildRaceCancelledView(reason: string): ContainerBuilder {
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     )
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`❌ **Race Cancelled**\n${reason}`),
+      new TextDisplayBuilder().setContent(`❌ **レース中止**\n${reason}`),
     );
 }

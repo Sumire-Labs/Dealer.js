@@ -27,7 +27,7 @@ async function handleBlackjackButton(interaction: ButtonInteraction): Promise<vo
 
   if (interaction.user.id !== ownerId) {
     await interaction.reply({
-      content: 'This is not your game! Use `/blackjack` to play.',
+      content: 'これはあなたのゲームではありません！ `/blackjack` で遊んでください。',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -37,7 +37,7 @@ async function handleBlackjackButton(interaction: ButtonInteraction): Promise<vo
   const state = bjSessionManager.get(userId);
   if (!state) {
     await interaction.reply({
-      content: 'Session expired. Use `/blackjack` to start a new game.',
+      content: 'セッションが期限切れです。`/blackjack` で新しいゲームを始めてください。',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -45,7 +45,7 @@ async function handleBlackjackButton(interaction: ButtonInteraction): Promise<vo
 
   if (state.phase !== 'playing') {
     await interaction.reply({
-      content: 'This game is already over.',
+      content: 'このゲームは既に終了しています。',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -66,7 +66,7 @@ async function handleBlackjackButton(interaction: ButtonInteraction): Promise<vo
       const hand = state.playerHands[state.activeHandIndex];
       if (user.chips < hand.bet) {
         await interaction.reply({
-          content: `Not enough chips to double! Need ${formatChips(hand.bet)}, have ${formatChips(user.chips)}.`,
+          content: `ダブルに必要なチップが足りません！ 必要: ${formatChips(hand.bet)}、残高: ${formatChips(user.chips)}`,
           flags: MessageFlags.Ephemeral,
         });
         return;
@@ -81,7 +81,7 @@ async function handleBlackjackButton(interaction: ButtonInteraction): Promise<vo
       const hand = state.playerHands[state.activeHandIndex];
       if (user.chips < hand.bet) {
         await interaction.reply({
-          content: `Not enough chips to split! Need ${formatChips(hand.bet)}, have ${formatChips(user.chips)}.`,
+          content: `スプリットに必要なチップが足りません！ 必要: ${formatChips(hand.bet)}、残高: ${formatChips(user.chips)}`,
           flags: MessageFlags.Ephemeral,
         });
         return;
@@ -96,7 +96,7 @@ async function handleBlackjackButton(interaction: ButtonInteraction): Promise<vo
       const insBet = state.playerHands[0].bet / 2n;
       if (user.chips < insBet) {
         await interaction.reply({
-          content: `Not enough chips for insurance! Need ${formatChips(insBet)}, have ${formatChips(user.chips)}.`,
+          content: `インシュランスに必要なチップが足りません！ 必要: ${formatChips(insBet)}、残高: ${formatChips(user.chips)}`,
           flags: MessageFlags.Ephemeral,
         });
         return;

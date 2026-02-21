@@ -10,13 +10,13 @@ export async function handleInteractionError(
   interaction: Interaction,
   error: unknown,
 ): Promise<void> {
-  const message = error instanceof Error ? error.message : 'An unexpected error occurred.';
+  const message = error instanceof Error ? error.message : '予期しないエラーが発生しました。';
   logger.error('Interaction error', { error: message, interactionId: interaction.id });
 
   const container = new ContainerBuilder()
     .setAccentColor(0xD32F2F)
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`**Error**: ${message}`),
+      new TextDisplayBuilder().setContent(`**エラー**: ${message}`),
     );
 
   try {
