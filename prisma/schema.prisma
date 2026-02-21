@@ -8,19 +8,21 @@ datasource db {
 }
 
 model User {
-  id           String        @id // Discord User ID
-  chips        BigInt        @default(10000)
-  totalWon     BigInt        @default(0)
-  totalLost    BigInt        @default(0)
-  totalGames   Int           @default(0)
-  dailyStreak  Int           @default(0)
-  lastDaily    DateTime?
-  bankruptAt   DateTime?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  transactions Transaction[]
-  bets         RaceBet[]
-  loans        Loan[]
+  id             String        @id // Discord User ID
+  chips          BigInt        @default(10000)
+  bankBalance    BigInt        @default(0)
+  totalWon       BigInt        @default(0)
+  totalLost      BigInt        @default(0)
+  totalGames     Int           @default(0)
+  dailyStreak    Int           @default(0)
+  lastDaily      DateTime?
+  lastInterestAt DateTime?
+  bankruptAt     DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  transactions   Transaction[]
+  bets           RaceBet[]
+  loans          Loan[]
 }
 
 model Transaction {
@@ -83,6 +85,11 @@ enum TransactionType {
   LOAN_BORROW
   LOAN_REPAY
   BANKRUPTCY
+  BANK_DEPOSIT
+  BANK_WITHDRAW
+  BANK_TRANSFER_SEND
+  BANK_TRANSFER_RECV
+  BANK_INTEREST
 }
 
 enum GameType {

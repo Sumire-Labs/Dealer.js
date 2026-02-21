@@ -27,6 +27,7 @@ async function handleBalanceButton(interaction: ButtonInteraction): Promise<void
     targetId,
     username: targetUser.displayName,
     chips: dbUser.chips,
+    bankBalance: dbUser.bankBalance,
     totalWon: dbUser.totalWon,
     totalLost: dbUser.totalLost,
     totalGames: dbUser.totalGames,

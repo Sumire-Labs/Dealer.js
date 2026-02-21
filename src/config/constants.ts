@@ -30,4 +30,9 @@ export const BANKRUPTCY_CHIPS = 2_500n;
 export const BANKRUPTCY_PENALTY_DURATION_MS = 60 * 60 * 1000; // 1 hour
 export const BANKRUPTCY_PENALTY_RATE = 10; // 10% reduction
 
+// Bank Account & Interest
+export const BANK_INTEREST_RATE = 1n;               // 日利 1%
+export const BANK_INTEREST_PERIOD_MS = 24 * 60 * 60 * 1000; // 24h
+export const BANK_MIN_BALANCE_FOR_INTEREST = 100n;   // 利息最低残高
+
 export const COMMAND_COOLDOWN_MS = 3_000; // 3 seconds default cooldown

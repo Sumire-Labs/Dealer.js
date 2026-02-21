@@ -1,9 +1,9 @@
 {
   "name": "dealer-js",
   "version": "1.0.0",
-  "description": "GTA Online Diamond Casino & Resort inspired Discord gambling bot",
+  "description": "Discord gambling bot",
   "author": "s12kuma01",
-  "license": "MIT",
+  "license": "MPL-2.0",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

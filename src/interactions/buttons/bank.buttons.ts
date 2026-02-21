@@ -13,9 +13,31 @@ import {
   declareBankruptcy,
   getBankruptcyPenaltyRemaining,
 } from '../../database/services/loan.service.js';
-import { buildBankMainView, buildBankruptcyConfirmView } from '../../ui/builders/bank.builder.js';
+import { getBankAccountSummary } from '../../database/services/bank-account.service.js';
+import {
+  buildBankMainView,
+  buildBankruptcyConfirmView,
+  type BankViewData,
+} from '../../ui/builders/bank.builder.js';
 import { formatChips } from '../../utils/formatters.js';
 import { LOAN_MIN_AMOUNT, LOAN_MAX_AMOUNT } from '../../config/constants.js';
+
+async function buildViewData(userId: string): Promise<BankViewData> {
+  const user = await findOrCreateUser(userId);
+  const loanSummary = await getLoanSummary(userId);
+  const accountSummary = await getBankAccountSummary(userId);
+  const penaltyRemainingMs = getBankruptcyPenaltyRemaining(user.bankruptAt);
+
+  return {
+    userId,
+    walletBalance: user.chips,
+    bankBalance: accountSummary.bankBalance,
+    loanSummary,
+    penaltyRemainingMs,
+    lastInterestAt: accountSummary.lastInterestAt,
+    estimatedInterest: accountSummary.estimatedInterest,
+  };
+}
 
 async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
@@ -33,6 +55,88 @@ async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
   const userId = interaction.user.id;
 
   switch (action) {
+    case 'tab_account': {
+      const data = await buildViewData(userId);
+      const view = buildBankMainView(data, 'account');
+      await interaction.update({
+        components: [view],
+        flags: MessageFlags.IsComponentsV2,
+      });
+      break;
+    }
+
+    case 'tab_loan': {
+      const data = await buildViewData(userId);
+      const view = buildBankMainView(data, 'loan');
+      await interaction.update({
+        components: [view],
+        flags: MessageFlags.IsComponentsV2,
+      });
+      break;
+    }
+
+    case 'deposit': {
+      const modal = new ModalBuilder()
+        .setCustomId(`bank_modal:deposit`)
+        .setTitle('入金')
+        .addComponents(
+          new ActionRowBuilder<TextInputBuilder>().addComponents(
+            new TextInputBuilder()
+              .setCustomId('amount')
+              .setLabel('入金額（ウォレットから口座へ）')
+              .setStyle(TextInputStyle.Short)
+              .setPlaceholder('例: 10000')
+              .setRequired(true),
+          ),
+        );
+      await interaction.showModal(modal);
+      break;
+    }
+
+    case 'withdraw': {
+      const modal = new ModalBuilder()
+        .setCustomId(`bank_modal:withdraw`)
+        .setTitle('出金')
+        .addComponents(
+          new ActionRowBuilder<TextInputBuilder>().addComponents(
+            new TextInputBuilder()
+              .setCustomId('amount')
+              .setLabel('出金額（口座からウォレットへ）')
+              .setStyle(TextInputStyle.Short)
+              .setPlaceholder('例: 10000')
+              .setRequired(true),
+          ),
+        );
+      await interaction.showModal(modal);
+      break;
+    }
+
+    case 'transfer': {
+      const modal = new ModalBuilder()
+        .setCustomId(`bank_modal:transfer`)
+        .setTitle('送金')
+        .addComponents(
+          new ActionRowBuilder<TextInputBuilder>().addComponents(
+            new TextInputBuilder()
+              .setCustomId('recipient')
+              .setLabel('送金先ユーザーID')
+              .setStyle(TextInputStyle.Short)
+              .setPlaceholder('例: 123456789012345678')
+              .setRequired(true),
+          ),
+          new ActionRowBuilder<TextInputBuilder>().addComponents(
+            new TextInputBuilder()
+              .setCustomId('amount')
+              .setLabel('送金額')
+              .setStyle(TextInputStyle.Short)
+              .setPlaceholder('例: 10000')
+              .setRequired(true),
+          ),
+        );
+      await interaction.showModal(modal);
+      break;
+    }
+
     case 'borrow': {
       const modal = new ModalBuilder()
         .setCustomId(`bank_modal:borrow`)
@@ -82,7 +186,7 @@ async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
         return;
       }
 
-      const confirmView = buildBankruptcyConfirmView(userId, summary.totalOwed, user.chips);
+      const confirmView = buildBankruptcyConfirmView(userId, summary.totalOwed, user.chips, user.bankBalance);
       await interaction.update({
         components: [confirmView],
         flags: MessageFlags.IsComponentsV2,
@@ -92,11 +196,9 @@ async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
 
     case 'confirm_bankrupt': {
       try {
-        const newBalance = await declareBankruptcy(userId);
-        const summary = await getLoanSummary(userId);
-        const user = await findOrCreateUser(userId);
-        const penaltyRemaining = getBankruptcyPenaltyRemaining(user.bankruptAt);
-        const view = buildBankMainView(userId, newBalance, summary, penaltyRemaining);
+        await declareBankruptcy(userId);
+        const data = await buildViewData(userId);
+        const view = buildBankMainView(data, 'loan');
 
         await interaction.update({
           components: [view],
@@ -117,10 +219,8 @@ async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
     }
 
     case 'cancel': {
-      const user = await findOrCreateUser(userId);
-      const summary = await getLoanSummary(userId);
-      const penaltyRemaining = getBankruptcyPenaltyRemaining(user.bankruptAt);
-      const view = buildBankMainView(userId, user.chips, summary, penaltyRemaining);
+      const data = await buildViewData(userId);
+      const view = buildBankMainView(data, 'loan');
 
       await interaction.update({
         components: [view],

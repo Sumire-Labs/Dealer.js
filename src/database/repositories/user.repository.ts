@@ -83,10 +83,12 @@ export async function resetUser(userId: string) {
     where: { id: userId },
     data: {
       chips: INITIAL_CHIPS,
+      bankBalance: 0n,
       totalWon: 0n,
       totalLost: 0n,
       totalGames: 0,
       lastDaily: null,
+      lastInterestAt: null,
     },
   });
 }

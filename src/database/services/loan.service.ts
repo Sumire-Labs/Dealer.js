@@ -191,11 +191,12 @@ export async function declareBankruptcy(userId: string): Promise<bigint> {
       data: { paidAt: new Date() },
     });
 
-    // Set chips to bankruptcy amount
+    // Set chips to bankruptcy amount, clear bank balance
     const updatedUser = await tx.user.update({
       where: { id: userId },
       data: {
         chips: BANKRUPTCY_CHIPS,
+        bankBalance: 0n,
         bankruptAt: new Date(),
       },
     });

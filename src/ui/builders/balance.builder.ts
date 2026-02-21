@@ -15,6 +15,7 @@ export interface BalanceDisplayData {
   targetId: string;
   username: string;
   chips: bigint;
+  bankBalance: bigint;
   totalWon: bigint;
   totalLost: bigint;
   totalGames: number;
@@ -25,7 +26,7 @@ export interface BalanceDisplayData {
 export type BalanceTab = 'balance' | 'stats';
 
 export function buildBalanceView(data: BalanceDisplayData, tab: BalanceTab = 'balance'): ContainerBuilder {
-  const { username, chips, totalWon, totalLost, totalGames, rank, isSelf, userId, targetId } = data;
+  const { username, chips, bankBalance, totalWon, totalLost, totalGames, rank, isSelf, userId, targetId } = data;
 
   const title = isSelf
     ? CasinoTheme.prefixes.balance
@@ -44,6 +45,7 @@ export function buildBalanceView(data: BalanceDisplayData, tab: BalanceTab = 'ba
     container.addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
         `💰 **チップ**: ${formatChips(chips)}\n` +
+        `🏦 **口座**: ${formatChips(bankBalance)}\n` +
         `🏆 **ランク**: #${rank}`,
       ),
     );
