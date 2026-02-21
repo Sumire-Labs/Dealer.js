@@ -32,6 +32,7 @@ import {
   type PokerSessionState,
 } from '../../games/poker/poker.session.js';
 import { addChips } from '../../database/services/economy.service.js';
+import { incrementGameStats } from '../../database/repositories/user.repository.js';
 import {
   buildPokerLobbyView,
   buildPokerTableView,
@@ -304,6 +305,17 @@ async function handleShowdown(
     }
   }
 
+  // Update game stats for all players
+  for (const p of session.players) {
+    const winAmount = winners
+      .filter(w => w.userId === p.userId)
+      .reduce((sum, w) => sum + w.amount, 0n);
+    const net = winAmount - p.totalBet;
+    const won = net > 0n ? net : 0n;
+    const lost = net < 0n ? -net : 0n;
+    await incrementGameStats(p.userId, won, lost);
+  }
+
   session.status = 'finished';
 
   const resultView = buildPokerResultView(session, winners, pots);
@@ -336,6 +348,16 @@ async function handleFoldWin(
   for (const p of session.players) {
     if (p.stack > 0n) {
       await addChips(p.userId, p.stack, 'WIN', 'POKER');
+    }
+  }
+
+  // Update game stats for all players
+  for (const p of session.players) {
+    if (p.userId === winnerUserId) {
+      const net = totalPot - p.totalBet;
+      await incrementGameStats(p.userId, net > 0n ? net : 0n, 0n);
+    } else {
+      await incrementGameStats(p.userId, 0n, p.totalBet);
     }
   }
 

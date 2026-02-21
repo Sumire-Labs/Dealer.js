@@ -5,7 +5,7 @@ import {
 } from 'discord.js';
 import { registerCommand } from '../registry.js';
 import { MIN_BET, MAX_BET_BLACKJACK } from '../../config/constants.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
+import { findOrCreateUser, incrementGameStats } from '../../database/repositories/user.repository.js';
 import { removeChips, addChips } from '../../database/services/economy.service.js';
 import { createGame, calculateTotalResult } from '../../games/blackjack/blackjack.engine.js';
 import {
@@ -64,6 +64,11 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     if (result.totalPayout > 0n) {
       newBalance = await addChips(userId, result.totalPayout, 'WIN', 'BLACKJACK');
     }
+
+    // Update game stats for natural blackjack
+    const won = result.net > 0n ? result.net : 0n;
+    const lost = result.net < 0n ? -result.net : 0n;
+    await incrementGameStats(userId, won, lost);
 
     const resultView = buildBlackjackResultView(
       state,

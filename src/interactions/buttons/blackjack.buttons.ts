@@ -13,7 +13,7 @@ import {
   buildBlackjackPlayingView,
   buildBlackjackResultView,
 } from '../../ui/builders/blackjack.builder.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
+import { findOrCreateUser, incrementGameStats } from '../../database/repositories/user.repository.js';
 import { removeChips, addChips } from '../../database/services/economy.service.js';
 import { formatChips } from '../../utils/formatters.js';
 
@@ -128,6 +128,11 @@ async function handleBlackjackButton(interaction: ButtonInteraction): Promise<vo
       result.net,
       newBalance,
     );
+
+    // Update game stats
+    const won = result.net > 0n ? result.net : 0n;
+    const lost = result.net < 0n ? -result.net : 0n;
+    await incrementGameStats(userId, won, lost);
 
     bjSessionManager.delete(userId);
 

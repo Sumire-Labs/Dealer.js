@@ -20,6 +20,7 @@ import {
   updateRaceStatus,
 } from '../../database/repositories/race.repository.js';
 import { addChips } from '../../database/services/economy.service.js';
+import { incrementGameStats } from '../../database/repositories/user.repository.js';
 import {
   buildBettingView,
   buildRaceResultView,
@@ -183,6 +184,17 @@ export async function runRace(
   // Process payouts
   for (const p of payouts) {
     await addChips(p.userId, p.payout, 'WIN', 'HORSE_RACE');
+  }
+
+  // Update game stats for all bettors
+  for (const bet of session.bets) {
+    const payout = payouts.find(p => p.userId === bet.userId);
+    if (payout) {
+      const profit = payout.payout - bet.amount;
+      await incrementGameStats(bet.userId, profit > 0n ? profit : 0n, profit < 0n ? -profit : 0n);
+    } else {
+      await incrementGameStats(bet.userId, 0n, bet.amount);
+    }
   }
 
   // Mark finished
