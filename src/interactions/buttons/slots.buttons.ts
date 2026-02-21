@@ -131,14 +131,14 @@ function buildSlotsIdleViewWithButtons(
   return new ContainerBuilder()
     .setAccentColor(CasinoTheme.colors.gold)
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.casino),
+      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.slots),
     )
     .addSeparatorComponents(
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        '┌────┬────┬────┐\n│ 🎰  │ 🎰  │ 🎰  │\n└────┴────┴────┘',
+        '【 🎰 】【 🎰 】【 🎰 】',
       ),
     )
     .addSeparatorComponents(

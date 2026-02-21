@@ -13,7 +13,7 @@ import type { SlotSymbol } from '../../games/slots/slots.symbols.js';
 import type { PaytableResult } from '../../games/slots/slots.paytable.js';
 
 function renderReels(symbols: [string, string, string]): string {
-  return `┌────┬────┬────┐\n│ ${symbols[0]}  │ ${symbols[1]}  │ ${symbols[2]}  │\n└────┴────┴────┘`;
+  return `【 ${symbols[0]} 】【 ${symbols[1]} 】【 ${symbols[2]} 】`;
 }
 
 export function buildSlotsIdleView(
@@ -27,7 +27,7 @@ export function buildSlotsIdleView(
   return new ContainerBuilder()
     .setAccentColor(CasinoTheme.colors.gold)
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.casino),
+      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.slots),
     )
     .addSeparatorComponents(
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
@@ -71,7 +71,7 @@ export function buildSlotsSpinningView(
   return new ContainerBuilder()
     .setAccentColor(CasinoTheme.colors.gold)
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.casino),
+      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.slots),
     )
     .addSeparatorComponents(
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
@@ -98,7 +98,7 @@ export function buildSlotsResultView(
   const reelEmojis = reels.map(r => r.emoji) as [string, string, string];
   const isJackpot = paytable.multiplier >= 500;
   const isWin = paytable.multiplier > 0;
-  const header = isJackpot ? CasinoTheme.prefixes.jackpot : CasinoTheme.prefixes.casino;
+  const header = isJackpot ? CasinoTheme.prefixes.jackpot : CasinoTheme.prefixes.slots;
 
   let resultText: string;
   if (isWin) {

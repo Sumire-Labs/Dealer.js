@@ -9,6 +9,7 @@ export const CasinoTheme = {
   },
   prefixes: {
     casino: '🎰 ━━━ DIAMOND CASINO ━━━ 🎰',
+    slots: '🎰 ━━━ SLOTS ━━━ 🎰',
     jackpot: '🎰 ━━━ 💥 JACKPOT!! 💥 ━━━ 🎰',
     race: '🏇 ━━━ DIAMOND CASINO RACE ━━━ 🏇',
     blackjack: '🃏 ━━━ BLACKJACK ━━━ 🃏',
