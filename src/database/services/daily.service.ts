@@ -1,6 +1,7 @@
+import { Prisma } from '@prisma/client';
 import { DAILY_BONUS, DAILY_BONUS_BROKE, DAILY_COOLDOWN_MS } from '../../config/constants.js';
-import { findOrCreateUser, updateLastDaily } from '../repositories/user.repository.js';
-import { addChips } from './economy.service.js';
+import { prisma } from '../client.js';
+import { findOrCreateUser } from '../repositories/user.repository.js';
 
 export interface DailyResult {
   success: boolean;
@@ -10,27 +11,47 @@ export interface DailyResult {
 }
 
 export async function claimDaily(userId: string): Promise<DailyResult> {
-  const user = await findOrCreateUser(userId);
+  await findOrCreateUser(userId);
 
-  if (user.lastDaily) {
-    const elapsed = Date.now() - user.lastDaily.getTime();
-    if (elapsed < DAILY_COOLDOWN_MS) {
-      return {
-        success: false,
-        remainingCooldown: DAILY_COOLDOWN_MS - elapsed,
-      };
+  // Atomic check-and-claim inside a transaction
+  return prisma.$transaction(async (tx) => {
+    const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+
+    if (user.lastDaily) {
+      const elapsed = Date.now() - user.lastDaily.getTime();
+      if (elapsed < DAILY_COOLDOWN_MS) {
+        return {
+          success: false,
+          remainingCooldown: DAILY_COOLDOWN_MS - elapsed,
+        };
+      }
     }
-  }
 
-  const isBroke = user.chips === 0n;
-  const amount = isBroke ? DAILY_BONUS_BROKE : DAILY_BONUS;
+    const isBroke = user.chips <= 0n;
+    const amount = isBroke ? DAILY_BONUS_BROKE : DAILY_BONUS;
 
-  const newBalance = await addChips(userId, amount, 'DAILY');
-  await updateLastDaily(userId);
+    const updated = await tx.user.update({
+      where: { id: userId },
+      data: {
+        chips: { increment: amount },
+        lastDaily: new Date(),
+      },
+    });
 
-  return {
-    success: true,
-    amount,
-    newBalance,
-  };
+    await tx.transaction.create({
+      data: {
+        userId,
+        type: 'DAILY',
+        amount,
+        balanceAfter: updated.chips,
+        metadata: Prisma.JsonNull,
+      },
+    });
+
+    return {
+      success: true,
+      amount,
+      newBalance: updated.chips,
+    };
+  });
 }

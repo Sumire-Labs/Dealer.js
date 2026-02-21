@@ -8,45 +8,46 @@ export interface HandValue {
   isBlackjack: boolean;
 }
 
-function cardValue(card: Card): number[] {
-  switch (card.rank) {
-    case 'A': return [1, 11];
-    case 'J': case 'Q': case 'K': return [10];
-    default: return [parseInt(card.rank)];
-  }
+function cardNumericValue(card: Card): number {
+  if (card.rank === 'A') return 11;
+  if (['J', 'Q', 'K'].includes(card.rank)) return 10;
+  return parseInt(card.rank);
 }
 
 export function evaluateHand(cards: Card[]): HandValue {
-  let totals = [0];
+  let total = 0;
+  let aces = 0;
 
   for (const card of cards) {
-    const values = cardValue(card);
-    const newTotals: number[] = [];
-    for (const total of totals) {
-      for (const v of values) {
-        newTotals.push(total + v);
-      }
+    if (card.rank === 'A') {
+      aces++;
+      total += 11;
+    } else {
+      total += cardNumericValue(card);
     }
-    // Deduplicate
-    totals = [...new Set(newTotals)];
   }
 
-  const nonBust = totals.filter(t => t <= 21);
-  const best = nonBust.length > 0 ? Math.max(...nonBust) : Math.min(...totals);
-  const isBust = nonBust.length === 0;
-  const isBlackjack = cards.length === 2 && best === 21;
-  const isSoft = !isBust && totals.some(t => t <= 21) && cards.some(c => c.rank === 'A') && best !== totals.filter(t => t <= 21).reduce((min, t) => Math.min(min, t), 22);
+  // Downgrade aces from 11 to 1 as needed
+  while (total > 21 && aces > 0) {
+    total -= 10;
+    aces--;
+  }
 
-  return { values: totals, best, isSoft, isBust, isBlackjack };
+  const isBust = total > 21;
+  const isSoft = aces > 0 && !isBust; // at least one ace still counted as 11
+  const isBlackjack = cards.length === 2 && total === 21;
+
+  return { values: [total], best: total, isSoft, isBust, isBlackjack };
 }
 
 export function canSplit(cards: Card[]): boolean {
   if (cards.length !== 2) return false;
-  const v1 = cards[0].rank === 'A' ? 11 : (cards[0].rank === 'J' || cards[0].rank === 'Q' || cards[0].rank === 'K' ? 10 : parseInt(cards[0].rank));
-  const v2 = cards[1].rank === 'A' ? 11 : (cards[1].rank === 'J' || cards[1].rank === 'Q' || cards[1].rank === 'K' ? 10 : parseInt(cards[1].rank));
-  return v1 === v2;
+  return cardNumericValue(cards[0]) === cardNumericValue(cards[1]);
 }
 
 export function canDoubleDown(cards: Card[]): boolean {
-  return cards.length === 2;
+  if (cards.length !== 2) return false;
+  const value = evaluateHand(cards);
+  // Cannot double down on blackjack
+  return !value.isBlackjack;
 }

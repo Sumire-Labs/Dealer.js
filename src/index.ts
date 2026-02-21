@@ -1,4 +1,5 @@
 import { startBot } from './client.js';
+import { startScheduler } from './scheduler/daily-reset.scheduler.js';
 import { logger } from './utils/logger.js';
 
 async function loadModules(): Promise<void> {
@@ -11,11 +12,16 @@ async function loadModules(): Promise<void> {
   await import('./commands/casino/slots.command.js');
   await import('./commands/casino/coinflip.command.js');
   await import('./commands/casino/blackjack.command.js');
+  await import('./commands/casino/horse-race.command.js');
 
   // Button handlers
   await import('./interactions/buttons/slots.buttons.js');
   await import('./interactions/buttons/coinflip.buttons.js');
   await import('./interactions/buttons/blackjack.buttons.js');
+  await import('./interactions/buttons/horse-race.buttons.js');
+
+  // Modal handlers
+  await import('./interactions/modals/bet-amount.modal.js');
 
   // Admin commands
   await import('./commands/admin/give.command.js');
@@ -26,6 +32,7 @@ async function main(): Promise<void> {
   logger.info('Starting Dealer.js...');
   await loadModules();
   await startBot();
+  startScheduler();
 }
 
 main().catch((error) => {

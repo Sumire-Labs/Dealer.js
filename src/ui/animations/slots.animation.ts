@@ -29,18 +29,10 @@ export async function playSlotsAnimation(
       randomReels[2].emoji,
     ];
     const spinView = buildSlotsSpinningView(symbols);
-
-    if (i === 0) {
-      await interaction.editReply({
-        components: [spinView],
-        flags: MessageFlags.IsComponentsV2,
-      });
-    } else {
-      await interaction.editReply({
-        components: [spinView],
-        flags: MessageFlags.IsComponentsV2,
-      });
-    }
+    await interaction.editReply({
+      components: [spinView],
+      flags: MessageFlags.IsComponentsV2,
+    });
     await sleep(animationSpinInterval);
   }
 

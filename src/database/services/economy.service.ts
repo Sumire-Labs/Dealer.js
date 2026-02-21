@@ -1,7 +1,6 @@
-import type { Prisma, GameType, TransactionType } from '@prisma/client';
+import { Prisma, type GameType, type TransactionType } from '@prisma/client';
 import { prisma } from '../client.js';
-import { createTransaction } from '../repositories/transaction.repository.js';
-import { findOrCreateUser, incrementGameStats } from '../repositories/user.repository.js';
+import { findOrCreateUser } from '../repositories/user.repository.js';
 
 export async function getBalance(userId: string): Promise<bigint> {
   const user = await findOrCreateUser(userId);
@@ -15,24 +14,27 @@ export async function addChips(
   game?: GameType,
   metadata?: Prisma.InputJsonValue,
 ): Promise<bigint> {
-  const user = await findOrCreateUser(userId);
-  const newBalance = user.chips + amount;
+  return prisma.$transaction(async (tx) => {
+    await findOrCreateUser(userId);
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { chips: newBalance },
+    const user = await tx.user.update({
+      where: { id: userId },
+      data: { chips: { increment: amount } },
+    });
+
+    await tx.transaction.create({
+      data: {
+        userId,
+        type,
+        game: game ?? null,
+        amount,
+        balanceAfter: user.chips,
+        metadata: metadata ?? Prisma.JsonNull,
+      },
+    });
+
+    return user.chips;
   });
-
-  await createTransaction({
-    userId,
-    type,
-    game,
-    amount,
-    balanceAfter: newBalance,
-    metadata,
-  });
-
-  return newBalance;
 }
 
 export async function removeChips(
@@ -42,28 +44,33 @@ export async function removeChips(
   game?: GameType,
   metadata?: Prisma.InputJsonValue,
 ): Promise<bigint> {
-  const user = await findOrCreateUser(userId);
-  const newBalance = user.chips - amount;
+  return prisma.$transaction(async (tx) => {
+    await findOrCreateUser(userId);
 
-  if (newBalance < 0n) {
-    throw new Error('Insufficient chips');
-  }
+    // Atomic check-and-decrement: read current balance inside transaction
+    const current = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+    if (current.chips < amount) {
+      throw new Error('Insufficient chips');
+    }
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { chips: newBalance },
+    const user = await tx.user.update({
+      where: { id: userId },
+      data: { chips: { decrement: amount } },
+    });
+
+    await tx.transaction.create({
+      data: {
+        userId,
+        type,
+        game: game ?? null,
+        amount: -amount,
+        balanceAfter: user.chips,
+        metadata: metadata ?? Prisma.JsonNull,
+      },
+    });
+
+    return user.chips;
   });
-
-  await createTransaction({
-    userId,
-    type,
-    game,
-    amount: -amount,
-    balanceAfter: newBalance,
-    metadata,
-  });
-
-  return newBalance;
 }
 
 export async function processGameResult(
@@ -72,39 +79,50 @@ export async function processGameResult(
   betAmount: bigint,
   multiplier: number,
 ): Promise<{ newBalance: bigint; payout: bigint; net: bigint }> {
-  const user = await findOrCreateUser(userId);
-  const payout = BigInt(Math.floor(Number(betAmount) * multiplier));
+  // Use integer math to avoid BigInt→Number precision loss
+  const multiplierInt = Math.round(multiplier * 1_000_000);
+  const payout = (betAmount * BigInt(multiplierInt)) / 1_000_000n;
   const net = payout - betAmount;
-  const newBalance = user.chips + net;
 
-  if (newBalance < 0n) {
-    throw new Error('Insufficient chips');
-  }
+  const newBalance = await prisma.$transaction(async (tx) => {
+    await findOrCreateUser(userId);
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { chips: newBalance },
+    const current = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+    if (current.chips + net < 0n) {
+      throw new Error('Insufficient chips');
+    }
+
+    const updatedUser = net >= 0n
+      ? await tx.user.update({ where: { id: userId }, data: { chips: { increment: net } } })
+      : await tx.user.update({ where: { id: userId }, data: { chips: { decrement: -net } } });
+
+    const isWin = net > 0n;
+    await tx.transaction.create({
+      data: {
+        userId,
+        type: isWin ? 'WIN' : 'LOSS',
+        game,
+        amount: net,
+        balanceAfter: updatedUser.chips,
+        metadata: {
+          betAmount: betAmount.toString(),
+          multiplier,
+          payout: payout.toString(),
+        },
+      },
+    });
+
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        totalWon: { increment: isWin ? net : 0n },
+        totalLost: { increment: isWin ? 0n : -net },
+        totalGames: { increment: 1 },
+      },
+    });
+
+    return updatedUser.chips;
   });
-
-  const isWin = net > 0n;
-  await createTransaction({
-    userId,
-    type: isWin ? 'WIN' : 'LOSS',
-    game,
-    amount: net,
-    balanceAfter: newBalance,
-    metadata: {
-      betAmount: betAmount.toString(),
-      multiplier,
-      payout: payout.toString(),
-    },
-  });
-
-  await incrementGameStats(
-    userId,
-    isWin ? net : 0n,
-    isWin ? 0n : -net,
-  );
 
   return { newBalance, payout, net };
 }
