@@ -20,4 +20,14 @@ export const POKER_MAX_PLAYERS = 6;
 export const POKER_LOBBY_DURATION_MS = 60_000;
 export const POKER_ACTION_TIMEOUT_MS = 45_000;
 
+// Loan & Bankruptcy
+export const LOAN_MAX_TOTAL = 100_000n;
+export const LOAN_MIN_AMOUNT = 1_000n;
+export const LOAN_MAX_AMOUNT = 50_000n;
+export const LOAN_INTEREST_RATE = 10n; // 10%
+export const LOAN_INTEREST_PERIOD_MS = 10 * 60 * 60 * 1000; // 10 hours
+export const BANKRUPTCY_CHIPS = 2_500n;
+export const BANKRUPTCY_PENALTY_DURATION_MS = 60 * 60 * 1000; // 1 hour
+export const BANKRUPTCY_PENALTY_RATE = 10; // 10% reduction
+
 export const COMMAND_COOLDOWN_MS = 3_000; // 3 seconds default cooldown

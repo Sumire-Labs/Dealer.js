@@ -32,6 +32,7 @@ import {
   type PokerSessionState,
 } from '../../games/poker/poker.session.js';
 import { addChips } from '../../database/services/economy.service.js';
+import { getBankruptcyPenaltyMultiplier, applyPenalty } from '../../database/services/loan.service.js';
 import { incrementGameStats } from '../../database/repositories/user.repository.js';
 import {
   buildPokerLobbyView,
@@ -293,9 +294,19 @@ async function handleShowdown(
   const pots = calculatePots(session.players);
   const winners = determineWinners(pots, session.players, session.communityCards);
 
-  // Pay out winners
+  // Pay out winners with bankruptcy penalty
   for (const w of winners) {
-    await addChips(w.userId, w.amount, 'WIN', 'POKER');
+    const player = session.players.find(p => p.userId === w.userId);
+    const totalBet = player ? player.totalBet : 0n;
+    let payout = w.amount;
+    if (payout > totalBet) {
+      const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(w.userId);
+      if (penaltyMultiplier < 1.0) {
+        const winnings = payout - totalBet;
+        payout = totalBet + applyPenalty(winnings, penaltyMultiplier);
+      }
+    }
+    await addChips(w.userId, payout, 'WIN', 'POKER');
   }
 
   // Return remaining stacks (unbet chips) to all players
@@ -310,7 +321,15 @@ async function handleShowdown(
     const winAmount = winners
       .filter(w => w.userId === p.userId)
       .reduce((sum, w) => sum + w.amount, 0n);
-    const net = winAmount - p.totalBet;
+    let payout = winAmount;
+    if (payout > p.totalBet) {
+      const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(p.userId);
+      if (penaltyMultiplier < 1.0) {
+        const winnings = payout - p.totalBet;
+        payout = p.totalBet + applyPenalty(winnings, penaltyMultiplier);
+      }
+    }
+    const net = payout - p.totalBet;
     const won = net > 0n ? net : 0n;
     const lost = net < 0n ? -net : 0n;
     await incrementGameStats(p.userId, won, lost);
@@ -342,7 +361,17 @@ async function handleFoldWin(
   if (session.turnTimer) clearTimeout(session.turnTimer);
 
   const totalPot = session.players.reduce((sum, p) => sum + p.totalBet, 0n);
-  await addChips(winnerUserId, totalPot, 'WIN', 'POKER');
+  const winner = session.players.find(p => p.userId === winnerUserId);
+  const winnerTotalBet = winner ? winner.totalBet : 0n;
+  let foldPayout = totalPot;
+  if (foldPayout > winnerTotalBet) {
+    const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(winnerUserId);
+    if (penaltyMultiplier < 1.0) {
+      const winnings = foldPayout - winnerTotalBet;
+      foldPayout = winnerTotalBet + applyPenalty(winnings, penaltyMultiplier);
+    }
+  }
+  await addChips(winnerUserId, foldPayout, 'WIN', 'POKER');
 
   // Return remaining stacks (unbet chips) to all players
   for (const p of session.players) {
@@ -354,7 +383,7 @@ async function handleFoldWin(
   // Update game stats for all players
   for (const p of session.players) {
     if (p.userId === winnerUserId) {
-      const net = totalPot - p.totalBet;
+      const net = foldPayout - p.totalBet;
       await incrementGameStats(p.userId, net > 0n ? net : 0n, 0n);
     } else {
       await incrementGameStats(p.userId, 0n, p.totalBet);

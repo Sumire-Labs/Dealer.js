@@ -15,6 +15,7 @@ import {
 } from '../../ui/builders/blackjack.builder.js';
 import { findOrCreateUser, incrementGameStats } from '../../database/repositories/user.repository.js';
 import { removeChips, addChips } from '../../database/services/economy.service.js';
+import { getBankruptcyPenaltyMultiplier, applyPenalty } from '../../database/services/loan.service.js';
 import { formatChips } from '../../utils/formatters.js';
 
 // In-memory session storage: userId -> game state
@@ -113,25 +114,36 @@ async function handleBlackjackButton(interaction: ButtonInteraction): Promise<vo
   // If game resolved, show result
   if ((state.phase as string) === 'resolved') {
     const result = calculateTotalResult(state);
+    let { totalPayout, net } = result;
+
+    // Apply bankruptcy penalty to winnings
+    if (totalPayout > 0n) {
+      const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(userId);
+      if (penaltyMultiplier < 1.0) {
+        totalPayout = applyPenalty(totalPayout, penaltyMultiplier);
+        net = totalPayout - result.totalBet;
+      }
+    }
+
     // Process net result: add back payout (we already deducted initial bet in command)
     const updatedUser = await findOrCreateUser(userId);
     let newBalance = updatedUser.chips;
 
-    if (result.totalPayout > 0n) {
-      newBalance = await addChips(userId, result.totalPayout, 'WIN', 'BLACKJACK');
+    if (totalPayout > 0n) {
+      newBalance = await addChips(userId, totalPayout, 'WIN', 'BLACKJACK');
     }
 
     const resultView = buildBlackjackResultView(
       state,
       result.totalBet,
-      result.totalPayout,
-      result.net,
+      totalPayout,
+      net,
       newBalance,
     );
 
     // Update game stats
-    const won = result.net > 0n ? result.net : 0n;
-    const lost = result.net < 0n ? -result.net : 0n;
+    const won = net > 0n ? net : 0n;
+    const lost = net < 0n ? -net : 0n;
     await incrementGameStats(userId, won, lost);
 
     bjSessionManager.delete(userId);

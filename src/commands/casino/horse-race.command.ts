@@ -20,6 +20,7 @@ import {
   updateRaceStatus,
 } from '../../database/repositories/race.repository.js';
 import { addChips } from '../../database/services/economy.service.js';
+import { getBankruptcyPenaltyMultiplier, applyPenalty } from '../../database/services/loan.service.js';
 import { incrementGameStats } from '../../database/repositories/user.repository.js';
 import {
   buildBettingView,
@@ -181,16 +182,34 @@ export async function runRace(
   const winnerIndex = result.placements[0];
   const payouts = calculatePayouts(session.bets, winnerIndex, session.horses);
 
-  // Process payouts
+  // Process payouts with bankruptcy penalty
   for (const p of payouts) {
-    await addChips(p.userId, p.payout, 'WIN', 'HORSE_RACE');
+    let payout = p.payout;
+    const bet = session.bets.find(b => b.userId === p.userId);
+    const betAmount = bet ? bet.amount : 0n;
+    if (payout > betAmount) {
+      const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(p.userId);
+      if (penaltyMultiplier < 1.0) {
+        const winnings = payout - betAmount;
+        payout = betAmount + applyPenalty(winnings, penaltyMultiplier);
+      }
+    }
+    await addChips(p.userId, payout, 'WIN', 'HORSE_RACE');
   }
 
   // Update game stats for all bettors
   for (const bet of session.bets) {
-    const payout = payouts.find(p => p.userId === bet.userId);
-    if (payout) {
-      const profit = payout.payout - bet.amount;
+    const payoutEntry = payouts.find(p => p.userId === bet.userId);
+    if (payoutEntry) {
+      let payout = payoutEntry.payout;
+      if (payout > bet.amount) {
+        const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(bet.userId);
+        if (penaltyMultiplier < 1.0) {
+          const winnings = payout - bet.amount;
+          payout = bet.amount + applyPenalty(winnings, penaltyMultiplier);
+        }
+      }
+      const profit = payout - bet.amount;
       await incrementGameStats(bet.userId, profit > 0n ? profit : 0n, profit < 0n ? -profit : 0n);
     } else {
       await incrementGameStats(bet.userId, 0n, bet.amount);

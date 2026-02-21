@@ -14,10 +14,12 @@ model User {
   totalLost    BigInt        @default(0)
   totalGames   Int           @default(0)
   lastDaily    DateTime?
+  bankruptAt   DateTime?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   transactions Transaction[]
   bets         RaceBet[]
+  loans        Loan[]
 }
 
 model Transaction {
@@ -60,12 +62,26 @@ model RaceBet {
   @@unique([sessionId, userId]) // 1 bet per session per user
 }
 
+model Loan {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  principal BigInt
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
+
+  @@index([userId, paidAt])
+}
+
 enum TransactionType {
   WIN
   LOSS
   DAILY
   ADMIN_GIVE
   ADMIN_RESET
+  LOAN_BORROW
+  LOAN_REPAY
+  BANKRUPTCY
 }
 
 enum GameType {

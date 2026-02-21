@@ -1,6 +1,7 @@
 import { Prisma, type GameType, type TransactionType } from '@prisma/client';
 import { prisma } from '../client.js';
 import { findOrCreateUser } from '../repositories/user.repository.js';
+import { getBankruptcyPenaltyMultiplier, applyPenalty } from './loan.service.js';
 
 export async function getBalance(userId: string): Promise<bigint> {
   const user = await findOrCreateUser(userId);
@@ -81,7 +82,18 @@ export async function processGameResult(
 ): Promise<{ newBalance: bigint; payout: bigint; net: bigint }> {
   // Use integer math to avoid BigInt→Number precision loss
   const multiplierInt = Math.round(multiplier * 1_000_000);
-  const payout = (betAmount * BigInt(multiplierInt)) / 1_000_000n;
+  let payout = (betAmount * BigInt(multiplierInt)) / 1_000_000n;
+
+  // Apply bankruptcy penalty to winnings only
+  if (payout > betAmount) {
+    const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(userId);
+    if (penaltyMultiplier < 1.0) {
+      const winnings = payout - betAmount;
+      const penalizedWinnings = applyPenalty(winnings, penaltyMultiplier);
+      payout = betAmount + penalizedWinnings;
+    }
+  }
+
   const net = payout - betAmount;
 
   const newBalance = await prisma.$transaction(async (tx) => {
