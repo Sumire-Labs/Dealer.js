@@ -59,4 +59,13 @@ export const HEIST_MIN_MULTIPLIER = 2.0;
 export const HEIST_MAX_MULTIPLIER = 4.0;
 export const HEIST_CHANNEL_COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
 
+// Work
+export const WORK_SHORT_COOLDOWN_MS = 1 * 60 * 60 * 1000;   // 1 hour
+export const WORK_NORMAL_COOLDOWN_MS = 4 * 60 * 60 * 1000;  // 4 hours
+export const WORK_LONG_COOLDOWN_MS = 8 * 60 * 60 * 1000;    // 8 hours
+export const WORK_STREAK_WINDOW_MS = 24 * 60 * 60 * 1000;   // 24 hours
+export const WORK_STREAK_MAX_BONUS = 20;                     // max +20%
+export const WORK_TIP_MIN = 200n;
+export const WORK_TIP_MAX = 500n;
+
 export const COMMAND_COOLDOWN_MS = 3_000; // 3 seconds default cooldown

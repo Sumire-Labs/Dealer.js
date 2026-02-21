@@ -9,7 +9,8 @@ export type AchievementContext =
   | 'loan'
   | 'lottery'
   | 'heist'
-  | 'multiplayer';
+  | 'multiplayer'
+  | 'work';
 
 export interface AchievementDefinition {
   id: string;
@@ -205,6 +206,43 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     category: 'special',
     contexts: ['lottery'],
     hidden: true,
+  },
+  // Work
+  {
+    id: 'FIRST_WORK',
+    name: '初出勤',
+    description: '初めて働く',
+    emoji: '💼',
+    category: 'economy',
+    contexts: ['work'],
+    hidden: false,
+  },
+  {
+    id: 'WORK_LEVEL_3',
+    name: '中堅社員',
+    description: '労働レベル3に到達する',
+    emoji: '📈',
+    category: 'economy',
+    contexts: ['work'],
+    hidden: false,
+  },
+  {
+    id: 'WORK_LEVEL_5',
+    name: 'カジノの重鎮',
+    description: '労働レベル5に到達する',
+    emoji: '🏛️',
+    category: 'economy',
+    contexts: ['work'],
+    hidden: false,
+  },
+  {
+    id: 'WORK_STREAK_5',
+    name: '社畜',
+    description: '労働5連勤する',
+    emoji: '🔥',
+    category: 'social',
+    contexts: ['work'],
+    hidden: false,
   },
 ];
 

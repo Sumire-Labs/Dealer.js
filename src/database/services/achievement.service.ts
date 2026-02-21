@@ -163,6 +163,18 @@ async function isConditionMet(
     case 'LOTTERY_JACKPOT':
       return input.context === 'lottery' && input.metadata?.['fullMatch'] === true;
 
+    case 'FIRST_WORK':
+      return input.context === 'work';
+
+    case 'WORK_LEVEL_3':
+      return input.context === 'work' && (input.metadata?.['workLevel'] as number) >= 3;
+
+    case 'WORK_LEVEL_5':
+      return input.context === 'work' && (input.metadata?.['workLevel'] as number) >= 5;
+
+    case 'WORK_STREAK_5':
+      return input.context === 'work' && (input.metadata?.['workStreak'] as number) >= 5;
+
     default:
       return false;
   }

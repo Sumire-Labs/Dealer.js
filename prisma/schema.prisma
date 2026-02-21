@@ -23,6 +23,10 @@ model User {
   transactions   Transaction[]
   bets           RaceBet[]
   loans          Loan[]
+  workLevel      Int           @default(0)
+  workXp         Int           @default(0)
+  lastWorkAt     DateTime?
+  workStreak     Int           @default(0)
   lotteryTickets LotteryTicket[]
   achievements   UserAchievement[]
 }
@@ -97,6 +101,7 @@ enum TransactionType {
   HEIST_JOIN
   HEIST_WIN
   HEIST_LOSS
+  WORK_EARN
 }
 
 enum GameType {
