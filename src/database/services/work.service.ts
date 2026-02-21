@@ -25,6 +25,7 @@ import {
 } from '../../games/work/work.engine.js';
 import { checkAchievements } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
+import { updateMissionProgress, type CompletedMission } from './mission.service.js';
 import {
   isOnCooldown,
   getRemainingCooldown,
@@ -65,6 +66,7 @@ export interface WorkResult {
   streak?: number;
   newBalance?: bigint;
   newlyUnlocked?: AchievementDefinition[];
+  missionsCompleted?: CompletedMission[];
 }
 
 export async function performWork(
@@ -213,7 +215,15 @@ export async function performWork(
     // Achievement check should never block work result
   }
 
-  return { ...result, newlyUnlocked };
+  // Mission progress hooks
+  let missionsCompleted: CompletedMission[] = [];
+  try {
+    missionsCompleted = await updateMissionProgress(userId, { type: 'work' });
+  } catch {
+    // Mission check should never block work result
+  }
+
+  return { ...result, newlyUnlocked, missionsCompleted };
 }
 
 export interface WorkPanelData {

@@ -47,6 +47,12 @@ export const POKER_CONFIG = {
   actionUpdateInterval: 5_000,
 } as const;
 
+export const ROULETTE_CONFIG = {
+  animationFrames: 3,
+  animationInterval: 700,
+  resultDelay: 500,
+} as const;
+
 export const HEIST_CONFIG = {
   phases: ['planning', 'infiltration', 'vault', 'escape'] as const,
   phaseEmoji: ['📋', '🔓', '🏦', '🚗'] as const,

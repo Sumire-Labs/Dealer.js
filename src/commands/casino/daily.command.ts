@@ -1,17 +1,18 @@
 import {
   SlashCommandBuilder,
   type ChatInputCommandInteraction,
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
   MessageFlags,
 } from 'discord.js';
 import { registerCommand } from '../registry.js';
 import { claimDaily } from '../../database/services/daily.service.js';
-import { CasinoTheme } from '../../ui/themes/casino.theme.js';
-import { formatChips } from '../../utils/formatters.js';
+import {
+  buildDailyBonusClaimed,
+  buildDailyBonusAlreadyClaimed,
+} from '../../ui/builders/daily.builder.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
+import { buildMissionNotification } from '../../database/services/mission.service.js';
+import { getBalance } from '../../database/services/economy.service.js';
+import { DAILY_COOLDOWN_MS } from '../../config/constants.js';
 
 const data = new SlashCommandBuilder()
   .setName('daily')
@@ -19,54 +20,30 @@ const data = new SlashCommandBuilder()
   .toJSON();
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
-  const result = await claimDaily(interaction.user.id);
+  const userId = interaction.user.id;
+  const result = await claimDaily(userId);
 
   if (!result.success) {
-    const nextClaimUnix = Math.floor(result.nextClaimAt! / 1000);
-    const container = new ContainerBuilder()
-      .setAccentColor(CasinoTheme.colors.red)
-      .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent(CasinoTheme.prefixes.daily),
-      )
-      .addSeparatorComponents(
-        new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-      )
-      .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent(
-          `⏰ 本日のボーナスは受取済みです！\n次回: <t:${nextClaimUnix}:R>`,
-        ),
-      );
+    const balance = await getBalance(userId);
+    const nextClaimAt = result.nextClaimAt ?? (Date.now() + DAILY_COOLDOWN_MS);
+    const view = buildDailyBonusAlreadyClaimed(nextClaimAt, balance, userId);
 
     await interaction.reply({
-      components: [container],
+      components: [view],
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
     });
     return;
   }
 
-  const isBroke = result.amount! > 2500n;
-  const bonusNote = isBroke
-    ? '\n💸 *救済ボーナス！ 復帰用の追加チップです。*'
-    : '';
-
-  const streakLine = `\n🔥 連続ログイン: **${result.streak}日目**`;
-
-  const container = new ContainerBuilder()
-    .setAccentColor(CasinoTheme.colors.gold)
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.daily),
-    )
-    .addSeparatorComponents(
-      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-    )
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(
-        `✅ **${formatChips(result.amount!)}** を受け取りました！${bonusNote}${streakLine}\n\n💰 残高: **${formatChips(result.newBalance!)}**`,
-      ),
-    );
+  const view = buildDailyBonusClaimed(
+    result.amount!,
+    result.streak!,
+    result.newBalance!,
+    userId,
+  );
 
   await interaction.reply({
-    components: [container],
+    components: [view],
     flags: MessageFlags.IsComponentsV2,
   });
 
@@ -74,6 +51,14 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   if (result.newlyUnlocked && result.newlyUnlocked.length > 0) {
     await interaction.followUp({
       content: buildAchievementNotification(result.newlyUnlocked),
+      flags: MessageFlags.Ephemeral,
+    });
+  }
+
+  // Mission notification
+  if (result.missionsCompleted && result.missionsCompleted.length > 0) {
+    await interaction.followUp({
+      content: buildMissionNotification(result.missionsCompleted),
       flags: MessageFlags.Ephemeral,
     });
   }

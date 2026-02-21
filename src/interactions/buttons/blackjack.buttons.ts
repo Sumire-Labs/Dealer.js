@@ -17,6 +17,7 @@ import { findOrCreateUser, incrementGameStats } from '../../database/repositorie
 import { removeChips, addChips } from '../../database/services/economy.service.js';
 import { getBankruptcyPenaltyMultiplier, applyPenalty } from '../../database/services/loan.service.js';
 import { formatChips } from '../../utils/formatters.js';
+import { updateMissionProgress, buildMissionNotification } from '../../database/services/mission.service.js';
 
 // In-memory session storage: userId -> game state
 export const bjSessionManager = new Map<string, BlackjackState>();
@@ -152,6 +153,32 @@ async function handleBlackjackButton(interaction: ButtonInteraction): Promise<vo
       components: [resultView],
       flags: MessageFlags.IsComponentsV2,
     });
+
+    // Mission hooks for blackjack
+    try {
+      const allCompleted = [];
+      const playResults = await updateMissionProgress(userId, { type: 'game_play', gameType: 'BLACKJACK' });
+      allCompleted.push(...playResults);
+
+      if (net > 0n) {
+        const winResults = await updateMissionProgress(userId, { type: 'game_win', gameType: 'BLACKJACK' });
+        allCompleted.push(...winResults);
+        const earnResults = await updateMissionProgress(userId, { type: 'chips_earned', amount: Number(net) });
+        allCompleted.push(...earnResults);
+      }
+
+      const betResults = await updateMissionProgress(userId, { type: 'chips_bet', amount: Number(result.totalBet) });
+      allCompleted.push(...betResults);
+
+      if (allCompleted.length > 0) {
+        await interaction.followUp({
+          content: buildMissionNotification(allCompleted),
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+    } catch {
+      // Mission check should never block game result
+    }
     return;
   }
 

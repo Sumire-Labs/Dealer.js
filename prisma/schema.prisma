@@ -102,6 +102,7 @@ enum TransactionType {
   HEIST_WIN
   HEIST_LOSS
   WORK_EARN
+  MISSION_REWARD
 }
 
 enum GameType {
@@ -112,6 +113,7 @@ enum GameType {
   POKER
   LOTTERY
   HEIST
+  ROULETTE
 }
 
 model BotSetting {
@@ -157,6 +159,21 @@ model LotteryTicket {
   createdAt DateTime     @default(now())
 
   @@index([roundId, userId])
+}
+
+model DailyMission {
+  id         String   @id @default(cuid())
+  userId     String
+  missionKey String
+  progress   Int      @default(0)
+  target     Int
+  reward     BigInt
+  completed  Boolean  @default(false)
+  date       String   // "2026-02-21"
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, missionKey, date])
+  @@index([userId, date])
 }
 
 model UserAchievement {

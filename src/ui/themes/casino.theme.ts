@@ -23,5 +23,7 @@ export const CasinoTheme = {
     achievements: '🏅 ━━━ 実績 ━━━ 🏅',
     heist: '🔫 ━━━ HEIST ━━━ 🔫',
     work: '💼 ━━━ WORK ━━━ 💼',
+    roulette: '💎 ━━━ ROULETTE ━━━ 💎',
+    missions: '🎯 ━━━ DAILY MISSIONS ━━━ 🎯',
   },
 } as const;

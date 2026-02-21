@@ -175,6 +175,18 @@ async function isConditionMet(
     case 'WORK_STREAK_5':
       return input.context === 'work' && (input.metadata?.['workStreak'] as number) >= 5;
 
+    case 'ROULETTE_STRAIGHT':
+      return (
+        input.gameType === 'ROULETTE' &&
+        input.metadata?.['isRouletteStraightWin'] === true
+      );
+
+    case 'MISSION_FIRST':
+      return input.context === 'mission';
+
+    case 'MISSION_COMPLETE_ALL':
+      return input.context === 'mission' && input.metadata?.['allCompleted'] === true;
+
     default:
       return false;
   }

@@ -4,6 +4,7 @@ import { findOrCreateUser } from '../repositories/user.repository.js';
 import { getBankruptcyPenaltyMultiplier, applyPenalty } from './loan.service.js';
 import { checkAchievements, type AchievementCheckInput } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
+import { updateMissionProgress, type CompletedMission } from './mission.service.js';
 
 export async function getBalance(userId: string): Promise<bigint> {
   const user = await findOrCreateUser(userId);
@@ -82,7 +83,7 @@ export async function processGameResult(
   betAmount: bigint,
   multiplier: number,
   metadata?: Record<string, unknown>,
-): Promise<{ newBalance: bigint; payout: bigint; net: bigint; newlyUnlocked: AchievementDefinition[] }> {
+): Promise<{ newBalance: bigint; payout: bigint; net: bigint; newlyUnlocked: AchievementDefinition[]; missionsCompleted: CompletedMission[] }> {
   // Use integer math to avoid BigInt→Number precision loss
   const multiplierInt = Math.round(multiplier * 1_000_000);
   let payout = (betAmount * BigInt(multiplierInt)) / 1_000_000n;
@@ -166,7 +167,28 @@ export async function processGameResult(
     // Achievement check should never block game result
   }
 
-  return { newBalance, payout, net, newlyUnlocked };
+  // Mission progress hooks
+  let missionsCompleted: CompletedMission[] = [];
+  try {
+    const betAmountNum = Number(betAmount);
+    const playResults = await updateMissionProgress(userId, { type: 'game_play', gameType: game });
+    missionsCompleted.push(...playResults);
+
+    if (isWin) {
+      const winResults = await updateMissionProgress(userId, { type: 'game_win', gameType: game });
+      missionsCompleted.push(...winResults);
+
+      const earnResults = await updateMissionProgress(userId, { type: 'chips_earned', amount: Number(net) });
+      missionsCompleted.push(...earnResults);
+    }
+
+    const betResults = await updateMissionProgress(userId, { type: 'chips_bet', amount: betAmountNum });
+    missionsCompleted.push(...betResults);
+  } catch {
+    // Mission check should never block game result
+  }
+
+  return { newBalance, payout, net, newlyUnlocked, missionsCompleted };
 }
 
 export async function hasEnoughChips(

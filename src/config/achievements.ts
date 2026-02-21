@@ -10,7 +10,8 @@ export type AchievementContext =
   | 'lottery'
   | 'heist'
   | 'multiplayer'
-  | 'work';
+  | 'work'
+  | 'mission';
 
 export interface AchievementDefinition {
   id: string;
@@ -244,6 +245,35 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     contexts: ['work'],
     hidden: false,
   },
+  // Roulette
+  {
+    id: 'ROULETTE_STRAIGHT',
+    name: '一点読み',
+    description: 'ルーレットのストレートベットで勝利する',
+    emoji: '🎯',
+    category: 'gaming',
+    contexts: ['game_result'],
+    hidden: true,
+  },
+  // Missions
+  {
+    id: 'MISSION_FIRST',
+    name: '初任務完了',
+    description: '初めてミッションを達成する',
+    emoji: '🎯',
+    category: 'social',
+    contexts: ['mission'],
+    hidden: false,
+  },
+  {
+    id: 'MISSION_COMPLETE_ALL',
+    name: 'パーフェクト',
+    description: '全ミッションを1日で達成する',
+    emoji: '🏆',
+    category: 'social',
+    contexts: ['mission'],
+    hidden: false,
+  },
 ];
 
 // Lookup maps
@@ -269,5 +299,5 @@ for (const a of ACHIEVEMENTS) {
 
 // All game types for ALL_GAMES_PLAYED check
 export const ALL_GAME_TYPES: GameType[] = [
-  'SLOTS', 'BLACKJACK', 'HORSE_RACE', 'COINFLIP', 'POKER',
+  'SLOTS', 'BLACKJACK', 'HORSE_RACE', 'COINFLIP', 'POKER', 'ROULETTE',
 ];

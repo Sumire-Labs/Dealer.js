@@ -17,6 +17,7 @@ import { JOB_MAP, type ShiftType } from '../../config/jobs.js';
 import { CasinoTheme } from '../../ui/themes/casino.theme.js';
 import { formatTimeDelta } from '../../utils/formatters.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
+import { buildMissionNotification } from '../../database/services/mission.service.js';
 
 async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
@@ -133,6 +134,14 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
       if (result.newlyUnlocked && result.newlyUnlocked.length > 0) {
         await interaction.followUp({
           content: buildAchievementNotification(result.newlyUnlocked),
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      // Mission notification
+      if (result.missionsCompleted && result.missionsCompleted.length > 0) {
+        await interaction.followUp({
+          content: buildMissionNotification(result.missionsCompleted),
           flags: MessageFlags.Ephemeral,
         });
       }

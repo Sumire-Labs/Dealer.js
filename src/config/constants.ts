@@ -68,4 +68,10 @@ export const WORK_STREAK_MAX_BONUS = 20;                     // max +20%
 export const WORK_TIP_MIN = 200n;
 export const WORK_TIP_MAX = 500n;
 
+// Roulette
+export const MAX_BET_ROULETTE = 100_000n;
+
+// Missions
+export const MISSION_COMPLETE_BONUS = 3_000n;
+
 export const COMMAND_COOLDOWN_MS = 3_000; // 3 seconds default cooldown

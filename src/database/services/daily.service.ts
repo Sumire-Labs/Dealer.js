@@ -4,6 +4,7 @@ import { prisma } from '../client.js';
 import { findOrCreateUser } from '../repositories/user.repository.js';
 import { checkAchievements } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
+import { updateMissionProgress, type CompletedMission } from './mission.service.js';
 
 export interface DailyResult {
   success: boolean;
@@ -13,6 +14,7 @@ export interface DailyResult {
   streak?: number;
   nextClaimAt?: number;
   newlyUnlocked?: AchievementDefinition[];
+  missionsCompleted?: CompletedMission[];
 }
 
 export async function claimDaily(userId: string): Promise<DailyResult> {
@@ -84,12 +86,21 @@ export async function claimDaily(userId: string): Promise<DailyResult> {
       // Achievement check should never block daily claim
     }
 
+    // Mission progress hooks
+    let missionsCompleted: CompletedMission[] = [];
+    try {
+      missionsCompleted = await updateMissionProgress(userId, { type: 'daily' });
+    } catch {
+      // Mission check should never block daily claim
+    }
+
     return {
       success: true,
       amount,
       newBalance: updated.chips,
       streak: newStreak,
       newlyUnlocked,
+      missionsCompleted,
     };
   });
 }
