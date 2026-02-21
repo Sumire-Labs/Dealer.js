@@ -75,6 +75,12 @@ enum GameType {
   COINFLIP
 }
 
+model BotSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
 enum RaceStatus {
   BETTING
   RUNNING

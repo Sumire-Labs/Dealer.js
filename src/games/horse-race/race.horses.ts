@@ -1,4 +1,5 @@
 import { HORSE_RACE_CONFIG } from '../../config/games.js';
+import { configService } from '../../config/config.service.js';
 import { secureRandomInt } from '../../utils/random.js';
 
 export interface Horse {
@@ -9,18 +10,10 @@ export interface Horse {
   winChance: number;
 }
 
-const HORSE_NAMES: string[] = [
-  'Thunder Bolt', 'Lucky Strike', 'Dark Shadow', 'Golden Dream', 'Long Shot',
-  'Silver Bullet', 'Night Rider', 'Blazing Sun', 'Iron Will', 'Wild Card',
-  'Fast Eddie', 'Diamond Dust', 'Phantom Ace', 'Royal Flush', 'Neon Flash',
-  'Storm Chaser', 'Velvet Thunder', 'Chrome Horse', 'Desert Eagle', 'Black Mamba',
-  'Quick Silver', 'High Roller', 'Lucky Seven', 'Gold Rush', 'Turbo Charge',
-  'Midnight Run', 'Star Gazer', 'Blaze Runner', 'Cash Money', 'Hot Streak',
-];
-
 const STAR_DISPLAY = ['⭐', '⭐⭐', '⭐⭐⭐', '⭐⭐⭐⭐', '⭐⭐⭐⭐⭐'];
 
 export function generateHorses(): Horse[] {
+  const horseNames = configService.getHorseNames();
   const usedNames = new Set<number>();
   const horses: Horse[] = [];
 
@@ -28,13 +21,13 @@ export function generateHorses(): Horse[] {
     const config = HORSE_RACE_CONFIG.horses[i];
     let nameIndex: number;
     do {
-      nameIndex = secureRandomInt(0, HORSE_NAMES.length - 1);
+      nameIndex = secureRandomInt(0, horseNames.length - 1);
     } while (usedNames.has(nameIndex));
     usedNames.add(nameIndex);
 
     horses.push({
       index: i,
-      name: HORSE_NAMES[nameIndex],
+      name: horseNames[nameIndex],
       stars: config.stars,
       odds: config.baseOdds,
       winChance: config.winChance,

@@ -5,13 +5,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    environment:
-      - DATABASE_URL=postgresql://casino:casino@db:5432/casino_bot
-      - DISCORD_TOKEN=${DISCORD_TOKEN}
-      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
-      - GUILD_ID=${GUILD_ID:-}  # optional: set for dev, omit for global multi-server
     volumes:
       - ./src:/app/src
+      - ./config.yaml:/app/config.yaml:ro
 
   db:
     image: postgres:17-alpine

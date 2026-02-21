@@ -7,7 +7,8 @@
       "Bash(corepack:*)",
       "Bash(npm install:*)",
       "Bash(npx prisma generate)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx prisma generate:*)"
     ]
   }
 }

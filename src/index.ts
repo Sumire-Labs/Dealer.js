@@ -1,5 +1,6 @@
 import { startBot } from './client.js';
 import { startScheduler } from './scheduler/daily-reset.scheduler.js';
+import { configService } from './config/config.service.js';
 import { logger } from './utils/logger.js';
 
 async function loadModules(): Promise<void> {
@@ -22,14 +23,20 @@ async function loadModules(): Promise<void> {
 
   // Modal handlers
   await import('./interactions/modals/bet-amount.modal.js');
+  await import('./interactions/modals/setting.modal.js');
 
   // Admin commands
   await import('./commands/admin/give.command.js');
   await import('./commands/admin/reset.command.js');
+  await import('./commands/admin/setting.command.js');
+
+  // Admin button handlers
+  await import('./interactions/buttons/setting.buttons.js');
 }
 
 async function main(): Promise<void> {
   logger.info('Starting Dealer.js...');
+  await configService.initialize();
   await loadModules();
   await startBot();
   startScheduler();

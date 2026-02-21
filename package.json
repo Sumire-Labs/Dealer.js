@@ -18,7 +18,8 @@
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
-    "discord.js": "^14.19.3"
+    "discord.js": "^14.19.3",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",
