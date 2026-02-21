@@ -35,4 +35,28 @@ export const BANK_INTEREST_RATE = 1n;               // 日利 1%
 export const BANK_INTEREST_PERIOD_MS = 24 * 60 * 60 * 1000; // 24h
 export const BANK_MIN_BALANCE_FOR_INTEREST = 100n;   // 利息最低残高
 
+// Lottery
+export const LOTTERY_TICKET_PRICE = 1_000n;
+export const LOTTERY_MAX_TICKETS_PER_ROUND = 10;
+export const LOTTERY_NUMBER_MIN = 1;
+export const LOTTERY_NUMBER_MAX = 9;
+export const LOTTERY_NUMBERS_COUNT = 3;
+export const LOTTERY_DRAW_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+export const LOTTERY_JACKPOT_PAYOUT_RATE = 70n;  // 3 match: pot × 70%
+export const LOTTERY_SECOND_PAYOUT_RATE = 20n;   // 2 match: pot × 20%
+export const LOTTERY_HOUSE_RATE = 10n;            // 10% chip sink
+
+// Heist
+export const HEIST_MIN_ENTRY = 1_000n;
+export const HEIST_MAX_ENTRY = 100_000n;
+export const HEIST_MIN_PLAYERS = 2;
+export const HEIST_MAX_PLAYERS = 6;
+export const HEIST_LOBBY_DURATION_MS = 60_000;
+export const HEIST_BASE_SUCCESS_RATE = 30;
+export const HEIST_PER_PLAYER_BONUS = 10;
+export const HEIST_MAX_SUCCESS_RATE = 80;
+export const HEIST_MIN_MULTIPLIER = 2.0;
+export const HEIST_MAX_MULTIPLIER = 4.0;
+export const HEIST_CHANNEL_COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
+
 export const COMMAND_COOLDOWN_MS = 3_000; // 3 seconds default cooldown

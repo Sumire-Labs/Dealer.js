@@ -10,6 +10,7 @@ import { spin } from '../../games/slots/slots.engine.js';
 import { buildSlotsSpinningView } from '../../ui/builders/slots.builder.js';
 import { playSlotsAnimation } from '../../ui/animations/slots.animation.js';
 import { formatChips } from '../../utils/formatters.js';
+import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 
 const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n];
 
@@ -96,7 +97,9 @@ async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> 
 
     // Run the game
     const result = spin();
-    const gameResult = await processGameResult(userId, 'SLOTS', currentBet, result.paytable.multiplier);
+    const gameResult = await processGameResult(userId, 'SLOTS', currentBet, result.paytable.multiplier, {
+      multiplier: result.paytable.multiplier,
+    });
 
     // Get today's stats
     const todayStats = await getTodayStats(userId);
@@ -111,6 +114,14 @@ async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> 
       userId,
       todayStats,
     );
+
+    // Achievement notification
+    if (gameResult.newlyUnlocked.length > 0) {
+      await interaction.followUp({
+        content: buildAchievementNotification(gameResult.newlyUnlocked),
+        flags: MessageFlags.Ephemeral,
+      });
+    }
     return;
   }
 }

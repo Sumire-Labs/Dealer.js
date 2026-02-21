@@ -12,6 +12,7 @@ import { buildSlotsSpinningView } from '../../ui/builders/slots.builder.js';
 import { playSlotsAnimation } from '../../ui/animations/slots.animation.js';
 import { formatChips } from '../../utils/formatters.js';
 import { slotsSessionManager } from '../../interactions/buttons/slots.buttons.js';
+import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 
 const data = new SlashCommandBuilder()
   .setName('slots')
@@ -60,7 +61,9 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
 
   // Run the game
   const result = spin();
-  const gameResult = await processGameResult(userId, 'SLOTS', bet, result.paytable.multiplier);
+  const gameResult = await processGameResult(userId, 'SLOTS', bet, result.paytable.multiplier, {
+    multiplier: result.paytable.multiplier,
+  });
 
   // Get today's stats
   const todayStats = await getTodayStats(userId);
@@ -75,6 +78,14 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     userId,
     todayStats,
   );
+
+  // Achievement notification
+  if (gameResult.newlyUnlocked.length > 0) {
+    await interaction.followUp({
+      content: buildAchievementNotification(gameResult.newlyUnlocked),
+      flags: MessageFlags.Ephemeral,
+    });
+  }
 }
 
 registerCommand({ data, execute: execute as never });

@@ -23,6 +23,8 @@ model User {
   transactions   Transaction[]
   bets           RaceBet[]
   loans          Loan[]
+  lotteryTickets LotteryTicket[]
+  achievements   UserAchievement[]
 }
 
 model Transaction {
@@ -90,6 +92,11 @@ enum TransactionType {
   BANK_TRANSFER_SEND
   BANK_TRANSFER_RECV
   BANK_INTEREST
+  LOTTERY_BUY
+  LOTTERY_WIN
+  HEIST_JOIN
+  HEIST_WIN
+  HEIST_LOSS
 }
 
 enum GameType {
@@ -98,6 +105,8 @@ enum GameType {
   HORSE_RACE
   COINFLIP
   POKER
+  LOTTERY
+  HEIST
 }
 
 model BotSetting {
@@ -111,4 +120,47 @@ enum RaceStatus {
   RUNNING
   FINISHED
   CANCELLED
+}
+
+enum LotteryStatus {
+  OPEN
+  DRAWING
+  COMPLETED
+}
+
+model LotteryRound {
+  id             String        @id @default(cuid())
+  roundNumber    Int           @unique @default(autoincrement())
+  status         LotteryStatus @default(OPEN)
+  jackpot        BigInt        @default(0)
+  winningNumbers Int[]
+  drawAt         DateTime
+  drawnAt        DateTime?
+  createdAt      DateTime      @default(now())
+  tickets        LotteryTicket[]
+
+  @@index([status])
+}
+
+model LotteryTicket {
+  id        String       @id @default(cuid())
+  roundId   String
+  round     LotteryRound @relation(fields: [roundId], references: [id])
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  numbers   Int[]
+  createdAt DateTime     @default(now())
+
+  @@index([roundId, userId])
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  achievementId String
+  unlockedAt    DateTime @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([userId])
 }

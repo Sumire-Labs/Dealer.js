@@ -8,6 +8,8 @@ import {
   BANKRUPTCY_PENALTY_DURATION_MS,
   BANKRUPTCY_PENALTY_RATE,
 } from '../../config/constants.js';
+import { checkAchievements } from './achievement.service.js';
+import type { AchievementDefinition } from '../../config/achievements.js';
 
 export function calculateLoanInterest(loan: { principal: bigint; createdAt: Date }): bigint {
   const elapsedMs = BigInt(Date.now() - loan.createdAt.getTime());
@@ -49,7 +51,7 @@ export async function getLoanSummary(userId: string): Promise<LoanSummary> {
   };
 }
 
-export async function borrowChips(userId: string, amount: bigint): Promise<bigint> {
+export async function borrowChips(userId: string, amount: bigint): Promise<{ newBalance: bigint; newlyUnlocked: AchievementDefinition[] }> {
   return prisma.$transaction(async (tx) => {
     await findOrCreateUser(userId);
 
@@ -81,11 +83,24 @@ export async function borrowChips(userId: string, amount: bigint): Promise<bigin
       },
     });
 
-    return user.chips;
+    // Achievement check
+    let newlyUnlocked: AchievementDefinition[] = [];
+    try {
+      newlyUnlocked = await checkAchievements({
+        userId,
+        context: 'loan',
+        newBalance: user.chips,
+        metadata: { action: 'borrow' },
+      });
+    } catch {
+      // Achievement check should never block borrow
+    }
+
+    return { newBalance: user.chips, newlyUnlocked };
   });
 }
 
-export async function repayChips(userId: string, amount: bigint): Promise<{ newBalance: bigint; repaid: bigint }> {
+export async function repayChips(userId: string, amount: bigint): Promise<{ newBalance: bigint; repaid: bigint; newlyUnlocked: AchievementDefinition[] }> {
   return prisma.$transaction(async (tx) => {
     const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
     if (user.chips < amount) {
@@ -169,11 +184,24 @@ export async function repayChips(userId: string, amount: bigint): Promise<{ newB
       },
     });
 
-    return { newBalance: updatedUser.chips, repaid };
+    // Achievement check
+    let newlyUnlocked: AchievementDefinition[] = [];
+    try {
+      newlyUnlocked = await checkAchievements({
+        userId,
+        context: 'loan',
+        newBalance: updatedUser.chips,
+        metadata: { action: 'repay' },
+      });
+    } catch {
+      // Achievement check should never block repay
+    }
+
+    return { newBalance: updatedUser.chips, repaid, newlyUnlocked };
   });
 }
 
-export async function declareBankruptcy(userId: string): Promise<bigint> {
+export async function declareBankruptcy(userId: string): Promise<{ newBalance: bigint; newlyUnlocked: AchievementDefinition[] }> {
   return prisma.$transaction(async (tx) => {
     const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
 
@@ -212,7 +240,19 @@ export async function declareBankruptcy(userId: string): Promise<bigint> {
       },
     });
 
-    return updatedUser.chips;
+    // Achievement check
+    let newlyUnlocked: AchievementDefinition[] = [];
+    try {
+      newlyUnlocked = await checkAchievements({
+        userId,
+        context: 'bankruptcy',
+        newBalance: BANKRUPTCY_CHIPS,
+      });
+    } catch {
+      // Achievement check should never block bankruptcy
+    }
+
+    return { newBalance: updatedUser.chips, newlyUnlocked };
   });
 }
 

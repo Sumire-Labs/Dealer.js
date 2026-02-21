@@ -2,6 +2,8 @@ import { Prisma, type GameType, type TransactionType } from '@prisma/client';
 import { prisma } from '../client.js';
 import { findOrCreateUser } from '../repositories/user.repository.js';
 import { getBankruptcyPenaltyMultiplier, applyPenalty } from './loan.service.js';
+import { checkAchievements, type AchievementCheckInput } from './achievement.service.js';
+import type { AchievementDefinition } from '../../config/achievements.js';
 
 export async function getBalance(userId: string): Promise<bigint> {
   const user = await findOrCreateUser(userId);
@@ -79,7 +81,8 @@ export async function processGameResult(
   game: GameType,
   betAmount: bigint,
   multiplier: number,
-): Promise<{ newBalance: bigint; payout: bigint; net: bigint }> {
+  metadata?: Record<string, unknown>,
+): Promise<{ newBalance: bigint; payout: bigint; net: bigint; newlyUnlocked: AchievementDefinition[] }> {
   // Use integer math to avoid BigInt→Number precision loss
   const multiplierInt = Math.round(multiplier * 1_000_000);
   let payout = (betAmount * BigInt(multiplierInt)) / 1_000_000n;
@@ -136,7 +139,34 @@ export async function processGameResult(
     return updatedUser.chips;
   });
 
-  return { newBalance, payout, net };
+  // Achievement checks
+  const isWin = net > 0n;
+  let newlyUnlocked: AchievementDefinition[] = [];
+  try {
+    const gameCheck: AchievementCheckInput = {
+      userId,
+      context: 'game_result',
+      gameType: game,
+      gameResult: isWin ? 'win' : 'loss',
+      netAmount: net,
+      newBalance,
+      metadata,
+    };
+    const gameAchievements = await checkAchievements(gameCheck);
+
+    const economyCheck: AchievementCheckInput = {
+      userId,
+      context: 'economy_change',
+      newBalance,
+    };
+    const economyAchievements = await checkAchievements(economyCheck);
+
+    newlyUnlocked = [...gameAchievements, ...economyAchievements];
+  } catch {
+    // Achievement check should never block game result
+  }
+
+  return { newBalance, payout, net, newlyUnlocked };
 }
 
 export async function hasEnoughChips(

@@ -19,5 +19,8 @@ export const CasinoTheme = {
     daily: '🎁 ━━━ デイリーボーナス ━━━ 🎁',
     poker: '🃏 ━━━ POKER ━━━ 🃏',
     bank: '🏦 ━━━ BANK ━━━ 🏦',
+    lottery: '🎟️ ━━━ LOTTERY ━━━ 🎟️',
+    achievements: '🏅 ━━━ 実績 ━━━ 🏅',
+    heist: '🔫 ━━━ HEIST ━━━ 🔫',
   },
 } as const;

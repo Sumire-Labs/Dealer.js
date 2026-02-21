@@ -11,6 +11,7 @@ import { registerCommand } from '../registry.js';
 import { claimDaily } from '../../database/services/daily.service.js';
 import { CasinoTheme } from '../../ui/themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
+import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 
 const data = new SlashCommandBuilder()
   .setName('daily')
@@ -68,6 +69,14 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     components: [container],
     flags: MessageFlags.IsComponentsV2,
   });
+
+  // Achievement notification
+  if (result.newlyUnlocked && result.newlyUnlocked.length > 0) {
+    await interaction.followUp({
+      content: buildAchievementNotification(result.newlyUnlocked),
+      flags: MessageFlags.Ephemeral,
+    });
+  }
 }
 
 registerCommand({ data, execute: execute as never });

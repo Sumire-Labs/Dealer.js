@@ -10,6 +10,7 @@ import {
   buildCoinflipIdleView,
 } from '../../ui/builders/coinflip.builder.js';
 import { formatChips } from '../../utils/formatters.js';
+import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 
 const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n, 500_000n];
 
@@ -117,6 +118,14 @@ async function handleCoinflipButton(interaction: ButtonInteraction): Promise<voi
     components: [resultView],
     flags: MessageFlags.IsComponentsV2,
   });
+
+  // Achievement notification
+  if (gameResult.newlyUnlocked.length > 0) {
+    await interaction.followUp({
+      content: buildAchievementNotification(gameResult.newlyUnlocked),
+      flags: MessageFlags.Ephemeral,
+    });
+  }
 }
 
 function sleep(ms: number): Promise<void> {
