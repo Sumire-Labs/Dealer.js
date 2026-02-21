@@ -7,6 +7,7 @@ export interface RaceSessionState {
   id: string;
   channelId: string;
   messageId?: string;
+  ownerId: string;
   horses: Horse[];
   bets: RaceBetEntry[];
   status: RaceSessionStatus;

@@ -19,6 +19,7 @@ export function buildBettingView(
   horses: Horse[],
   bets: RaceBetEntry[],
   remainingSeconds: number,
+  ownerId: string,
 ): ContainerBuilder {
   const horseList = horses.map(h => formatHorseInfo(h)).join('\n');
   const pool = getTotalPool(bets);
@@ -47,9 +48,17 @@ export function buildBettingView(
         ...horses.map(h =>
           new ButtonBuilder()
             .setCustomId(`race:bet:${sessionId}:${h.index}`)
-            .setLabel(`${numberEmoji(h.index + 1)} x${h.odds}`)
+            .setLabel(h.name)
             .setStyle(ButtonStyle.Primary),
         ),
+      ),
+    )
+    .addActionRowComponents(
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`race:start_race:${sessionId}:${ownerId}`)
+          .setLabel('🏁 レース開始')
+          .setStyle(ButtonStyle.Danger),
       ),
     );
 

@@ -11,7 +11,7 @@ export const CasinoTheme = {
     casino: '🎰 ━━━ DIAMOND CASINO ━━━ 🎰',
     slots: '🎰 ━━━ SLOTS ━━━ 🎰',
     jackpot: '🎰 ━━━ 💥 JACKPOT!! 💥 ━━━ 🎰',
-    race: '🏇 ━━━ DIAMOND CASINO RACE ━━━ 🏇',
+    race: '🏇 ━━━ 競馬 ━━━ 🏇',
     blackjack: '🃏 ━━━ BLACKJACK ━━━ 🃏',
     coinflip: '🪙 ━━━ COIN FLIP ━━━ 🪙',
     balance: '💰 ━━━ 残高 ━━━ 💰',

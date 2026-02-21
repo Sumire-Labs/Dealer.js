@@ -11,11 +11,17 @@ import {
   getActiveSession,
   hasUserBet,
 } from '../../games/horse-race/race.session.js';
+import { runRace } from '../../commands/casino/horse-race.command.js';
 
 async function handleRaceButton(interaction: ButtonInteraction): Promise<void> {
-  // customId format: race:bet:<sessionId>:<horseIndex>
+  // customId format: race:<action>:<sessionId>:<param>
   const parts = interaction.customId.split(':');
   const action = parts[1];
+
+  if (action === 'start_race') {
+    await handleStartRace(interaction, parts);
+    return;
+  }
 
   if (action !== 'bet') return;
 
@@ -60,6 +66,33 @@ async function handleRaceButton(interaction: ButtonInteraction): Promise<void> {
     );
 
   await interaction.showModal(modal);
+}
+
+async function handleStartRace(interaction: ButtonInteraction, parts: string[]): Promise<void> {
+  const ownerId = parts[3];
+  const channelId = interaction.channelId;
+
+  if (interaction.user.id !== ownerId) {
+    await interaction.reply({
+      content: 'レース開始は主催者のみ行えます。',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const session = getActiveSession(channelId);
+  if (!session || session.status !== 'betting') {
+    await interaction.reply({
+      content: 'このレースのベット受付は終了しています。',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  // Force close betting
+  session.startsAt = Date.now();
+  await interaction.update({});
+  await runRace(interaction.channel, session);
 }
 
 registerButtonHandler('race', handleRaceButton as never);

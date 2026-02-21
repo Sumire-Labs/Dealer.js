@@ -1,6 +1,7 @@
 import {
   SlashCommandBuilder,
   type ChatInputCommandInteraction,
+  type TextBasedChannel,
   MessageFlags,
 } from 'discord.js';
 import { registerCommand } from '../registry.js';
@@ -29,23 +30,11 @@ import { logger } from '../../utils/logger.js';
 
 const data = new SlashCommandBuilder()
   .setName('race')
-  .setDescription('競馬レースの開始・管理')
-  .addSubcommand(sub =>
-    sub.setName('start').setDescription('新しいレースを開始'),
-  )
-  .addSubcommand(sub =>
-    sub.setName('close').setDescription('ベットを締め切ってレース開始'),
-  )
+  .setDescription('競馬レースを開始する')
   .toJSON();
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
-  const subcommand = interaction.options.getSubcommand();
-
-  if (subcommand === 'start') {
-    await handleStart(interaction);
-  } else if (subcommand === 'close') {
-    await handleClose(interaction);
-  }
+  await handleStart(interaction);
 }
 
 async function handleStart(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -74,6 +63,7 @@ async function handleStart(interaction: ChatInputCommandInteraction): Promise<vo
   const session: RaceSessionState = {
     id: dbSession.id,
     channelId,
+    ownerId: interaction.user.id,
     horses,
     bets: [],
     status: 'betting',
@@ -83,7 +73,7 @@ async function handleStart(interaction: ChatInputCommandInteraction): Promise<vo
 
   // Show betting view
   const remainingSeconds = Math.ceil(RACE_BETTING_DURATION_MS / 1000);
-  const bettingView = buildBettingView(session.id, horses, [], remainingSeconds);
+  const bettingView = buildBettingView(session.id, horses, [], remainingSeconds, session.ownerId);
 
   const reply = await interaction.reply({
     components: [bettingView],
@@ -94,33 +84,11 @@ async function handleStart(interaction: ChatInputCommandInteraction): Promise<vo
   session.messageId = reply.resource?.message?.id;
 
   // Start countdown timer
-  startBettingCountdown(interaction, session);
-}
-
-async function handleClose(interaction: ChatInputCommandInteraction): Promise<void> {
-  const channelId = interaction.channelId;
-  const session = getActiveSession(channelId);
-
-  if (!session || session.status !== 'betting') {
-    await interaction.reply({
-      content: 'このチャンネルにはベット受付中のレースがありません。',
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
-
-  await interaction.reply({
-    content: '⏰ ベット締め切り！ レースを開始します...',
-    flags: MessageFlags.Ephemeral,
-  });
-
-  // Force close
-  session.startsAt = Date.now();
-  await runRace(interaction, session);
+  startBettingCountdown(interaction.channel, session);
 }
 
 function startBettingCountdown(
-  interaction: ChatInputCommandInteraction,
+  channel: TextBasedChannel | null,
   session: RaceSessionState,
 ): void {
   const updateInterval = 15_000; // update every 15 seconds
@@ -132,7 +100,7 @@ function startBettingCountdown(
     if (remaining <= 0 || session.status !== 'betting') {
       clearInterval(timer);
       if (session.status === 'betting') {
-        await runRace(interaction, session);
+        await runRace(channel, session);
       }
       return;
     }
@@ -140,11 +108,10 @@ function startBettingCountdown(
     // Update betting view with remaining time
     try {
       if (session.messageId) {
-        const channel = interaction.channel;
         if (channel && 'messages' in channel) {
           const message = await channel.messages.fetch(session.messageId);
           const remainingSec = Math.ceil(remaining / 1000);
-          const view = buildBettingView(session.id, session.horses, session.bets, remainingSec);
+          const view = buildBettingView(session.id, session.horses, session.bets, remainingSec, session.ownerId);
           await message.edit({
             components: [view],
             flags: MessageFlags.IsComponentsV2,
@@ -157,8 +124,8 @@ function startBettingCountdown(
   }, updateInterval);
 }
 
-async function runRace(
-  interaction: ChatInputCommandInteraction,
+export async function runRace(
+  channel: TextBasedChannel | null,
   session: RaceSessionState,
 ): Promise<void> {
   const channelId = session.channelId;
@@ -178,8 +145,8 @@ async function runRace(
     );
 
     try {
-      if (session.messageId && interaction.channel && 'messages' in interaction.channel) {
-        const message = await interaction.channel.messages.fetch(session.messageId);
+      if (session.messageId && channel && 'messages' in channel) {
+        const message = await channel.messages.fetch(session.messageId);
         await message.edit({
           components: [cancelView],
           flags: MessageFlags.IsComponentsV2,
@@ -201,8 +168,8 @@ async function runRace(
 
   // Play animation
   try {
-    if (session.messageId && interaction.channel && 'messages' in interaction.channel) {
-      const message = await interaction.channel.messages.fetch(session.messageId);
+    if (session.messageId && channel && 'messages' in channel) {
+      const message = await channel.messages.fetch(session.messageId);
       await playRaceAnimation(message, session.horses, result.frames);
     }
   } catch (err) {
@@ -239,8 +206,8 @@ async function runRace(
   );
 
   try {
-    if (session.messageId && interaction.channel && 'messages' in interaction.channel) {
-      const message = await interaction.channel.messages.fetch(session.messageId);
+    if (session.messageId && channel && 'messages' in channel) {
+      const message = await channel.messages.fetch(session.messageId);
       await message.edit({
         components: [resultView],
         flags: MessageFlags.IsComponentsV2,
