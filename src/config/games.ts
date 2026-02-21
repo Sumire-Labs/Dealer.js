@@ -39,3 +39,10 @@ export const HORSE_RACE_CONFIG = {
 export const COINFLIP_CONFIG = {
   payout: 2, // 1:1 (bet returned + 1x profit)
 } as const;
+
+export const POKER_CONFIG = {
+  smallBlind: 100n,
+  bigBlind: 200n,
+  lobbyUpdateInterval: 15_000,
+  actionUpdateInterval: 5_000,
+} as const;

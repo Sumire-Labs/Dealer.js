@@ -9,8 +9,8 @@ export interface Card {
   rank: Rank;
 }
 
-const SUITS: Suit[] = ['spades', 'hearts', 'diamonds', 'clubs'];
-const RANKS: Rank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+export const SUITS: Suit[] = ['spades', 'hearts', 'diamonds', 'clubs'];
+export const RANKS: Rank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
 const SUIT_SYMBOLS: Record<Suit, string> = {
   spades: '♠',

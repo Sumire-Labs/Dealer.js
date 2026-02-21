@@ -73,6 +73,7 @@ enum GameType {
   BLACKJACK
   HORSE_RACE
   COINFLIP
+  POKER
 }
 
 model BotSetting {
