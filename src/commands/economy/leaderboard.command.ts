@@ -36,6 +36,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   await interaction.reply({
     components: [container],
     flags: MessageFlags.IsComponentsV2,
+    allowedMentions: { users: [] },
   });
 }
 
