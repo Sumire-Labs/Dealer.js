@@ -93,10 +93,9 @@ async function handleBuyIn(
   // Update lobby message
   try {
     if (session.messageId && interaction.channel && 'messages' in interaction.channel) {
-      const message = await interaction.channel.messages.fetch(session.messageId);
       const remaining = Math.max(0, Math.ceil((session.lobbyDeadline - Date.now()) / 1000));
       const view = buildPokerLobbyView(session, remaining);
-      await message.edit({
+      await interaction.channel.messages.edit(session.messageId, {
         components: [view],
         flags: MessageFlags.IsComponentsV2,
       });
@@ -176,14 +175,12 @@ async function handleRaise(
     }
   }
 
-  // Confirm to user via ephemeral
+  // Confirm to user and advance game in parallel
   const confirmText = buildActionConfirmation('raise', raiseTotal);
-  await interaction.reply({
-    content: confirmText,
-    flags: MessageFlags.Ephemeral,
-  });
-
-  await advanceGame(interaction.channel, session);
+  await Promise.all([
+    interaction.reply({ content: confirmText, flags: MessageFlags.Ephemeral }),
+    advanceGame(interaction.channel, session),
+  ]);
 }
 
 registerModalHandler('poker_modal', handlePokerModal as never);

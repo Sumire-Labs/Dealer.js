@@ -114,10 +114,9 @@ function startLobbyCountdown(
 
     try {
       if (session.messageId && channel && 'messages' in channel) {
-        const message = await channel.messages.fetch(session.messageId);
         const remainingSec = Math.ceil(remaining / 1000);
         const view = buildPokerLobbyView(session, remainingSec);
-        await message.edit({
+        await channel.messages.edit(session.messageId, {
           components: [view],
           flags: MessageFlags.IsComponentsV2,
         });
@@ -148,8 +147,7 @@ export async function tryStartGame(
 
     try {
       if (session.messageId && channel && 'messages' in channel) {
-        const message = await channel.messages.fetch(session.messageId);
-        await message.edit({
+        await channel.messages.edit(session.messageId, {
           components: [cancelView],
           flags: MessageFlags.IsComponentsV2,
         });
@@ -299,13 +297,10 @@ async function handleShowdown(
     await addChips(w.userId, w.amount, 'WIN', 'POKER');
   }
 
-  // Record losses (players who didn't win back their buy-in)
+  // Return remaining stacks (unbet chips) to all players
   for (const p of session.players) {
-    const totalWon = winners
-      .filter(w => w.userId === p.userId)
-      .reduce((sum, w) => sum + w.amount, 0n);
-    if (totalWon === 0n && p.totalBet > 0n) {
-      // Loss already recorded during buy-in deduction
+    if (p.stack > 0n) {
+      await addChips(p.userId, p.stack, 'WIN', 'POKER');
     }
   }
 
@@ -315,8 +310,7 @@ async function handleShowdown(
 
   try {
     if (session.messageId && channel && 'messages' in channel) {
-      const message = await channel.messages.fetch(session.messageId);
-      await message.edit({
+      await channel.messages.edit(session.messageId, {
         components: [resultView],
         flags: MessageFlags.IsComponentsV2,
       });
@@ -338,14 +332,20 @@ async function handleFoldWin(
   const totalPot = session.players.reduce((sum, p) => sum + p.totalBet, 0n);
   await addChips(winnerUserId, totalPot, 'WIN', 'POKER');
 
+  // Return remaining stacks (unbet chips) to all players
+  for (const p of session.players) {
+    if (p.stack > 0n) {
+      await addChips(p.userId, p.stack, 'WIN', 'POKER');
+    }
+  }
+
   session.status = 'finished';
 
   const foldView = buildPokerFoldWinView(session, winnerUserId);
 
   try {
     if (session.messageId && channel && 'messages' in channel) {
-      const message = await channel.messages.fetch(session.messageId);
-      await message.edit({
+      await channel.messages.edit(session.messageId, {
         components: [foldView],
         flags: MessageFlags.IsComponentsV2,
       });
@@ -381,9 +381,9 @@ export async function updateTableMessage(
 ): Promise<void> {
   try {
     if (session.messageId && channel && 'messages' in channel) {
-      const message = await channel.messages.fetch(session.messageId);
       const view = buildPokerTableView(session);
-      await message.edit({
+      // Use channel.messages.edit directly — avoids an extra fetch API call
+      await channel.messages.edit(session.messageId, {
         components: [view],
         flags: MessageFlags.IsComponentsV2,
       });
