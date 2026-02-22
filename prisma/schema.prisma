@@ -34,6 +34,8 @@ model User {
   lifetimeShopSpend BigInt        @default(0)
   inventory         UserInventory[]
   activeBuffs       ActiveBuff[]
+  workMastery       WorkMastery[]
+  weeklyChallenges  WorkWeeklyChallenge[]
 }
 
 model Transaction {
@@ -110,6 +112,7 @@ enum TransactionType {
   MISSION_REWARD
   SHOP_BUY
   SHOP_REFUND
+  WEEKLY_CHALLENGE_REWARD
 }
 
 enum GameType {
@@ -217,4 +220,32 @@ model ActiveBuff {
 
   @@unique([userId, buffId])
   @@index([userId, expiresAt])
+}
+
+model WorkMastery {
+  id              String @id @default(cuid())
+  userId          String
+  user            User   @relation(fields: [userId], references: [id])
+  jobId           String
+  shiftsCompleted Int    @default(0)
+  masteryLevel    Int    @default(0)
+
+  @@unique([userId, jobId])
+  @@index([userId])
+}
+
+model WorkWeeklyChallenge {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  weekStart    String   // "2026-W08"
+  challengeKey String
+  target       Int
+  progress     Int      @default(0)
+  completed    Boolean  @default(false)
+  reward       BigInt
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, challengeKey, weekStart])
+  @@index([userId, weekStart])
 }

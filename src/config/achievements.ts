@@ -12,7 +12,8 @@ export type AchievementContext =
   | 'multiplayer'
   | 'work'
   | 'mission'
-  | 'shop';
+  | 'shop'
+  | 'weekly_challenge';
 
 export interface AchievementDefinition {
   id: string;
@@ -310,6 +311,52 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     emoji: '📚',
     category: 'economy',
     contexts: ['shop'],
+    hidden: false,
+  },
+  // Work Mastery & Promotion
+  {
+    id: 'FIRST_MASTERY',
+    name: '初めてのマスタリー',
+    description: '熟練度Lv1に到達する',
+    emoji: '🥈',
+    category: 'economy',
+    contexts: ['work'],
+    hidden: false,
+  },
+  {
+    id: 'JOB_MASTER',
+    name: 'ジョブマスター',
+    description: '任意ジョブで熟練度Lv5(マスター)に到達する',
+    emoji: '👑',
+    category: 'economy',
+    contexts: ['work'],
+    hidden: false,
+  },
+  {
+    id: 'ALL_JOBS_MASTERED',
+    name: '全職制覇',
+    description: '全6ジョブでマスターに到達する',
+    emoji: '🏆',
+    category: 'special',
+    contexts: ['work'],
+    hidden: true,
+  },
+  {
+    id: 'PROMOTED',
+    name: '昇進',
+    description: '昇進ジョブを初解放する',
+    emoji: '⭐',
+    category: 'economy',
+    contexts: ['work'],
+    hidden: false,
+  },
+  {
+    id: 'WEEKLY_COMPLETE',
+    name: '週間チャレンジ達人',
+    description: '全ウィークリーチャレンジを完了する',
+    emoji: '📋',
+    category: 'social',
+    contexts: ['weekly_challenge'],
     hidden: false,
   },
 ];

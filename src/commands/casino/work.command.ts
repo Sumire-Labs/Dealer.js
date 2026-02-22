@@ -16,6 +16,23 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   const userId = interaction.user.id;
   const panelData = await getWorkPanelData(userId);
 
+  // Get weekly challenge summary
+  let weeklyChallenges: { name: string; progress: number; target: number; completed: boolean }[] = [];
+  try {
+    const { getWeeklyChallenges } = await import('../../database/services/weekly-challenge.service.js');
+    const { WEEKLY_CHALLENGE_POOL } = await import('../../config/weekly-challenges.js');
+    const challenges = await getWeeklyChallenges(userId);
+    weeklyChallenges = challenges.map(c => {
+      const def = WEEKLY_CHALLENGE_POOL.find(p => p.key === c.challengeKey);
+      return {
+        name: def?.name ?? c.challengeKey,
+        progress: c.progress,
+        target: c.target,
+        completed: c.completed,
+      };
+    });
+  } catch { /* ignore */ }
+
   const view = buildWorkPanelView({
     userId,
     workLevel: panelData.workLevel,
@@ -23,6 +40,8 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     workStreak: panelData.workStreak,
     lastWorkAt: panelData.lastWorkAt,
     xpForNextLevel: panelData.xpForNextLevel,
+    masteries: panelData.masteries,
+    weeklyChallenges,
   });
 
   await interaction.reply({

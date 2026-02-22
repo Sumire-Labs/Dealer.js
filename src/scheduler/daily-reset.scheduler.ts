@@ -8,6 +8,7 @@ const CLEANUP_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 const INTEREST_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 const LOTTERY_CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const SHOP_ROTATION_CHECK_MS = 5 * 60 * 1000; // 5 minutes
+const WEEKLY_CHALLENGE_CHECK_MS = 60 * 60 * 1000; // 1 hour
 
 export function startScheduler(): void {
   // Periodic cleanup of stale race sessions
@@ -57,6 +58,18 @@ export function startScheduler(): void {
       logger.error('Shop rotation check failed', { error: String(err) });
     }
   }, SHOP_ROTATION_CHECK_MS);
+
+  // Weekly challenge check (auto-assign on Monday)
+  setInterval(async () => {
+    try {
+      const now = new Date();
+      if (now.getDay() === 1 && now.getHours() < 2) {
+        logger.info('Weekly challenge period — new challenges will be assigned on demand');
+      }
+    } catch (err) {
+      logger.error('Weekly challenge check failed', { error: String(err) });
+    }
+  }, WEEKLY_CHALLENGE_CHECK_MS);
 
   logger.info('Scheduler started');
 }

@@ -74,4 +74,16 @@ export const MAX_BET_ROULETTE = 100_000n;
 // Missions
 export const MISSION_COMPLETE_BONUS = 3_000n;
 
+// Special Shifts
+export const SPECIAL_SHIFT_CACHE_TTL_MS = 60_000;        // 60s anti-fishing
+export const SPECIAL_SHIFT_TRAINING_CD_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+// Weekly Challenges
+export const WEEKLY_CHALLENGE_COUNT = 3;
+export const WEEKLY_CHALLENGE_ALL_BONUS = 25_000n;
+
+// Multi-step events
+export const MULTI_STEP_EVENT_CHANCE = 25;  // 25%
+export const MULTI_STEP_SESSION_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
 export const COMMAND_COOLDOWN_MS = 3_000; // 3 seconds default cooldown

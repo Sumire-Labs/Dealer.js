@@ -6,12 +6,14 @@ import {
   JOB_MAP,
   SHIFT_MAP,
   LEVEL_THRESHOLDS,
+  type JobDefinition,
 } from '../../config/jobs.js';
 import {
   WORK_SHORT_COOLDOWN_MS,
   WORK_NORMAL_COOLDOWN_MS,
   WORK_LONG_COOLDOWN_MS,
   WORK_STREAK_WINDOW_MS,
+  MULTI_STEP_EVENT_CHANCE,
 } from '../../config/constants.js';
 import {
   rollWorkEvent,
@@ -22,6 +24,7 @@ import {
   calculateXpGain,
   getLevelForXp,
   getEventFlavor,
+  type WorkBonuses,
 } from '../../games/work/work.engine.js';
 import { checkAchievements } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
@@ -34,6 +37,14 @@ import {
 } from '../../utils/cooldown.js';
 import { hasActiveBuff } from './shop.service.js';
 import { SHOP_EFFECTS } from '../../config/shop.js';
+import { getMasteryTier, getMasteryLevelForShifts, type MasteryTier } from '../../config/work-mastery.js';
+import { getMastery, incrementShifts, updateMasteryLevel, getAllMasteries } from '../repositories/work-mastery.repository.js';
+import { PROMOTED_JOB_MAP, type PromotedJobDefinition } from '../../config/promoted-jobs.js';
+import { SPECIAL_SHIFTS, type SpecialShiftDefinition, isVipEventUsedToday, markVipEventUsed } from '../../config/special-shifts.js';
+import { getWorkSession, setWorkSession, removeWorkSession, type PendingWorkSession } from '../../games/work/work.session.js';
+import { getScenarioForJob, type WorkScenario } from '../../config/work-events.js';
+import { secureRandomInt } from '../../utils/random.js';
+import { WORK_TOOL_IDS, getToolBonusesForJob } from '../../config/work-tools.js';
 
 const COOLDOWN_MAP: Record<ShiftType, number> = {
   short: WORK_SHORT_COOLDOWN_MS,
@@ -45,12 +56,18 @@ export interface WorkResult {
   success: boolean;
   error?: string;
   remainingCooldown?: number;
+  // Multi-step pending
+  multiStepPending?: boolean;
+  scenario?: WorkScenario;
   // Success data
   jobId?: string;
   jobName?: string;
   jobEmoji?: string;
+  isPromoted?: boolean;
   shiftType?: ShiftType;
   shiftLabel?: string;
+  specialShiftType?: string;
+  specialShiftName?: string;
   event?: WorkEvent;
   flavorText?: string;
   basePay?: bigint;
@@ -58,6 +75,8 @@ export interface WorkResult {
   tipAmount?: bigint;
   streakBonus?: number;
   bonusAmount?: bigint;
+  masteryBonus?: bigint;
+  toolBonus?: bigint;
   totalPay?: bigint;
   xpGained?: number;
   oldLevel?: number;
@@ -69,14 +88,35 @@ export interface WorkResult {
   newBalance?: bigint;
   newlyUnlocked?: AchievementDefinition[];
   missionsCompleted?: CompletedMission[];
+  // Mastery info
+  masteryTier?: MasteryTier;
+  masteryShiftsCompleted?: number;
+  masteryLeveledUp?: boolean;
+  oldMasteryLevel?: number;
+  newMasteryLevel?: number;
+}
+
+async function getToolBonuses(userId: string, jobId: string): Promise<Partial<WorkBonuses>> {
+  try {
+    const tools = await prisma.userInventory.findMany({
+      where: { userId, itemId: { in: WORK_TOOL_IDS }, quantity: { gt: 0 } },
+    });
+    const ownedIds = new Set(tools.map(t => t.itemId));
+    return getToolBonusesForJob(jobId, ownedIds);
+  } catch {
+    return {};
+  }
 }
 
 export async function performWork(
   userId: string,
   jobId: string,
   shiftType: ShiftType,
+  specialShiftType?: string,
 ): Promise<WorkResult> {
-  const job = JOB_MAP.get(jobId);
+  // Resolve job (base or promoted)
+  const job: JobDefinition | PromotedJobDefinition | undefined =
+    JOB_MAP.get(jobId) ?? PROMOTED_JOB_MAP.get(jobId);
   if (!job) return { success: false, error: '無効な職種です。' };
 
   const shift = SHIFT_MAP.get(shiftType);
@@ -91,13 +131,85 @@ export async function performWork(
     };
   }
 
+  // Special shift validation
+  let specialShift: SpecialShiftDefinition | undefined;
+  if (specialShiftType) {
+    specialShift = SPECIAL_SHIFTS.find(s => s.type === specialShiftType);
+    if (!specialShift) return { success: false, error: '無効な特別シフトです。' };
+    if (specialShift.type === 'vip_event' && isVipEventUsedToday(userId)) {
+      return { success: false, error: 'VIPイベントは1日1回のみです。' };
+    }
+  }
+
   await findOrCreateUser(userId);
 
+  // Get mastery data
+  const masteryData = await getMastery(userId, jobId);
+  const masteryLevel = masteryData?.masteryLevel ?? 0;
+  const masteryTier = getMasteryTier(masteryLevel);
+
+  // Get tool bonuses
+  const toolBonuses = await getToolBonuses(userId, jobId);
+
+  const bonuses: WorkBonuses = {
+    mastery: masteryTier,
+    toolPayBonus: toolBonuses.toolPayBonus,
+    toolGreatSuccessBonus: toolBonuses.toolGreatSuccessBonus,
+    toolRiskReduction: toolBonuses.toolRiskReduction,
+    toolXpBonus: toolBonuses.toolXpBonus,
+  };
+
   // Roll event and calculate payout
-  const event = rollWorkEvent(job);
+  const event = rollWorkEvent(job, bonuses);
   const basePay = rollBasePay(job);
   const flavorText = getEventFlavor(jobId, event.type);
   const tipAmount = event.type === 'tip' ? rollTipAmount() : 0n;
+
+  // Check for multi-step event (25% chance, only on non-accident/trouble)
+  if (
+    event.type !== 'accident' && event.type !== 'trouble' &&
+    secureRandomInt(1, 100) <= MULTI_STEP_EVENT_CHANCE
+  ) {
+    const baseJobId = 'baseJobId' in job ? (job as PromotedJobDefinition).baseJobId : jobId;
+    const scenario = getScenarioForJob(baseJobId);
+    if (scenario) {
+      // Store session for later resolution
+      const session: PendingWorkSession = {
+        userId,
+        jobId,
+        shiftType,
+        basePay,
+        event,
+        bonuses,
+        scenario,
+        specialShiftType,
+        createdAt: Date.now(),
+      };
+      setWorkSession(userId, session);
+      setCooldown(cooldownKey, COOLDOWN_MAP[shiftType]);
+
+      return {
+        success: true,
+        multiStepPending: true,
+        scenario,
+        jobId,
+        jobName: job.name,
+        jobEmoji: job.emoji,
+        isPromoted: 'isPromoted' in job,
+        shiftType,
+        shiftLabel: shift.label,
+        specialShiftType,
+      };
+    }
+  }
+
+  // Apply special shift multipliers
+  let payMultiplier = 1.0;
+  let xpMultiplier = 1.0;
+  if (specialShift) {
+    payMultiplier = specialShift.payMultiplier;
+    xpMultiplier = specialShift.xpMultiplier;
+  }
 
   // Perform atomic transaction
   const result = await prisma.$transaction(async (tx) => {
@@ -117,11 +229,14 @@ export async function performWork(
     }
 
     const streakBonus = getStreakBonus(newStreak);
-    const { totalPay, shiftPay, bonusAmount } = calculateWorkPayout(basePay, shift, event, streakBonus);
-    const finalPay = totalPay + tipAmount;
+    const { totalPay, shiftPay, bonusAmount, masteryBonus, toolBonus } = calculateWorkPayout(basePay, shift, event, streakBonus, bonuses);
+
+    // Apply special shift pay multiplier
+    let finalPay = BigInt(Math.round(Number(totalPay) * payMultiplier)) + tipAmount;
 
     // XP always granted (even on accident)
-    let xpGained = calculateXpGain(job, shift);
+    let xpGained = calculateXpGain(job, shift, bonuses);
+    xpGained = Math.round(xpGained * xpMultiplier);
 
     // XP Booster buff: +50% XP
     try {
@@ -162,9 +277,21 @@ export async function performWork(
             event: event.type,
             basePay: basePay.toString(),
             tipAmount: tipAmount.toString(),
+            specialShiftType: specialShiftType ?? null,
           },
         },
       });
+    }
+
+    // Increment mastery shifts
+    const updatedMastery = await incrementShifts(userId, jobId, tx);
+    const newMasteryLevel = getMasteryLevelForShifts(updatedMastery.shiftsCompleted);
+    let masteryLeveledUp = false;
+    let oldMasteryLevel = updatedMastery.masteryLevel;
+    if (newMasteryLevel > updatedMastery.masteryLevel) {
+      await updateMasteryLevel(userId, jobId, newMasteryLevel, tx);
+      masteryLeveledUp = true;
+      oldMasteryLevel = updatedMastery.masteryLevel;
     }
 
     // Next level XP threshold
@@ -177,8 +304,11 @@ export async function performWork(
       jobId,
       jobName: job.name,
       jobEmoji: job.emoji,
+      isPromoted: 'isPromoted' in job,
       shiftType,
       shiftLabel: shift.label,
+      specialShiftType,
+      specialShiftName: specialShift?.name,
       event,
       flavorText,
       basePay,
@@ -186,6 +316,8 @@ export async function performWork(
       tipAmount,
       streakBonus,
       bonusAmount,
+      masteryBonus,
+      toolBonus,
       totalPay: finalPay,
       xpGained,
       oldLevel,
@@ -195,6 +327,11 @@ export async function performWork(
       xpForNextLevel,
       streak: newStreak,
       newBalance: updated.chips,
+      masteryTier: getMasteryTier(newMasteryLevel),
+      masteryShiftsCompleted: updatedMastery.shiftsCompleted,
+      masteryLeveledUp,
+      oldMasteryLevel,
+      newMasteryLevel,
     };
   });
 
@@ -203,7 +340,177 @@ export async function performWork(
   // Set cooldown after successful work
   setCooldown(cooldownKey, COOLDOWN_MAP[shiftType]);
 
-  // Achievement checks
+  // Mark VIP event used
+  if (specialShift?.type === 'vip_event') {
+    markVipEventUsed(userId);
+  }
+
+  // Achievement checks + mission progress
+  const { newlyUnlocked, missionsCompleted } = await postWorkHooks(userId, result);
+
+  return { ...result, newlyUnlocked, missionsCompleted };
+}
+
+export async function resolveMultiStepWork(
+  userId: string,
+  choiceId: string,
+): Promise<WorkResult> {
+  const session = getWorkSession(userId);
+  if (!session) return { success: false, error: 'セッションが見つかりません。' };
+
+  const choice = session.scenario.choices.find(c => c.id === choiceId);
+  if (!choice) return { success: false, error: '無効な選択肢です。' };
+
+  removeWorkSession(userId);
+
+  const { jobId, shiftType, basePay, event, bonuses, specialShiftType } = session;
+
+  const job: JobDefinition | PromotedJobDefinition | undefined =
+    JOB_MAP.get(jobId) ?? PROMOTED_JOB_MAP.get(jobId);
+  if (!job) return { success: false, error: '無効な職種です。' };
+
+  const shift = SHIFT_MAP.get(shiftType);
+  if (!shift) return { success: false, error: '無効なシフトです。' };
+
+  // Special shift
+  let specialShift: SpecialShiftDefinition | undefined;
+  if (specialShiftType) {
+    specialShift = SPECIAL_SHIFTS.find(s => s.type === specialShiftType);
+  }
+  const payMultiplier = specialShift?.payMultiplier ?? 1.0;
+  const xpMultiplier = specialShift?.xpMultiplier ?? 1.0;
+
+  // Apply choice modifier to event
+  const modifiedEvent: WorkEvent = {
+    ...event,
+    payMultiplier: event.payMultiplier * choice.multiplierModifier,
+  };
+
+  const tipAmount = event.type === 'tip' ? rollTipAmount() : 0n;
+
+  const result = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+
+    // Streak
+    let newStreak: number;
+    if (user.lastWorkAt && (Date.now() - user.lastWorkAt.getTime()) <= WORK_STREAK_WINDOW_MS) {
+      newStreak = user.workStreak + 1;
+    } else {
+      newStreak = 1;
+    }
+
+    const streakBonus = getStreakBonus(newStreak);
+    const { totalPay, shiftPay, bonusAmount, masteryBonus, toolBonus } = calculateWorkPayout(basePay, shift, modifiedEvent, streakBonus, bonuses);
+
+    let finalPay = BigInt(Math.round(Number(totalPay) * payMultiplier)) + tipAmount;
+
+    let xpGained = calculateXpGain(job, shift, bonuses);
+    xpGained = Math.round(xpGained * xpMultiplier);
+
+    try {
+      if (await hasActiveBuff(userId, 'XP_BOOSTER')) {
+        xpGained = Math.round(xpGained * SHOP_EFFECTS.XP_BOOSTER_MULTIPLIER);
+      }
+    } catch { /* ignore */ }
+
+    const oldXp = user.workXp;
+    const newXp = oldXp + xpGained;
+    const oldLevel = user.workLevel;
+    const newLevel = getLevelForXp(newXp);
+
+    const updated = await tx.user.update({
+      where: { id: userId },
+      data: {
+        chips: { increment: finalPay },
+        workXp: newXp,
+        workLevel: newLevel,
+        lastWorkAt: new Date(),
+        workStreak: newStreak,
+      },
+    });
+
+    if (finalPay > 0n) {
+      await tx.transaction.create({
+        data: {
+          userId,
+          type: 'WORK_EARN',
+          amount: finalPay,
+          balanceAfter: updated.chips,
+          metadata: {
+            jobId,
+            shiftType,
+            event: event.type,
+            basePay: basePay.toString(),
+            tipAmount: tipAmount.toString(),
+            choiceId,
+            scenarioId: session.scenario.id,
+            specialShiftType: specialShiftType ?? null,
+          },
+        },
+      });
+    }
+
+    // Mastery
+    const updatedMastery = await incrementShifts(userId, jobId, tx);
+    const newMasteryLevel = getMasteryLevelForShifts(updatedMastery.shiftsCompleted);
+    let masteryLeveledUp = false;
+    let oldMasteryLevel = updatedMastery.masteryLevel;
+    if (newMasteryLevel > updatedMastery.masteryLevel) {
+      await updateMasteryLevel(userId, jobId, newMasteryLevel, tx);
+      masteryLeveledUp = true;
+      oldMasteryLevel = updatedMastery.masteryLevel;
+    }
+
+    const xpForNextLevel = newLevel < LEVEL_THRESHOLDS.length - 1
+      ? LEVEL_THRESHOLDS[newLevel + 1]
+      : null;
+
+    return {
+      success: true as const,
+      jobId,
+      jobName: job.name,
+      jobEmoji: job.emoji,
+      isPromoted: 'isPromoted' in job,
+      shiftType,
+      shiftLabel: shift.label,
+      specialShiftType,
+      specialShiftName: specialShift?.name,
+      event: modifiedEvent,
+      flavorText: choice.flavorText,
+      basePay,
+      shiftPay,
+      tipAmount,
+      streakBonus,
+      bonusAmount,
+      masteryBonus,
+      toolBonus,
+      totalPay: finalPay,
+      xpGained,
+      oldLevel,
+      newLevel,
+      oldXp,
+      newXp,
+      xpForNextLevel,
+      streak: newStreak,
+      newBalance: updated.chips,
+      masteryTier: getMasteryTier(newMasteryLevel),
+      masteryShiftsCompleted: updatedMastery.shiftsCompleted,
+      masteryLeveledUp,
+      oldMasteryLevel,
+      newMasteryLevel,
+    };
+  });
+
+  if (!result.success) return result;
+
+  const { newlyUnlocked, missionsCompleted } = await postWorkHooks(userId, result);
+  return { ...result, newlyUnlocked, missionsCompleted };
+}
+
+async function postWorkHooks(
+  userId: string,
+  result: WorkResult,
+): Promise<{ newlyUnlocked: AchievementDefinition[]; missionsCompleted: CompletedMission[] }> {
   let newlyUnlocked: AchievementDefinition[] = [];
   try {
     const workAchievements = await checkAchievements({
@@ -214,6 +521,10 @@ export async function performWork(
         workLevel: result.newLevel,
         workStreak: result.streak,
         isFirstWork: true,
+        masteryLeveledUp: result.masteryLeveledUp,
+        newMasteryLevel: result.newMasteryLevel,
+        jobId: result.jobId,
+        isPromoted: result.isPromoted,
       },
     });
     const economyAchievements = await checkAchievements({
@@ -222,19 +533,27 @@ export async function performWork(
       newBalance: result.newBalance,
     });
     newlyUnlocked = [...workAchievements, ...economyAchievements];
-  } catch {
-    // Achievement check should never block work result
-  }
+  } catch { /* ignore */ }
 
-  // Mission progress hooks
   let missionsCompleted: CompletedMission[] = [];
   try {
     missionsCompleted = await updateMissionProgress(userId, { type: 'work' });
-  } catch {
-    // Mission check should never block work result
-  }
+  } catch { /* ignore */ }
 
-  return { ...result, newlyUnlocked, missionsCompleted };
+  // Weekly challenge progress
+  try {
+    const { updateWeeklyChallengeProgress } = await import('./weekly-challenge.service.js');
+    await updateWeeklyChallengeProgress(userId, {
+      jobId: result.jobId!,
+      shiftType: result.shiftType!,
+      eventType: result.event!.type,
+      totalPay: result.totalPay!,
+      isSpecialShift: !!result.specialShiftType,
+      masteryLeveledUp: result.masteryLeveledUp,
+    });
+  } catch { /* ignore */ }
+
+  return { newlyUnlocked, missionsCompleted };
 }
 
 export interface WorkPanelData {
@@ -244,6 +563,7 @@ export interface WorkPanelData {
   lastWorkAt: Date | null;
   xpForNextLevel: number | null;
   chips: bigint;
+  masteries: Map<string, { level: number; shiftsCompleted: number }>;
 }
 
 export async function getWorkPanelData(userId: string): Promise<WorkPanelData> {
@@ -252,6 +572,12 @@ export async function getWorkPanelData(userId: string): Promise<WorkPanelData> {
     ? LEVEL_THRESHOLDS[user.workLevel + 1]
     : null;
 
+  const masteryRows = await getAllMasteries(userId);
+  const masteries = new Map<string, { level: number; shiftsCompleted: number }>();
+  for (const m of masteryRows) {
+    masteries.set(m.jobId, { level: m.masteryLevel, shiftsCompleted: m.shiftsCompleted });
+  }
+
   return {
     workLevel: user.workLevel,
     workXp: user.workXp,
@@ -259,5 +585,6 @@ export async function getWorkPanelData(userId: string): Promise<WorkPanelData> {
     lastWorkAt: user.lastWorkAt,
     xpForNextLevel,
     chips: user.chips,
+    masteries,
   };
 }

@@ -11,13 +11,31 @@ import {
 import { WORK_TIP_MIN, WORK_TIP_MAX, WORK_STREAK_MAX_BONUS } from '../../config/constants.js';
 import { secureRandomInt } from '../../utils/random.js';
 import { weightedRandom } from '../../utils/random.js';
+import type { MasteryTier } from '../../config/work-mastery.js';
+import type { PromotedJobDefinition } from '../../config/promoted-jobs.js';
+
+export interface WorkBonuses {
+  mastery?: MasteryTier;
+  toolPayBonus?: number;        // +% to payout
+  toolGreatSuccessBonus?: number; // +% to great success rate
+  toolRiskReduction?: number;    // -% from risk
+  toolXpBonus?: number;          // +% to XP
+}
 
 /**
  * Roll a random work event based on the job's risk rate.
- * Risk rate adjusts trouble+accident combined probability.
+ * Mastery and tool bonuses adjust great_success and trouble/accident rates.
  */
-export function rollWorkEvent(job: JobDefinition): WorkEvent {
-  const riskRate = job.riskRate;
+export function rollWorkEvent(job: JobDefinition, bonuses?: WorkBonuses): WorkEvent {
+  const masteryGreatBonus = bonuses?.mastery?.greatSuccessBonus ?? 0;
+  const masteryRiskReduction = bonuses?.mastery?.accidentReduction ?? 0;
+  const toolGreatBonus = bonuses?.toolGreatSuccessBonus ?? 0;
+  const toolRiskReduction = bonuses?.toolRiskReduction ?? 0;
+
+  const totalGreatBonus = masteryGreatBonus + toolGreatBonus;
+  const totalRiskReduction = masteryRiskReduction + toolRiskReduction;
+
+  const riskRate = Math.max(job.riskRate - totalRiskReduction, 0);
 
   // Distribute risk: ~75% trouble, ~25% accident
   const accidentRate = Math.round(riskRate * 0.3);
@@ -26,19 +44,22 @@ export function rollWorkEvent(job: JobDefinition): WorkEvent {
   // Remaining pool (100 - risk) split among great_success, success, tip
   const remaining = 100 - riskRate;
   // great_success scales slightly with risk (higher risk = higher reward potential)
-  const greatSuccessRate = Math.round(10 + riskRate * 0.25);
+  const greatSuccessRate = Math.round(10 + job.riskRate * 0.25) + totalGreatBonus;
   const tipRate = 15;
   const successRate = remaining - greatSuccessRate - tipRate;
 
   const items: { value: WorkEventType; weight: number }[] = [
-    { value: 'great_success', weight: greatSuccessRate },
+    { value: 'great_success', weight: Math.max(greatSuccessRate, 1) },
     { value: 'success', weight: Math.max(successRate, 1) },
     { value: 'tip', weight: tipRate },
-    { value: 'trouble', weight: troubleRate },
-    { value: 'accident', weight: accidentRate },
+    { value: 'trouble', weight: Math.max(troubleRate, 0) },
+    { value: 'accident', weight: Math.max(accidentRate, 0) },
   ];
 
-  const eventType = weightedRandom(items);
+  // Filter out zero-weight items
+  const filtered = items.filter(i => i.weight > 0);
+
+  const eventType = weightedRandom(filtered);
   return EVENT_MAP.get(eventType)!;
 }
 
@@ -46,7 +67,9 @@ export function rollWorkEvent(job: JobDefinition): WorkEvent {
  * Get a random flavor text for a job+event combo.
  */
 export function getEventFlavor(jobId: string, eventType: WorkEventType): string {
-  const jobFlavors = EVENT_FLAVORS[jobId];
+  // For promoted jobs, use the base job's flavor text
+  const baseJobId = jobId.replace(/_pro$/, '');
+  const jobFlavors = EVENT_FLAVORS[baseJobId];
   if (!jobFlavors) return '';
   const texts = jobFlavors[eventType];
   if (!texts || texts.length === 0) return '';
@@ -81,14 +104,15 @@ export function getStreakBonus(streak: number): number {
 }
 
 /**
- * Full payout calculation.
+ * Full payout calculation with mastery and tool bonuses.
  */
 export function calculateWorkPayout(
   basePay: bigint,
   shift: ShiftDefinition,
   event: WorkEvent,
   streakBonus: number,
-): { totalPay: bigint; shiftPay: bigint; bonusAmount: bigint } {
+  bonuses?: WorkBonuses,
+): { totalPay: bigint; shiftPay: bigint; bonusAmount: bigint; masteryBonus: bigint; toolBonus: bigint } {
   // base × shift multiplier
   const shiftPayNum = Math.round(Number(basePay) * shift.payMultiplier);
   const shiftPay = BigInt(shiftPayNum);
@@ -96,18 +120,33 @@ export function calculateWorkPayout(
   // apply event multiplier
   const afterEvent = BigInt(Math.round(Number(shiftPay) * event.payMultiplier));
 
-  // apply streak bonus
-  const bonusAmount = (afterEvent * BigInt(streakBonus)) / 100n;
-  const totalPay = afterEvent + bonusAmount;
+  // apply mastery pay bonus
+  const masteryPayPercent = bonuses?.mastery?.payBonus ?? 0;
+  const masteryBonus = (afterEvent * BigInt(masteryPayPercent)) / 100n;
 
-  return { totalPay, shiftPay: afterEvent, bonusAmount };
+  // apply tool pay bonus
+  const toolPayPercent = bonuses?.toolPayBonus ?? 0;
+  const toolBonus = (afterEvent * BigInt(toolPayPercent)) / 100n;
+
+  const afterBonuses = afterEvent + masteryBonus + toolBonus;
+
+  // apply streak bonus
+  const bonusAmount = (afterBonuses * BigInt(streakBonus)) / 100n;
+  const totalPay = afterBonuses + bonusAmount;
+
+  return { totalPay, shiftPay: afterEvent, bonusAmount, masteryBonus, toolBonus };
 }
 
 /**
- * Calculate XP gain for a shift.
+ * Calculate XP gain for a shift with optional tool bonus.
  */
-export function calculateXpGain(job: JobDefinition, shift: ShiftDefinition): number {
-  return Math.round(job.xpPerShift * shift.xpMultiplier);
+export function calculateXpGain(job: JobDefinition, shift: ShiftDefinition, bonuses?: WorkBonuses): number {
+  let xp = Math.round(job.xpPerShift * shift.xpMultiplier);
+  const toolXpPercent = bonuses?.toolXpBonus ?? 0;
+  if (toolXpPercent > 0) {
+    xp = Math.round(xp * (1 + toolXpPercent / 100));
+  }
+  return xp;
 }
 
 /**
@@ -133,8 +172,25 @@ export function getXpForNextLevel(currentLevel: number): number | null {
 }
 
 /**
- * Get all jobs available at a given level.
+ * Get all jobs available at a given level, including promoted jobs.
  */
-export function getAvailableJobs(level: number): JobDefinition[] {
-  return JOBS.filter(j => j.requiredLevel <= level);
+export function getAvailableJobs(
+  level: number,
+  masteries?: Map<string, number>,
+  promotedJobs?: PromotedJobDefinition[],
+): (JobDefinition | PromotedJobDefinition)[] {
+  const baseJobs = JOBS.filter(j => j.requiredLevel <= level);
+
+  if (!promotedJobs || !masteries || level < 5) return baseJobs;
+
+  const available: (JobDefinition | PromotedJobDefinition)[] = [...baseJobs];
+
+  for (const pj of promotedJobs) {
+    const masteryLevel = masteries.get(pj.baseJobId) ?? 0;
+    if (level >= 5 && masteryLevel >= 5) {
+      available.push(pj);
+    }
+  }
+
+  return available;
 }

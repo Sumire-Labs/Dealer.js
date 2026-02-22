@@ -29,5 +29,6 @@ export const CasinoTheme = {
     inventory: '🎒 ━━━ インベントリ ━━━ 🎒',
     mystery: '📦 ━━━ MYSTERY BOX ━━━ 📦',
     dailyShop: '📅 ━━━ 本日の特売 ━━━ 📅',
+    weeklyChallenges: '📋 ━━━ WEEKLY CHALLENGES ━━━ 📋',
   },
 } as const;

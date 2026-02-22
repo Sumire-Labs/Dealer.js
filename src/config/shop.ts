@@ -4,7 +4,8 @@ export type ShopCategory =
   | 'upgrade'
   | 'cosmetic'
   | 'mystery'
-  | 'insurance';
+  | 'insurance'
+  | 'tool';
 
 export type CosmeticType = 'title' | 'badge';
 
@@ -343,6 +344,10 @@ export const INSURANCE: ShopItem[] = [
   },
 ];
 
+// ── Work Tools (imported) ──
+
+import { WORK_TOOLS } from './work-tools.js';
+
 // ── All items & lookup ──
 
 export const ALL_ITEMS: ShopItem[] = [
@@ -352,6 +357,7 @@ export const ALL_ITEMS: ShopItem[] = [
   ...COSMETICS,
   ...MYSTERY_BOXES,
   ...INSURANCE,
+  ...WORK_TOOLS,
 ];
 
 export const ITEM_MAP = new Map<string, ShopItem>(
@@ -371,6 +377,7 @@ export const SHOP_CATEGORIES: { key: ShopCategory; label: string; emoji: string;
   { key: 'cosmetic', label: 'コスメ', emoji: '🎨', items: COSMETICS },
   { key: 'mystery', label: 'ミステリー', emoji: '📦', items: MYSTERY_BOXES },
   { key: 'insurance', label: '保険', emoji: '🛡️', items: INSURANCE },
+  { key: 'tool', label: '仕事道具', emoji: '🔧', items: WORK_TOOLS },
 ];
 
 // ── Daily rotation pool ──

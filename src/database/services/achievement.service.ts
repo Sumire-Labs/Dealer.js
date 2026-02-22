@@ -187,6 +187,43 @@ async function isConditionMet(
     case 'MISSION_COMPLETE_ALL':
       return input.context === 'mission' && input.metadata?.['allCompleted'] === true;
 
+    // Work Mastery & Promotion
+    case 'FIRST_MASTERY':
+      return (
+        input.context === 'work' &&
+        input.metadata?.['masteryLeveledUp'] === true &&
+        (input.metadata?.['newMasteryLevel'] as number) >= 1
+      );
+
+    case 'JOB_MASTER':
+      return (
+        input.context === 'work' &&
+        input.metadata?.['masteryLeveledUp'] === true &&
+        (input.metadata?.['newMasteryLevel'] as number) >= 5
+      );
+
+    case 'ALL_JOBS_MASTERED': {
+      if (input.context !== 'work') return false;
+      if (input.metadata?.['newMasteryLevel'] !== 5) return false;
+      const allMasteries = await prisma.workMastery.findMany({
+        where: { userId: input.userId },
+      });
+      const mastered = allMasteries.filter(m => m.masteryLevel >= 5);
+      return mastered.length >= 6;
+    }
+
+    case 'PROMOTED':
+      return (
+        input.context === 'work' &&
+        input.metadata?.['isPromoted'] === true
+      );
+
+    case 'WEEKLY_COMPLETE':
+      return (
+        input.context === 'weekly_challenge' &&
+        input.metadata?.['allCompleted'] === true
+      );
+
     // Shop
     case 'FIRST_PURCHASE':
       return input.context === 'shop' && input.metadata?.['action'] === 'buy';
