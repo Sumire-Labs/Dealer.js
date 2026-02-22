@@ -8,6 +8,7 @@ async function loadModules(): Promise<void> {
   await import('./commands/economy/balance.command.js');
   await import('./commands/economy/leaderboard.command.js');
   await import('./commands/economy/bank.command.js');
+  await import('./commands/economy/shop.command.js');
 
   // Casino commands
   await import('./commands/casino/daily.command.js');
@@ -37,6 +38,7 @@ async function loadModules(): Promise<void> {
   await import('./interactions/buttons/work.buttons.js');
   await import('./interactions/buttons/daily.buttons.js');
   await import('./interactions/buttons/roulette.buttons.js');
+  await import('./interactions/buttons/shop.buttons.js');
 
   // Modal handlers
   await import('./interactions/modals/bet-amount.modal.js');
@@ -45,6 +47,7 @@ async function loadModules(): Promise<void> {
   await import('./interactions/modals/bank.modal.js');
   await import('./interactions/modals/lottery.modal.js');
   await import('./interactions/modals/roulette.modal.js');
+  await import('./interactions/modals/shop.modal.js');
 
   // Admin commands
   await import('./commands/admin/give.command.js');

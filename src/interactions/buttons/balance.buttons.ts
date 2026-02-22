@@ -3,6 +3,8 @@ import { registerButtonHandler } from '../handler.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { getUserRank } from '../../database/repositories/leaderboard.repository.js';
 import { buildBalanceView, type BalanceTab } from '../../ui/builders/balance.builder.js';
+import { buildProfileView } from '../../ui/builders/shop.builder.js';
+import { getActiveBuffs, getInventory } from '../../database/repositories/shop.repository.js';
 
 async function handleBalanceButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
@@ -20,6 +22,33 @@ async function handleBalanceButton(interaction: ButtonInteraction): Promise<void
 
   const targetUser = await interaction.client.users.fetch(targetId);
   const dbUser = await findOrCreateUser(targetId);
+
+  // Profile tab
+  if (tab === 'profile') {
+    const [activeBuffs, inventory] = await Promise.all([
+      getActiveBuffs(targetId),
+      getInventory(targetId),
+    ]);
+    const inventoryCount = inventory.filter(i => i.quantity > 0).length;
+
+    const container = buildProfileView(
+      ownerId,
+      targetId,
+      targetUser.displayName,
+      dbUser.activeTitle,
+      dbUser.activeBadge,
+      activeBuffs,
+      inventoryCount,
+      ownerId === targetId,
+    );
+    await interaction.update({
+      components: [container],
+      flags: MessageFlags.IsComponentsV2,
+    });
+    return;
+  }
+
+  // Balance / Stats tabs
   const rank = await getUserRank(targetId);
 
   const container = buildBalanceView({

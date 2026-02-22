@@ -5,6 +5,8 @@ import {
   BANK_INTEREST_PERIOD_MS,
   BANK_MIN_BALANCE_FOR_INTEREST,
 } from '../../config/constants.js';
+import { hasActiveBuff, getInventoryQuantity } from './shop.service.js';
+import { SHOP_EFFECTS } from '../../config/shop.js';
 
 export interface BankAccountSummary {
   bankBalance: bigint;
@@ -167,8 +169,29 @@ export async function applyInterest(userId: string): Promise<bigint | null> {
       }
     }
 
-    const interest = (user.bankBalance * BANK_INTEREST_RATE) / 100n;
+    // Calculate effective interest rate with shop upgrades
+    let effectiveRate = BANK_INTEREST_RATE;
+    try {
+      // BANK_EXPANSION: +1% per stack
+      const expansionCount = await getInventoryQuantity(userId, 'BANK_EXPANSION');
+      if (expansionCount > 0) {
+        effectiveRate += SHOP_EFFECTS.BANK_EXPANSION_RATE * BigInt(expansionCount);
+      }
+    } catch {
+      // Never block interest
+    }
+
+    let interest = (user.bankBalance * effectiveRate) / 100n;
     if (interest <= 0n) return null;
+
+    // INTEREST_BOOSTER: double interest
+    try {
+      if (await hasActiveBuff(userId, 'INTEREST_BOOSTER')) {
+        interest *= 2n;
+      }
+    } catch {
+      // Never block interest
+    }
 
     const updated = await tx.user.update({
       where: { id: userId },

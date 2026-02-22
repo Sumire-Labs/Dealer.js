@@ -10,6 +10,8 @@ import {
 } from '../../config/constants.js';
 import { checkAchievements } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
+import { hasInventoryItem, consumeInventoryItem } from './shop.service.js';
+import { SHOP_EFFECTS } from '../../config/shop.js';
 
 export function calculateLoanInterest(loan: { principal: bigint; createdAt: Date }): bigint {
   const elapsedMs = BigInt(Date.now() - loan.createdAt.getTime());
@@ -219,24 +221,36 @@ export async function declareBankruptcy(userId: string): Promise<{ newBalance: b
       data: { paidAt: new Date() },
     });
 
-    // Set chips to bankruptcy amount, clear bank balance
+    // Check bankruptcy insurance
+    let bankruptcyBonus = 0n;
+    try {
+      if (await hasInventoryItem(userId, 'BANKRUPTCY_INSURANCE')) {
+        bankruptcyBonus = SHOP_EFFECTS.BANKRUPTCY_INSURANCE_BONUS;
+        await consumeInventoryItem(userId, 'BANKRUPTCY_INSURANCE');
+      }
+    } catch {
+      // Never block bankruptcy
+    }
+
+    // Set chips to bankruptcy amount (+ insurance bonus), clear bank balance
+    const finalChips = BANKRUPTCY_CHIPS + bankruptcyBonus;
     const updatedUser = await tx.user.update({
       where: { id: userId },
       data: {
-        chips: BANKRUPTCY_CHIPS,
+        chips: finalChips,
         bankBalance: 0n,
         bankruptAt: new Date(),
       },
     });
 
     // Record transaction — net change
-    const netChange = BANKRUPTCY_CHIPS - user.chips;
+    const netChange = finalChips - user.chips;
     await tx.transaction.create({
       data: {
         userId,
         type: 'BANKRUPTCY',
         amount: netChange,
-        balanceAfter: BANKRUPTCY_CHIPS,
+        balanceAfter: finalChips,
       },
     });
 
@@ -246,7 +260,7 @@ export async function declareBankruptcy(userId: string): Promise<{ newBalance: b
       newlyUnlocked = await checkAchievements({
         userId,
         context: 'bankruptcy',
-        newBalance: BANKRUPTCY_CHIPS,
+        newBalance: finalChips,
       });
     } catch {
       // Achievement check should never block bankruptcy

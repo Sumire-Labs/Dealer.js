@@ -25,5 +25,9 @@ export const CasinoTheme = {
     work: '💼 ━━━ WORK ━━━ 💼',
     roulette: '💎 ━━━ ROULETTE ━━━ 💎',
     missions: '🎯 ━━━ DAILY MISSIONS ━━━ 🎯',
+    shop: '🛒 ━━━ CASINO SHOP ━━━ 🛒',
+    inventory: '🎒 ━━━ インベントリ ━━━ 🎒',
+    mystery: '📦 ━━━ MYSTERY BOX ━━━ 📦',
+    dailyShop: '📅 ━━━ 本日の特売 ━━━ 📅',
   },
 } as const;

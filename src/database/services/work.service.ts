@@ -32,6 +32,8 @@ import {
   setCooldown,
   buildCooldownKey,
 } from '../../utils/cooldown.js';
+import { hasActiveBuff } from './shop.service.js';
+import { SHOP_EFFECTS } from '../../config/shop.js';
 
 const COOLDOWN_MAP: Record<ShiftType, number> = {
   short: WORK_SHORT_COOLDOWN_MS,
@@ -119,7 +121,16 @@ export async function performWork(
     const finalPay = totalPay + tipAmount;
 
     // XP always granted (even on accident)
-    const xpGained = calculateXpGain(job, shift);
+    let xpGained = calculateXpGain(job, shift);
+
+    // XP Booster buff: +50% XP
+    try {
+      if (await hasActiveBuff(userId, 'XP_BOOSTER')) {
+        xpGained = Math.round(xpGained * SHOP_EFFECTS.XP_BOOSTER_MULTIPLIER);
+      }
+    } catch {
+      // Buff check should never block work
+    }
     const oldXp = user.workXp;
     const newXp = oldXp + xpGained;
     const oldLevel = user.workLevel;

@@ -5,6 +5,8 @@ import { findOrCreateUser } from '../repositories/user.repository.js';
 import { checkAchievements } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
 import { updateMissionProgress, type CompletedMission } from './mission.service.js';
+import { hasActiveBuff, hasInventoryItem, consumeInventoryItem } from './shop.service.js';
+import { SHOP_EFFECTS } from '../../config/shop.js';
 
 export interface DailyResult {
   success: boolean;
@@ -37,15 +39,44 @@ export async function claimDaily(userId: string): Promise<DailyResult> {
     }
 
     const isBroke = user.chips <= 0n;
-    const amount = isBroke ? DAILY_BONUS_BROKE : DAILY_BONUS;
+    let amount = isBroke ? DAILY_BONUS_BROKE : DAILY_BONUS;
+
+    // CHIP_FOUNTAIN permanent upgrade: +$500
+    try {
+      if (await hasInventoryItem(userId, 'CHIP_FOUNTAIN')) {
+        amount += SHOP_EFFECTS.CHIP_FOUNTAIN_BONUS;
+      }
+    } catch {
+      // Never block daily
+    }
+
+    // DAILY_BOOST consumable: double amount
+    try {
+      if (await hasInventoryItem(userId, 'DAILY_BOOST')) {
+        amount *= 2n;
+        await consumeInventoryItem(userId, 'DAILY_BOOST');
+      }
+    } catch {
+      // Never block daily
+    }
 
     // Streak calculation: within 48h of lastDaily → increment, otherwise reset to 1
     const STREAK_WINDOW_MS = 48 * 60 * 60 * 1000;
     let newStreak: number;
-    if (user.lastDaily && (Date.now() - user.lastDaily.getTime()) <= STREAK_WINDOW_MS) {
+    const withinWindow = user.lastDaily && (Date.now() - user.lastDaily.getTime()) <= STREAK_WINDOW_MS;
+    if (withinWindow) {
       newStreak = user.dailyStreak + 1;
     } else {
-      newStreak = 1;
+      // STREAK_SHIELD: prevent streak reset
+      let shielded = false;
+      try {
+        if (user.dailyStreak > 0 && await hasActiveBuff(userId, 'STREAK_SHIELD')) {
+          shielded = true;
+        }
+      } catch {
+        // Never block daily
+      }
+      newStreak = shielded ? user.dailyStreak + 1 : 1;
     }
 
     const updated = await tx.user.update({

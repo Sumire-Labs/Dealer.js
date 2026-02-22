@@ -25,6 +25,18 @@ export function setCooldown(key: string, durationMs: number): void {
   cooldowns.set(key, Date.now() + durationMs);
 }
 
+export function deleteCooldown(key: string): void {
+  cooldowns.delete(key);
+}
+
+export function deleteCooldownsForUser(userId: string, prefix: string): void {
+  for (const key of cooldowns.keys()) {
+    if (key.startsWith(`${userId}:${prefix}`)) {
+      cooldowns.delete(key);
+    }
+  }
+}
+
 export function buildCooldownKey(userId: string, command: string): string {
   return `${userId}:${command}`;
 }

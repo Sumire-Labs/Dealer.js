@@ -187,6 +187,32 @@ async function isConditionMet(
     case 'MISSION_COMPLETE_ALL':
       return input.context === 'mission' && input.metadata?.['allCompleted'] === true;
 
+    // Shop
+    case 'FIRST_PURCHASE':
+      return input.context === 'shop' && input.metadata?.['action'] === 'buy';
+
+    case 'BIG_SPENDER':
+      return (
+        input.context === 'shop' &&
+        input.metadata?.['action'] === 'buy' &&
+        (input.metadata?.['lifetimeShopSpend'] as number) >= 100_000
+      );
+
+    case 'MYSTERY_JACKPOT':
+      return (
+        input.context === 'shop' &&
+        input.metadata?.['action'] === 'open_box' &&
+        input.metadata?.['rarity'] === 'legendary'
+      );
+
+    case 'COLLECTOR': {
+      if (input.context !== 'shop') return false;
+      const itemCount = await prisma.userInventory.count({
+        where: { userId: input.userId, quantity: { gt: 0 } },
+      });
+      return itemCount >= 10;
+    }
+
     default:
       return false;
   }

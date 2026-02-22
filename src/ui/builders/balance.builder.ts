@@ -23,7 +23,7 @@ export interface BalanceDisplayData {
   isSelf: boolean;
 }
 
-export type BalanceTab = 'balance' | 'stats';
+export type BalanceTab = 'balance' | 'stats' | 'profile';
 
 export function buildBalanceView(data: BalanceDisplayData, tab: BalanceTab = 'balance'): ContainerBuilder {
   const { username, chips, bankBalance, totalWon, totalLost, totalGames, rank, isSelf, userId, targetId } = data;
@@ -84,6 +84,11 @@ export function buildBalanceView(data: BalanceDisplayData, tab: BalanceTab = 'ba
         .setLabel('📊 統計')
         .setStyle(tab === 'stats' ? ButtonStyle.Primary : ButtonStyle.Secondary)
         .setDisabled(tab === 'stats'),
+      new ButtonBuilder()
+        .setCustomId(`bal:profile:${userId}:${targetId}`)
+        .setLabel('👤 プロフィール')
+        .setStyle(tab === 'profile' ? ButtonStyle.Primary : ButtonStyle.Secondary)
+        .setDisabled(tab === 'profile'),
     ),
   );
 

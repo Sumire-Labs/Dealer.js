@@ -5,6 +5,8 @@ import { getBankruptcyPenaltyMultiplier, applyPenalty } from './loan.service.js'
 import { checkAchievements, type AchievementCheckInput } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
 import { updateMissionProgress, type CompletedMission } from './mission.service.js';
+import { hasActiveBuff, hasInventoryItem, consumeInventoryItem } from './shop.service.js';
+import { SHOP_EFFECTS } from '../../config/shop.js';
 
 export async function getBalance(userId: string): Promise<bigint> {
   const user = await findOrCreateUser(userId);
@@ -83,7 +85,7 @@ export async function processGameResult(
   betAmount: bigint,
   multiplier: number,
   metadata?: Record<string, unknown>,
-): Promise<{ newBalance: bigint; payout: bigint; net: bigint; newlyUnlocked: AchievementDefinition[]; missionsCompleted: CompletedMission[] }> {
+): Promise<{ newBalance: bigint; payout: bigint; net: bigint; newlyUnlocked: AchievementDefinition[]; missionsCompleted: CompletedMission[]; safetyNetUsed?: boolean }> {
   // Use integer math to avoid BigInt→Number precision loss
   const multiplierInt = Math.round(multiplier * 1_000_000);
   let payout = (betAmount * BigInt(multiplierInt)) / 1_000_000n;
@@ -98,9 +100,40 @@ export async function processGameResult(
     }
   }
 
-  const net = payout - betAmount;
+  // VIP bonuses (permanent VIP_CARD + temporary VIP_PASS) on wins
+  if (payout > betAmount) {
+    let vipBonus = 0n;
+    const winnings = payout - betAmount;
+    try {
+      if (await hasInventoryItem(userId, 'VIP_CARD')) {
+        vipBonus += (winnings * SHOP_EFFECTS.VIP_BONUS_PERCENT) / 100n;
+      }
+      if (await hasActiveBuff(userId, 'VIP_PASS')) {
+        vipBonus += (winnings * SHOP_EFFECTS.VIP_BONUS_PERCENT) / 100n;
+      }
+      payout += vipBonus;
+    } catch {
+      // VIP check should never block game
+    }
+  }
 
-  const newBalance = await prisma.$transaction(async (tx) => {
+  let net = payout - betAmount;
+
+  // LUCKY_CHARM: on loss, refund 50% of bet and consume item
+  if (net < 0n) {
+    try {
+      if (await hasInventoryItem(userId, 'LUCKY_CHARM')) {
+        const refund = (betAmount * SHOP_EFFECTS.LUCKY_CHARM_REFUND) / 100n;
+        payout += refund;
+        net = payout - betAmount;
+        await consumeInventoryItem(userId, 'LUCKY_CHARM');
+      }
+    } catch {
+      // Lucky charm check should never block game
+    }
+  }
+
+  let newBalance = await prisma.$transaction(async (tx) => {
     await findOrCreateUser(userId);
 
     const current = await tx.user.findUniqueOrThrow({ where: { id: userId } });
@@ -139,6 +172,20 @@ export async function processGameResult(
 
     return updatedUser.chips;
   });
+
+  // SAFETY_NET: if balance hit 0, auto-refill
+  let safetyNetUsed = false;
+  if (newBalance === 0n) {
+    try {
+      if (await hasInventoryItem(userId, 'SAFETY_NET')) {
+        await consumeInventoryItem(userId, 'SAFETY_NET');
+        newBalance = await addChips(userId, SHOP_EFFECTS.SAFETY_NET_AMOUNT, 'SHOP_REFUND');
+        safetyNetUsed = true;
+      }
+    } catch {
+      // Safety net should never block game
+    }
+  }
 
   // Achievement checks
   const isWin = net > 0n;
@@ -188,7 +235,7 @@ export async function processGameResult(
     // Mission check should never block game result
   }
 
-  return { newBalance, payout, net, newlyUnlocked, missionsCompleted };
+  return { newBalance, payout, net, newlyUnlocked, missionsCompleted, safetyNetUsed };
 }
 
 export async function hasEnoughChips(

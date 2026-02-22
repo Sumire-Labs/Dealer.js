@@ -19,6 +19,8 @@ import { checkAchievements } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
 import { shuffleArray } from '../../utils/random.js';
 import { logger } from '../../utils/logger.js';
+import { getInventoryQuantity, hasInventoryItem } from './shop.service.js';
+import { SHOP_EFFECTS } from '../../config/shop.js';
 
 function getTodayDateString(): string {
   return new Date().toISOString().slice(0, 10);
@@ -29,12 +31,31 @@ export async function assignDailyMissions(userId: string): Promise<DailyMission[
   const existing = await getMissionsForDate(userId, date);
   if (existing.length > 0) return existing;
 
-  // Pick 1 easy + 1 medium + 1 hard
+  // Determine mission slots: base 3 + MISSION_SLOT_PLUS upgrades (max 5)
+  let extraSlots = 0;
+  try {
+    extraSlots = await getInventoryQuantity(userId, 'MISSION_SLOT_PLUS');
+  } catch {
+    // Never block mission assignment
+  }
+  const totalSlots = Math.min(3 + extraSlots, 5);
+
+  // Pick 1 easy + 1 medium + 1 hard + extras from random pools
   const picks: MissionDefinition[] = [];
-  for (const difficulty of ['easy', 'medium', 'hard'] as const) {
+  const difficultyOrder: ('easy' | 'medium' | 'hard')[] = ['easy', 'medium', 'hard'];
+  for (const difficulty of difficultyOrder) {
     const pool = MISSION_POOLS[difficulty];
     const shuffled = shuffleArray(pool);
     picks.push(shuffled[0]);
+  }
+
+  // Extra slots pick from random difficulties
+  for (let i = 3; i < totalSlots; i++) {
+    const diff = difficultyOrder[i % difficultyOrder.length];
+    const pool = MISSION_POOLS[diff];
+    const shuffled = shuffleArray(pool);
+    const picked = shuffled.find(m => !picks.some(p => p.key === m.key));
+    if (picked) picks.push(picked);
   }
 
   const missions: DailyMission[] = [];
@@ -81,13 +102,21 @@ export async function updateMissionProgress(
       if (updated.progress >= updated.target && !updated.completed) {
         await markCompleted(userId, mission.missionKey, date);
 
-        // Grant reward
-        await addChips(userId, def.reward, 'MISSION_REWARD');
+        // Grant reward (with GOLDEN_DICE bonus)
+        let reward = def.reward;
+        try {
+          if (await hasInventoryItem(userId, 'GOLDEN_DICE')) {
+            reward += (reward * SHOP_EFFECTS.GOLDEN_DICE_PERCENT) / 100n;
+          }
+        } catch {
+          // Never block reward
+        }
+        await addChips(userId, reward, 'MISSION_REWARD');
 
         completed.push({
           missionKey: def.key,
           name: def.name,
-          reward: def.reward,
+          reward,
         });
       }
     } catch (err) {

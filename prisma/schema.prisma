@@ -29,6 +29,11 @@ model User {
   workStreak     Int           @default(0)
   lotteryTickets LotteryTicket[]
   achievements   UserAchievement[]
+  activeTitle       String?
+  activeBadge       String?
+  lifetimeShopSpend BigInt        @default(0)
+  inventory         UserInventory[]
+  activeBuffs       ActiveBuff[]
 }
 
 model Transaction {
@@ -103,6 +108,8 @@ enum TransactionType {
   HEIST_LOSS
   WORK_EARN
   MISSION_REWARD
+  SHOP_BUY
+  SHOP_REFUND
 }
 
 enum GameType {
@@ -185,4 +192,29 @@ model UserAchievement {
 
   @@unique([userId, achievementId])
   @@index([userId])
+}
+
+model UserInventory {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  itemId     String
+  quantity   Int       @default(1)
+  expiresAt  DateTime?
+  acquiredAt DateTime  @default(now())
+
+  @@unique([userId, itemId])
+  @@index([userId])
+}
+
+model ActiveBuff {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  buffId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([userId, buffId])
+  @@index([userId, expiresAt])
 }

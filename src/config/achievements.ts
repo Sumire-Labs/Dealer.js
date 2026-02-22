@@ -11,7 +11,8 @@ export type AchievementContext =
   | 'heist'
   | 'multiplayer'
   | 'work'
-  | 'mission';
+  | 'mission'
+  | 'shop';
 
 export interface AchievementDefinition {
   id: string;
@@ -272,6 +273,43 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     emoji: '🏆',
     category: 'social',
     contexts: ['mission'],
+    hidden: false,
+  },
+  // Shop
+  {
+    id: 'FIRST_PURCHASE',
+    name: '初めてのお買い物',
+    description: 'ショップで初めて購入する',
+    emoji: '🛒',
+    category: 'economy',
+    contexts: ['shop'],
+    hidden: false,
+  },
+  {
+    id: 'BIG_SPENDER',
+    name: '大散財',
+    description: 'ショップで累計$100,000使用する',
+    emoji: '💸',
+    category: 'economy',
+    contexts: ['shop'],
+    hidden: false,
+  },
+  {
+    id: 'MYSTERY_JACKPOT',
+    name: 'ミステリージャックポット',
+    description: 'ミステリーボックスから伝説アイテムを獲得する',
+    emoji: '🌟',
+    category: 'special',
+    contexts: ['shop'],
+    hidden: true,
+  },
+  {
+    id: 'COLLECTOR',
+    name: 'コレクター',
+    description: '10種類以上のアイテムを所持する',
+    emoji: '📚',
+    category: 'economy',
+    contexts: ['shop'],
     hidden: false,
   },
 ];
