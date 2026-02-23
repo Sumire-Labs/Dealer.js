@@ -10,10 +10,16 @@ import {
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
 import type { DailyMission } from '@prisma/client';
-import { MISSION_MAP } from '../../config/missions.js';
+import { MISSION_MAP, type MissionDifficulty } from '../../config/missions.js';
 import { MISSION_COMPLETE_BONUS } from '../../config/constants.js';
 
 export type DailyTab = 'bonus' | 'missions';
+
+const DIFFICULTY_LABEL: Record<MissionDifficulty, string> = {
+  easy: '🟢 Easy',
+  medium: '🟡 Medium',
+  hard: '🔴 Hard',
+};
 
 function buildTabRow(userId: string, activeTab: DailyTab): ActionRowBuilder<ButtonBuilder> {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -27,6 +33,10 @@ function buildTabRow(userId: string, activeTab: DailyTab): ActionRowBuilder<Butt
       .setLabel('🎯 ミッション')
       .setStyle(activeTab === 'missions' ? ButtonStyle.Primary : ButtonStyle.Secondary)
       .setDisabled(activeTab === 'missions'),
+    new ButtonBuilder()
+      .setCustomId(`daily:mission_help:${userId}`)
+      .setLabel('❓ ヘルプ')
+      .setStyle(ButtonStyle.Secondary),
   );
 }
 
@@ -151,4 +161,44 @@ export function buildDailyMissionsView(
       new TextDisplayBuilder().setContent(content),
     )
     .addActionRowComponents(buildTabRow(userId, 'missions'));
+}
+
+// --- Mission help view ---
+
+export function buildDailyMissionsHelpView(
+  missions: DailyMission[],
+  balance: bigint,
+  userId: string,
+): ContainerBuilder {
+  const missionLines = missions.map(m => {
+    const def = MISSION_MAP.get(m.missionKey);
+    const name = def?.name ?? m.missionKey;
+    const description = def?.description ?? '';
+    const difficulty = def?.difficulty ?? 'easy';
+    const label = DIFFICULTY_LABEL[difficulty];
+    return `${label}　**${name}**\n　　${description}`;
+  });
+
+  let content = missionLines.join('\n\n');
+  content += `\n────────────────\n💰 残高: **${formatChips(balance)}**`;
+
+  return new ContainerBuilder()
+    .setAccentColor(CasinoTheme.colors.purple)
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent('📖 ミッションガイド'),
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(content),
+    )
+    .addActionRowComponents(
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`daily:tab_missions:${userId}`)
+          .setLabel('🔙 戻る')
+          .setStyle(ButtonStyle.Secondary),
+      ),
+    );
 }

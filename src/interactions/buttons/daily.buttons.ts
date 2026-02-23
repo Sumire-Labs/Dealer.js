@@ -8,6 +8,7 @@ import {
   buildDailyBonusAlreadyClaimed,
   buildDailyBonusUnclaimed,
   buildDailyMissionsView,
+  buildDailyMissionsHelpView,
 } from '../../ui/builders/daily.builder.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 import { buildMissionNotification } from '../../database/services/mission.service.js';
@@ -50,6 +51,14 @@ async function handleDailyButton(interaction: ButtonInteraction): Promise<void> 
       const missions = await getDailyMissions(userId);
       const balance = await getBalance(userId);
       const view = buildDailyMissionsView(missions, balance, userId);
+      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
+      break;
+    }
+
+    case 'mission_help': {
+      const missions = await getDailyMissions(userId);
+      const balance = await getBalance(userId);
+      const view = buildDailyMissionsHelpView(missions, balance, userId);
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
     }
