@@ -171,9 +171,13 @@ export function buildWorkPanelView(data: WorkPanelViewData): ContainerBuilder {
     );
   }
 
-  // Weekly challenge detail button
+  // Extra buttons row: team shift + weekly challenges
   container.addActionRowComponents(
     new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`work:team_select:${userId}`)
+        .setLabel('👥 チームシフト')
+        .setStyle(ButtonStyle.Primary),
       new ButtonBuilder()
         .setCustomId(`work:weekly:${userId}`)
         .setLabel('📋 週間チャレンジ')

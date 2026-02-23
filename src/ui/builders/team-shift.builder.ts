@@ -17,6 +17,53 @@ import type { TeamEvent } from '../../config/team-events.js';
 
 const TEAM_PREFIX = '👥 ━━━ TEAM SHIFT ━━━ 👥';
 
+export function buildTeamShiftTypeSelectView(userId: string): ContainerBuilder {
+  const container = new ContainerBuilder()
+    .setAccentColor(CasinoTheme.colors.purple)
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(TEAM_PREFIX),
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(
+        `👥 **チームシフト**\n2〜${TEAM_SHIFT_MAX_PLAYERS}人で協力ワーク！\n人数ボーナス: +${TEAM_SHIFT_BONUS_PER_PLAYER}%/人\n\nシフトタイプを選択してください：`,
+      ),
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    );
+
+  container.addActionRowComponents(
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`team:create:${userId}:short`)
+        .setLabel('⚡ 短時間')
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId(`team:create:${userId}:normal`)
+        .setLabel('📋 通常')
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId(`team:create:${userId}:long`)
+        .setLabel('💪 長時間')
+        .setStyle(ButtonStyle.Primary),
+    ),
+  );
+
+  container.addActionRowComponents(
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`work:panel:${userId}`)
+        .setLabel('💼 戻る')
+        .setStyle(ButtonStyle.Secondary),
+    ),
+  );
+
+  return container;
+}
+
 export function buildTeamShiftLobbyView(
   session: TeamShiftSession,
   remainingSec: number,

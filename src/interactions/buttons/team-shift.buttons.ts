@@ -6,6 +6,7 @@ import { registerButtonHandler } from '../handler.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import {
   getTeamSession,
+  setTeamSession,
   addPlayerToTeam,
   isPlayerInTeam,
   setPlayerJob,
@@ -49,6 +50,63 @@ async function handleTeamButton(interaction: ButtonInteraction): Promise<void> {
   const userId = interaction.user.id;
 
   switch (action) {
+    case 'create': {
+      const ownerId = parts[2];
+      const shiftType = parts[3] as import('../../config/jobs.js').ShiftType;
+
+      if (userId !== ownerId) {
+        await interaction.reply({
+          content: '`/work` で自分のワークパネルを開いてください。',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      const channelId = interaction.channelId;
+      const existing = getTeamSession(channelId);
+      if (existing) {
+        await interaction.reply({
+          content: 'このチャンネルではすでにチームシフトが進行中です！',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      const { TEAM_SHIFT_LOBBY_DURATION_MS } = await import('../../config/constants.js');
+
+      const session: TeamShiftSession = {
+        channelId,
+        hostId: userId,
+        shiftType,
+        players: [{ userId, isHost: true }],
+        status: 'lobby',
+        lobbyDeadline: Date.now() + TEAM_SHIFT_LOBBY_DURATION_MS,
+      };
+
+      setTeamSession(channelId, session);
+
+      const remainingSec = Math.ceil(TEAM_SHIFT_LOBBY_DURATION_MS / 1000);
+      const lobbyView = buildTeamShiftLobbyView(session, remainingSec);
+
+      // Update the work panel message to confirm
+      await interaction.update({
+        content: '✅ チームシフトロビーを作成しました！',
+        components: [],
+        flags: MessageFlags.IsComponentsV2,
+      });
+
+      // Send public lobby message
+      if (interaction.channel && 'send' in interaction.channel) {
+        const msg = await (interaction.channel as any).send({
+          components: [lobbyView],
+          flags: MessageFlags.IsComponentsV2,
+        });
+        session.messageId = msg.id;
+        startTeamLobbyCountdown(interaction.channel as any, session);
+      }
+      break;
+    }
+
     case 'join': {
       const channelId = parts[2];
       const session = getTeamSession(channelId);

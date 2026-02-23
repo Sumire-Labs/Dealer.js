@@ -366,6 +366,26 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
       break;
     }
 
+    case 'team_select': {
+      const ownerId = parts[2];
+
+      if (interaction.user.id !== ownerId) {
+        await interaction.reply({
+          content: '`/work` で自分のワークパネルを開いてください。',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      const { buildTeamShiftTypeSelectView } = await import('../../ui/builders/team-shift.builder.js');
+      const teamView = buildTeamShiftTypeSelectView(ownerId);
+      await interaction.update({
+        components: [teamView],
+        flags: MessageFlags.IsComponentsV2,
+      });
+      break;
+    }
+
     case 'weekly': {
       const ownerId = parts[2];
 
