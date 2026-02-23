@@ -4,7 +4,8 @@ import {
   MessageFlags,
 } from 'discord.js';
 import { registerCommand } from '../registry.js';
-import { MIN_BET, MAX_BET_ROULETTE } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { buildRouletteIdleView } from '../../ui/builders/roulette.builder.js';
 import { rouletteSessionManager } from '../../interactions/buttons/roulette.buttons.js';
@@ -18,15 +19,15 @@ const data = new SlashCommandBuilder()
       .setName('bet')
       .setDescription('ベット額')
       .setRequired(false)
-      .setMinValue(Number(MIN_BET))
-      .setMaxValue(Number(MAX_BET_ROULETTE)),
+      .setMinValue(Number(S.minBet.defaultValue))
+      .setMaxValue(Number(S.maxRoulette.defaultValue)),
   )
   .toJSON();
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
   const userId = interaction.user.id;
   const betInput = interaction.options.getInteger('bet');
-  const bet = betInput ? BigInt(betInput) : MIN_BET;
+  const bet = betInput ? BigInt(betInput) : configService.getBigInt(S.minBet);
 
   const user = await findOrCreateUser(userId);
   if (user.chips < bet) {

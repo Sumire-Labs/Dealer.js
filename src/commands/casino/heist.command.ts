@@ -6,11 +6,10 @@ import {
 } from 'discord.js';
 import { registerCommand } from '../registry.js';
 import {
-  HEIST_MIN_ENTRY,
   HEIST_GROUP_MIN_PLAYERS,
-  HEIST_CHANNEL_COOLDOWN_MS,
-  PRISON_FINE_AMOUNT,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { addChips } from '../../database/services/economy.service.js';
 import { incrementGameStats } from '../../database/repositories/user.repository.js';
@@ -43,7 +42,7 @@ const data = new SlashCommandBuilder()
       .setName('amount')
       .setDescription('参加費')
       .setRequired(true)
-      .setMinValue(Number(HEIST_MIN_ENTRY))
+      .setMinValue(Number(S.heistMinEntry.defaultValue))
       .setMaxValue(300_000),
   )
   .toJSON();
@@ -198,7 +197,7 @@ export async function runHeist(
     const targetDef = HEIST_TARGET_MAP.get(session.target)!;
     for (const p of session.players) {
       await incrementGameStats(p.userId, 0n, session.entryFee);
-      jailUser(p.userId, PRISON_FINE_AMOUNT, targetDef.name);
+      jailUser(p.userId, configService.getBigInt(S.prisonFine), targetDef.name);
     }
   }
 
@@ -250,7 +249,7 @@ export async function runHeist(
   }
 
   // Set channel cooldown
-  setCooldown(`heist:${session.channelId}`, HEIST_CHANNEL_COOLDOWN_MS);
+  setCooldown(`heist:${session.channelId}`, configService.getNumber(S.heistChannelCD));
 
   removeActiveHeistSession(session.channelId);
 }

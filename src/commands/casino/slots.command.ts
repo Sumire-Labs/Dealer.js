@@ -4,7 +4,8 @@ import {
   MessageFlags,
 } from 'discord.js';
 import { registerCommand } from '../registry.js';
-import { MIN_BET, MAX_BET_SLOTS } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser, getTodayStats } from '../../database/repositories/user.repository.js';
 import { processGameResult } from '../../database/services/economy.service.js';
 import { spin } from '../../games/slots/slots.engine.js';
@@ -22,19 +23,19 @@ const data = new SlashCommandBuilder()
       .setName('bet')
       .setDescription('ベット額')
       .setRequired(false)
-      .setMinValue(Number(MIN_BET))
-      .setMaxValue(Number(MAX_BET_SLOTS)),
+      .setMinValue(Number(S.minBet.defaultValue))
+      .setMaxValue(Number(S.maxSlots.defaultValue)),
   )
   .toJSON();
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
   const userId = interaction.user.id;
   const betInput = interaction.options.getInteger('bet');
-  const bet = betInput ? BigInt(betInput) : MIN_BET;
+  const bet = betInput ? BigInt(betInput) : configService.getBigInt(S.minBet);
 
-  if (bet < MIN_BET || bet > MAX_BET_SLOTS) {
+  if (bet < configService.getBigInt(S.minBet) || bet > configService.getBigInt(S.maxSlots)) {
     await interaction.reply({
-      content: `ベット額は${formatChips(MIN_BET)}〜${formatChips(MAX_BET_SLOTS)}の範囲で指定してください。`,
+      content: `ベット額は${formatChips(configService.getBigInt(S.minBet))}〜${formatChips(configService.getBigInt(S.maxSlots))}の範囲で指定してください。`,
       flags: MessageFlags.Ephemeral,
     });
     return;

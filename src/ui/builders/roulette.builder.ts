@@ -9,7 +9,8 @@ import {
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
-import { MIN_BET, MAX_BET_ROULETTE } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { getNumberEmoji, getNumberColor } from '../../config/roulette.js';
 import type { TodayStats } from '../../database/repositories/user.repository.js';
 
@@ -24,17 +25,17 @@ function buildBetRow(bet: bigint, userId: string): ActionRowBuilder<ButtonBuilde
       .setCustomId(`roulette:bet_down:${userId}`)
       .setLabel('◀ BET')
       .setStyle(ButtonStyle.Secondary)
-      .setDisabled(bet <= MIN_BET),
+      .setDisabled(bet <= configService.getBigInt(S.minBet)),
     new ButtonBuilder()
       .setCustomId(`roulette:bet_up:${userId}`)
       .setLabel('BET ▶')
       .setStyle(ButtonStyle.Secondary)
-      .setDisabled(bet >= MAX_BET_ROULETTE),
+      .setDisabled(bet >= configService.getBigInt(S.maxRoulette)),
     new ButtonBuilder()
       .setCustomId(`roulette:bet_max:${userId}`)
       .setLabel('MAX BET')
       .setStyle(ButtonStyle.Secondary)
-      .setDisabled(bet >= MAX_BET_ROULETTE),
+      .setDisabled(bet >= configService.getBigInt(S.maxRoulette)),
   );
 }
 

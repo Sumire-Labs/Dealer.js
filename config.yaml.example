@@ -27,6 +27,82 @@ horse-race:
     - 岸田
     - しーしぇん
 
-economy:
-  initial-chips: 10000        # 新規ユーザーの初期チップ
-  bank-interest-rate: 10       # 銀行の日利 (%)
+# ── 数値設定 (フラットkey-value) ──
+# DB設定 > YAML設定 > デフォルト値 の優先順位で適用されます
+# /setting コマンドからも変更可能です
+# 変更したい項目のみコメント解除してください
+settings:
+  # 💰 経済
+  # economy.initial_chips: 10000        # 初期チップ
+  # economy.bank_interest_rate: 1       # 銀行日利 %
+  # economy.daily_bonus: 2500           # デイリーボーナス
+  # economy.daily_bonus_broke: 5000     # デイリー(破産時)
+  # economy.mission_complete_bonus: 3000 # ミッション完了報酬
+
+  # 🎲 ベット
+  # bet.min_bet: 100                    # 最低ベット
+  # bet.max_slots: 50000               # スロット上限
+  # bet.max_blackjack: 100000          # BJ上限
+  # bet.max_horse_race: 100000         # 競馬上限
+  # bet.max_coinflip: 500000           # コイン上限
+  # bet.max_roulette: 100000           # ルーレット上限
+
+  # 🏦 ローン
+  # loan.max_total: 100000             # 借入上限(合計)
+  # loan.min_amount: 1000              # 最小借入額
+  # loan.max_amount: 50000             # 最大借入額
+  # loan.interest_rate: 10             # ローン利率 %
+
+  # 💀 破産
+  # bankruptcy.chips: 2500             # 破産救済金
+  # bankruptcy.penalty_rate: 10        # 破産ペナルティ率 %
+  # bankruptcy.penalty_duration_ms: 3600000 # 破産ペナルティ時間 (60分)
+
+  # 💼 労働
+  # work.short_cd_ms: 3600000          # 短期CD (1時間)
+  # work.normal_cd_ms: 14400000        # 通常CD (4時間)
+  # work.long_cd_ms: 28800000          # 長期CD (8時間)
+  # work.tip_min: 200                  # チップ最小
+  # work.tip_max: 500                  # チップ最大
+  # work.streak_max_bonus: 20          # 連勤ボーナス上限 %
+  # work.multi_step_chance: 25         # マルチステップ確率 %
+
+  # 🔫 強盗
+  # heist.min_entry: 1000              # 最低参加費
+  # heist.base_rate: 30                # 基本成功率 %
+  # heist.per_player_bonus: 10         # 人数ボーナス %
+  # heist.max_rate: 80                 # 最大成功率 %
+  # heist.min_rate: 5                  # 最小成功率 %
+  # heist.solo_penalty: 15             # ソロペナルティ %
+  # heist.channel_cd_ms: 3600000       # チャンネルCD (60分)
+
+  # 👮 刑務所
+  # prison.duration_ms: 300000         # 収監時間 (5分)
+  # prison.fine: 5000                  # 罰金
+  # prison.jailbreak_rate: 30          # 脱獄成功率 %
+  # prison.jailbreak_penalty_ms: 180000 # 脱獄失敗追加時間 (3分)
+
+  # 🎟 宝くじ
+  # lottery.ticket_price: 1000         # チケット価格
+  # lottery.max_tickets: 10            # 最大購入枚数
+  # lottery.jackpot_rate: 70           # JP配当率 %
+  # lottery.second_rate: 20            # 2等配当率 %
+  # lottery.house_rate: 10             # ハウス率 %
+
+  # 🃏 ポーカー
+  # poker.min_buyin: 2000              # 最低バイイン
+  # poker.max_buyin: 100000            # 最大バイイン
+  # poker.action_timeout_ms: 45000     # アクション制限時間 (45秒)
+
+  # 🏢 ビジネス
+  # business.unlock_level: 3           # 開放レベル
+  # business.employee_max: 3           # 最大従業員数
+  # business.owner_bonus: 10           # オーナーボーナス %
+  # business.salary_rate: 5            # 給料率 %
+  # business.event_chance: 25          # イベント確率 %
+
+  # 👥 チーム
+  # team.shift_bonus: 15               # シフトボーナス/人 %
+  # team.overtime_max_rounds: 3        # 残業最大ラウンド
+  # team.overtime_risk: 15             # 残業リスク/ラウンド %
+  # team.weekly_all_bonus: 25000       # ウィークリー全達成報酬

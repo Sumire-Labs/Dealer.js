@@ -9,12 +9,10 @@ import {
   type JobDefinition,
 } from '../../config/jobs.js';
 import {
-  WORK_SHORT_COOLDOWN_MS,
-  WORK_NORMAL_COOLDOWN_MS,
-  WORK_LONG_COOLDOWN_MS,
   WORK_STREAK_WINDOW_MS,
-  MULTI_STEP_EVENT_CHANCE,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import {
   rollWorkEvent,
   rollBasePay,
@@ -46,11 +44,14 @@ import { getScenarioForJob, type WorkScenario } from '../../config/work-events.j
 import { secureRandomInt } from '../../utils/random.js';
 import { WORK_TOOL_IDS, getToolBonusesForJob } from '../../config/work-tools.js';
 
-const COOLDOWN_MAP: Record<ShiftType, number> = {
-  short: WORK_SHORT_COOLDOWN_MS,
-  normal: WORK_NORMAL_COOLDOWN_MS,
-  long: WORK_LONG_COOLDOWN_MS,
-};
+function getCooldownMs(type: ShiftType): number {
+  const map: Record<ShiftType, () => number> = {
+    short: () => configService.getNumber(S.workShortCD),
+    normal: () => configService.getNumber(S.workNormalCD),
+    long: () => configService.getNumber(S.workLongCD),
+  };
+  return map[type]();
+}
 
 export interface WorkResult {
   success: boolean;
@@ -170,7 +171,7 @@ export async function performWork(
   // Check for multi-step event (25% chance, only on non-accident/trouble)
   if (
     event.type !== 'accident' && event.type !== 'trouble' &&
-    secureRandomInt(1, 100) <= MULTI_STEP_EVENT_CHANCE
+    secureRandomInt(1, 100) <= configService.getNumber(S.multiStepChance)
   ) {
     const baseJobId = 'baseJobId' in job ? (job as PromotedJobDefinition).baseJobId : jobId;
     const scenario = getScenarioForJob(baseJobId);
@@ -188,7 +189,7 @@ export async function performWork(
         createdAt: Date.now(),
       };
       setWorkSession(userId, session);
-      setCooldown(cooldownKey, COOLDOWN_MAP[shiftType]);
+      setCooldown(cooldownKey, getCooldownMs(shiftType));
 
       return {
         success: true,
@@ -340,7 +341,7 @@ export async function performWork(
   if (!result.success) return result;
 
   // Set cooldown after successful work
-  setCooldown(cooldownKey, COOLDOWN_MAP[shiftType]);
+  setCooldown(cooldownKey, getCooldownMs(shiftType));
 
   // Mark VIP event used
   if (specialShift?.type === 'vip_event') {

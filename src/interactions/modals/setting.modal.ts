@@ -6,12 +6,14 @@ import {
 } from 'discord.js';
 import { registerModalHandler } from '../handler.js';
 import { configService } from '../../config/config.service.js';
-import { buildHorseNameSettingView, buildEconomySettingView } from '../../ui/builders/setting.builder.js';
-import { formatChips } from '../../utils/formatters.js';
+import { buildHorseNameSettingView, buildSettingCategoryView } from '../../ui/builders/setting.builder.js';
+import { SETTING_CATEGORIES } from '../../config/setting-defs.js';
 
 async function handleSettingModal(interaction: ModalSubmitInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
   const action = parts[1];
+
+  // ── Horse name edit (legacy) ───────────────────────────────────────
 
   if (action === 'edit_names') {
     const raw = interaction.fields.getTextInputValue('horse_names');
@@ -31,7 +33,7 @@ async function handleSettingModal(interaction: ModalSubmitInteraction): Promise<
     await configService.setHorseNames(names);
 
     const successMsg = new ContainerBuilder().addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`✅ 馬名を **${names.length}頭** に更新しました。`),
+      new TextDisplayBuilder().setContent(`\u2705 馬名を **${names.length}頭** に更新しました。`),
     );
     const container = buildHorseNameSettingView(names, interaction.user.id);
     await interaction.reply({
@@ -41,57 +43,58 @@ async function handleSettingModal(interaction: ModalSubmitInteraction): Promise<
     return;
   }
 
-  if (action === 'edit_initial_chips') {
-    const raw = interaction.fields.getTextInputValue('initial_chips').trim();
-    const value = Number(raw);
+  // ── Generic config edit ────────────────────────────────────────────
 
-    if (!Number.isInteger(value) || value < 1_000 || value > 10_000_000) {
-      await interaction.reply({
-        content: '初期チップは 1,000〜10,000,000 の整数で入力してください。',
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
+  if (action === 'cfg_edit') {
+    const catId = parts[2];
+    const page = parseInt(parts[3], 10);
+
+    const cat = SETTING_CATEGORIES.find(c => c.id === catId);
+    if (!cat) return;
+
+    const start = page * 5;
+    const slice = cat.settings.slice(start, start + 5);
+    const errors: string[] = [];
+    const updates: string[] = [];
+
+    for (const def of slice) {
+      const rawInput = interaction.fields.getTextInputValue(def.key).trim();
+      const num = Number(rawInput);
+
+      if (isNaN(num) || !Number.isFinite(num)) {
+        errors.push(`**${def.label}**: 数値を入力してください`);
+        continue;
+      }
+
+      if (num < def.min || num > def.max) {
+        errors.push(`**${def.label}**: ${def.min}〜${def.max} の範囲で入力してください`);
+        continue;
+      }
+
+      if (!Number.isInteger(num)) {
+        errors.push(`**${def.label}**: 整数で入力してください`);
+        continue;
+      }
+
+      // Convert display value to stored value
+      const storedValue = def.uiDivisor === 1 ? num : num * def.uiDivisor;
+      await configService.setNumeric(def, storedValue);
+      const unitStr = def.unit ? ` ${def.unit}` : '';
+      updates.push(`**${def.label}** \u2192 ${num}${unitStr}`);
     }
 
-    await configService.setInitialChips(BigInt(value));
-
-    const successMsg = new ContainerBuilder().addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`✅ 初期チップを **${formatChips(BigInt(value))}** に更新しました。`),
-    );
-    const container = buildEconomySettingView(
-      configService.getInitialChips(),
-      configService.getBankInterestRate(),
-      interaction.user.id,
-    );
-    await interaction.reply({
-      components: [successMsg, container],
-      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
-    });
-    return;
-  }
-
-  if (action === 'edit_bank_rate') {
-    const raw = interaction.fields.getTextInputValue('bank_rate').trim();
-    const value = Number(raw);
-
-    if (!Number.isInteger(value) || value < 0 || value > 100) {
-      await interaction.reply({
-        content: '銀行利率は 0〜100 の整数で入力してください。',
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
+    const lines: string[] = [];
+    if (updates.length > 0) {
+      lines.push(`\u2705 ${updates.length}件更新しました:\n${updates.join('\n')}`);
+    }
+    if (errors.length > 0) {
+      lines.push(`\u274C エラー:\n${errors.join('\n')}`);
     }
 
-    await configService.setBankInterestRate(BigInt(value));
-
     const successMsg = new ContainerBuilder().addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(`✅ 銀行利率を **${value}%** に更新しました。`),
+      new TextDisplayBuilder().setContent(lines.join('\n\n')),
     );
-    const container = buildEconomySettingView(
-      configService.getInitialChips(),
-      configService.getBankInterestRate(),
-      interaction.user.id,
-    );
+    const container = buildSettingCategoryView(catId, interaction.user.id);
     await interaction.reply({
       components: [successMsg, container],
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,

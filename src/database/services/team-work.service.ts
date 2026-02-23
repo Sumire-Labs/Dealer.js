@@ -8,12 +8,10 @@ import {
   type JobDefinition,
 } from '../../config/jobs.js';
 import {
-  WORK_SHORT_COOLDOWN_MS,
-  WORK_NORMAL_COOLDOWN_MS,
-  WORK_LONG_COOLDOWN_MS,
   WORK_STREAK_WINDOW_MS,
-  TEAM_SHIFT_BONUS_PER_PLAYER,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import {
   rollWorkEvent,
   rollBasePay,
@@ -38,11 +36,14 @@ import { getMastery, incrementShifts, updateMasteryLevel } from '../repositories
 import { PROMOTED_JOB_MAP, type PromotedJobDefinition } from '../../config/promoted-jobs.js';
 import { type WorkResult, getToolBonuses, postWorkHooks } from './work.service.js';
 
-const COOLDOWN_MAP: Record<ShiftType, number> = {
-  short: WORK_SHORT_COOLDOWN_MS,
-  normal: WORK_NORMAL_COOLDOWN_MS,
-  long: WORK_LONG_COOLDOWN_MS,
-};
+function getCooldownMs(type: ShiftType): number {
+  const map: Record<ShiftType, () => number> = {
+    short: () => configService.getNumber(S.workShortCD),
+    normal: () => configService.getNumber(S.workNormalCD),
+    long: () => configService.getNumber(S.workLongCD),
+  };
+  return map[type]();
+}
 
 /**
  * Perform team work for a single player within a team shift.
@@ -91,7 +92,7 @@ export async function performTeamWork(
   const tipAmount = event.type === 'tip' ? rollTipAmount() : 0n;
 
   // Team bonus: +15% per additional member
-  const teamBonusPercent = (teamSize - 1) * TEAM_SHIFT_BONUS_PER_PLAYER;
+  const teamBonusPercent = (teamSize - 1) * configService.getNumber(S.teamShiftBonus);
 
   const result = await prisma.$transaction(async (tx) => {
     const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
@@ -206,7 +207,7 @@ export async function performTeamWork(
 
   if (!result.success) return result;
 
-  setCooldown(cooldownKey, COOLDOWN_MAP[shiftType]);
+  setCooldown(cooldownKey, getCooldownMs(shiftType));
 
   const { newlyUnlocked, missionsCompleted } = await postWorkHooks(userId, result);
 

@@ -7,7 +7,9 @@ import {
   MessageFlags,
 } from 'discord.js';
 import { registerButtonHandler } from '../handler.js';
-import { POKER_MAX_BUYIN, POKER_MAX_PLAYERS } from '../../config/constants.js';
+import { POKER_MAX_PLAYERS } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import {
   getActiveSession,
   hasPlayer,
@@ -243,7 +245,8 @@ async function handleRaiseModal(
 
   const minRaise = session.currentBet + session.minRaise;
   const maxRaise = currentPlayer.currentBet + currentPlayer.stack;
-  const maxDisplay = maxRaise < POKER_MAX_BUYIN ? maxRaise : POKER_MAX_BUYIN;
+  const pokerMaxBuyin = configService.getBigInt(S.pokerMaxBuyin);
+  const maxDisplay = maxRaise < pokerMaxBuyin ? maxRaise : pokerMaxBuyin;
 
   const modal = new ModalBuilder()
     .setCustomId(`poker_modal:raise:${channelId}`)

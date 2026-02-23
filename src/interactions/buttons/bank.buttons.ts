@@ -20,8 +20,8 @@ import {
   type BankViewData,
 } from '../../ui/builders/bank.builder.js';
 import { formatChips } from '../../utils/formatters.js';
-import { LOAN_MIN_AMOUNT, LOAN_MAX_AMOUNT } from '../../config/constants.js';
 import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 
 async function buildViewData(userId: string): Promise<BankViewData> {
   const user = await findOrCreateUser(userId);
@@ -37,7 +37,7 @@ async function buildViewData(userId: string): Promise<BankViewData> {
     penaltyRemainingMs,
     lastInterestAt: accountSummary.lastInterestAt,
     estimatedInterest: accountSummary.estimatedInterest,
-    baseInterestRate: configService.getBankInterestRate(),
+    baseInterestRate: configService.getBigInt(S.bankInterestRate),
   };
 }
 
@@ -147,7 +147,7 @@ async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
               .setCustomId('amount')
-              .setLabel(`金額（${Number(LOAN_MIN_AMOUNT).toLocaleString()}〜${Number(LOAN_MAX_AMOUNT).toLocaleString()}）`)
+              .setLabel(`金額（${Number(configService.getBigInt(S.loanMinAmount)).toLocaleString()}〜${Number(configService.getBigInt(S.loanMaxAmount)).toLocaleString()}）`)
               .setStyle(TextInputStyle.Short)
               .setPlaceholder('例: 10000')
               .setRequired(true),

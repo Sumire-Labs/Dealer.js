@@ -1,5 +1,7 @@
 import { Prisma } from '@prisma/client';
-import { DAILY_BONUS, DAILY_BONUS_BROKE, DAILY_RESET_HOUR_JST } from '../../config/constants.js';
+import { DAILY_RESET_HOUR_JST } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { prisma } from '../client.js';
 import { findOrCreateUser } from '../repositories/user.repository.js';
 import { checkAchievements } from './achievement.service.js';
@@ -63,7 +65,7 @@ export async function claimDaily(userId: string): Promise<DailyResult> {
     }
 
     const isBroke = user.chips <= 0n;
-    let amount = isBroke ? DAILY_BONUS_BROKE : DAILY_BONUS;
+    let amount = isBroke ? configService.getBigInt(S.dailyBonusBroke) : configService.getBigInt(S.dailyBonus);
 
     // CHIP_FOUNTAIN permanent upgrade: +$500
     try {

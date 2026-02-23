@@ -24,7 +24,8 @@ import { playRouletteAnimation } from '../../ui/animations/roulette.animation.js
 import { formatChips } from '../../utils/formatters.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 import { buildMissionNotification } from '../../database/services/mission.service.js';
-import { MIN_BET } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 
 async function handleRouletteModal(interaction: ModalSubmitInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
@@ -41,7 +42,7 @@ async function handleRouletteModal(interaction: ModalSubmitInteraction): Promise
 
   const userId = interaction.user.id;
   const input = interaction.fields.getTextInputValue('numbers').trim();
-  const bet = rouletteSessionManager.get(userId) ?? MIN_BET;
+  const bet = rouletteSessionManager.get(userId) ?? configService.getBigInt(S.minBet);
 
   // Parse and validate numbers based on bet type
   let rouletteBet: RouletteBet | null = null;

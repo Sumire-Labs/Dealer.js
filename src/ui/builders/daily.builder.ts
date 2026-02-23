@@ -11,7 +11,8 @@ import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
 import type { DailyMission } from '@prisma/client';
 import { MISSION_MAP, type MissionDifficulty } from '../../config/missions.js';
-import { MISSION_COMPLETE_BONUS } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 
 export type DailyTab = 'bonus' | 'missions';
 
@@ -143,7 +144,7 @@ export function buildDailyMissionsView(
   content += '────────────────\n';
   content += missionLines.join('\n');
   content += '\n────────────────\n';
-  content += `🏆 コンプリートボーナス: ${formatChips(MISSION_COMPLETE_BONUS)} [${completedCount}/${totalCount}]`;
+  content += `🏆 コンプリートボーナス: ${formatChips(configService.getBigInt(S.missionCompleteBonus))} [${completedCount}/${totalCount}]`;
   if (completedCount === totalCount) {
     content += ' ✔️';
   }

@@ -23,7 +23,8 @@ import { formatTimeDelta } from '../../utils/formatters.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 import { buildMissionNotification } from '../../database/services/mission.service.js';
 import { rollSpecialShifts } from '../../config/special-shifts.js';
-import { WEEKLY_CHALLENGE_ALL_BONUS } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { setCooldown, buildCooldownKey } from '../../utils/cooldown.js';
 import { SPECIAL_SHIFTS } from '../../config/special-shifts.js';
 import { setOvertimeSession } from '../../games/work/overtime.session.js';
@@ -190,7 +191,7 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
           userId: ownerId,
           challenges: mapped,
           allCompleted,
-          allCompletedBonus: WEEKLY_CHALLENGE_ALL_BONUS,
+          allCompletedBonus: configService.getBigInt(S.weeklyAllBonus),
         });
 
         await interaction.update({

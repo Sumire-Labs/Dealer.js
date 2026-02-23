@@ -9,12 +9,10 @@ import {
   JOBS,
 } from '../../config/jobs.js';
 import {
-  WORK_TIP_MIN,
-  WORK_TIP_MAX,
-  WORK_STREAK_MAX_BONUS,
   OVERTIME_MULTIPLIERS,
-  OVERTIME_RISK_PER_ROUND,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { secureRandomInt } from '../../utils/random.js';
 import { weightedRandom } from '../../utils/random.js';
 import type { MasteryTier } from '../../config/work-mastery.js';
@@ -95,8 +93,8 @@ export function rollBasePay(job: JobDefinition): bigint {
  * Calculate tip amount for 'tip' events.
  */
 export function rollTipAmount(): bigint {
-  const min = Number(WORK_TIP_MIN);
-  const max = Number(WORK_TIP_MAX);
+  const min = Number(configService.getBigInt(S.tipMin));
+  const max = Number(configService.getBigInt(S.tipMax));
   return BigInt(secureRandomInt(min, max));
 }
 
@@ -106,7 +104,7 @@ export function rollTipAmount(): bigint {
 export function getStreakBonus(streak: number): number {
   if (streak <= 1) return 0;
   const bonus = (streak - 1) * 5;
-  return Math.min(bonus, WORK_STREAK_MAX_BONUS);
+  return Math.min(bonus, configService.getNumber(S.streakMaxBonus));
 }
 
 /**
@@ -208,7 +206,7 @@ export function getAvailableJobs(
 export function rollOvertimeEvent(baseRiskRate: number, round: number, bonuses?: WorkBonuses): WorkEvent {
   const totalRiskReduction = (bonuses?.mastery?.accidentReduction ?? 0) + (bonuses?.toolRiskReduction ?? 0);
   const adjustedBase = Math.max(baseRiskRate - totalRiskReduction, 0);
-  const riskRate = Math.min(adjustedBase + (round + 1) * OVERTIME_RISK_PER_ROUND, 95);
+  const riskRate = Math.min(adjustedBase + (round + 1) * configService.getNumber(S.overtimeRisk), 95);
 
   const roll = secureRandomInt(1, 100);
   if (roll <= riskRate) {

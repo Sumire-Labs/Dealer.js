@@ -5,6 +5,7 @@ import {
   BANK_MIN_BALANCE_FOR_INTEREST,
 } from '../../config/constants.js';
 import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { hasActiveBuff, getInventoryQuantity } from './shop.service.js';
 import { SHOP_EFFECTS } from '../../config/shop.js';
 
@@ -20,7 +21,7 @@ export async function getBankAccountSummary(userId: string): Promise<BankAccount
 
   let estimatedInterest = 0n;
   if (user.bankBalance >= BANK_MIN_BALANCE_FOR_INTEREST) {
-    estimatedInterest = (user.bankBalance * configService.getBankInterestRate()) / 100n;
+    estimatedInterest = (user.bankBalance * configService.getBigInt(S.bankInterestRate)) / 100n;
   }
 
   return {
@@ -170,7 +171,7 @@ export async function applyInterest(userId: string): Promise<bigint | null> {
     }
 
     // Calculate effective interest rate with shop upgrades
-    let effectiveRate = configService.getBankInterestRate();
+    let effectiveRate = configService.getBigInt(S.bankInterestRate);
     try {
       // BANK_EXPANSION: +1% per stack
       const expansionCount = await getInventoryQuantity(userId, 'BANK_EXPANSION');

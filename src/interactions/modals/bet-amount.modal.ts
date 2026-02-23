@@ -3,7 +3,8 @@ import {
   MessageFlags,
 } from 'discord.js';
 import { registerModalHandler } from '../handler.js';
-import { MIN_BET, MAX_BET_HORSE_RACE } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { removeChips } from '../../database/services/economy.service.js';
 import {
@@ -48,9 +49,9 @@ async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promis
   }
 
   const amount = BigInt(parsed);
-  if (amount < MIN_BET || amount > MAX_BET_HORSE_RACE) {
+  if (amount < configService.getBigInt(S.minBet) || amount > configService.getBigInt(S.maxHorseRace)) {
     await interaction.reply({
-      content: `ベット額は${formatChips(MIN_BET)}〜${formatChips(MAX_BET_HORSE_RACE)}の範囲で指定してください。`,
+      content: `ベット額は${formatChips(configService.getBigInt(S.minBet))}〜${formatChips(configService.getBigInt(S.maxHorseRace))}の範囲で指定してください。`,
       flags: MessageFlags.Ephemeral,
     });
     return;

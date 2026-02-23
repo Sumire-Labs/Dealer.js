@@ -17,13 +17,10 @@ import {
   type BusinessLevelDefinition,
 } from '../../config/business.js';
 import {
-  BUSINESS_UNLOCK_LEVEL,
   BUSINESS_MAX_ACCUMULATION_MS,
-  BUSINESS_EMPLOYEE_MAX,
-  BUSINESS_EMPLOYEE_OWNER_BONUS,
-  BUSINESS_EMPLOYEE_SALARY_RATE,
-  BUSINESS_EVENT_CHANCE,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { addChips, removeChips } from './economy.service.js';
 import { weightedRandom } from '../../utils/random.js';
 import { secureRandomInt } from '../../utils/random.js';
@@ -47,7 +44,7 @@ export interface BusinessDashboardData {
 
 function rollBusinessEvent(): BusinessEvent | undefined {
   const roll = secureRandomInt(1, 100);
-  if (roll > BUSINESS_EVENT_CHANCE) return undefined;
+  if (roll > configService.getNumber(S.businessEventChance)) return undefined;
 
   const items = BUSINESS_EVENTS.map(e => ({ value: e.id, weight: e.chance }));
   const eventId = weightedRandom(items);
@@ -56,7 +53,7 @@ function rollBusinessEvent(): BusinessEvent | undefined {
 
 export async function getBusinessDashboard(userId: string): Promise<BusinessDashboardData> {
   const user = await findOrCreateUser(userId);
-  const unlocked = user.workLevel >= BUSINESS_UNLOCK_LEVEL;
+  const unlocked = user.workLevel >= configService.getNumber(S.businessUnlockLevel);
 
   const business = await getBusiness(userId);
 
@@ -90,7 +87,7 @@ export async function getBusinessDashboard(userId: string): Promise<BusinessDash
     hiredAt: e.hiredAt,
   }));
 
-  const employeeBonus = employees.length * BUSINESS_EMPLOYEE_OWNER_BONUS;
+  const employeeBonus = employees.length * configService.getNumber(S.businessOwnerBonus);
 
   return {
     hasBusiness: true,
@@ -116,8 +113,9 @@ export async function buyBusiness(
 ): Promise<{ success: boolean; error?: string }> {
   const user = await findOrCreateUser(userId);
 
-  if (user.workLevel < BUSINESS_UNLOCK_LEVEL) {
-    return { success: false, error: `ビジネスにはワークLv.${BUSINESS_UNLOCK_LEVEL}が必要です。` };
+  const businessUnlockLevel = configService.getNumber(S.businessUnlockLevel);
+  if (user.workLevel < businessUnlockLevel) {
+    return { success: false, error: `ビジネスにはワークLv.${businessUnlockLevel}が必要です。` };
   }
 
   const existing = await getBusiness(userId);
@@ -216,7 +214,7 @@ export async function collectIncome(userId: string): Promise<CollectResult> {
 
   // Employee bonus
   const employeeCount = business.employees.length;
-  const employeeBonus = (baseIncome * BigInt(employeeCount * BUSINESS_EMPLOYEE_OWNER_BONUS)) / 100n;
+  const employeeBonus = (baseIncome * BigInt(employeeCount * configService.getNumber(S.businessOwnerBonus))) / 100n;
 
   // Roll event
   const event = rollBusinessEvent();
@@ -228,7 +226,7 @@ export async function collectIncome(userId: string): Promise<CollectResult> {
   // Employee salaries
   let totalSalaries = 0n;
   if (employeeCount > 0 && finalIncome > 0n) {
-    const salaryPerEmployee = (finalIncome * BigInt(BUSINESS_EMPLOYEE_SALARY_RATE)) / 100n;
+    const salaryPerEmployee = (finalIncome * BigInt(configService.getNumber(S.businessSalaryRate))) / 100n;
     for (const emp of business.employees) {
       try {
         await addChips(emp.userId, salaryPerEmployee, 'BUSINESS_SALARY');
@@ -272,8 +270,9 @@ export async function hireEmployee(
     return { success: false, error: 'ビジネスを所持していません。' };
   }
 
-  if (business.employees.length >= BUSINESS_EMPLOYEE_MAX) {
-    return { success: false, error: `従業員の上限（${BUSINESS_EMPLOYEE_MAX}人）に達しています。` };
+  const businessEmployeeMax = configService.getNumber(S.businessEmployeeMax);
+  if (business.employees.length >= businessEmployeeMax) {
+    return { success: false, error: `従業員の上限（${businessEmployeeMax}人）に達しています。` };
   }
 
   // Check if employee exists

@@ -1,13 +1,10 @@
 import { secureRandomInt } from '../../utils/random.js';
 import {
-  HEIST_BASE_SUCCESS_RATE,
-  HEIST_PER_PLAYER_BONUS,
-  HEIST_MAX_SUCCESS_RATE,
-  HEIST_MIN_SUCCESS_RATE,
-  HEIST_SOLO_SUCCESS_PENALTY,
   HEIST_SOLO_MULTIPLIER_SCALE,
   HEIST_SOLO_MIN_MULTIPLIER,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import {
   HEIST_TARGET_MAP,
   HEIST_RISK_MAP,
@@ -45,17 +42,17 @@ export function calculateSuccessRate(params: HeistCalcParams): number {
   const riskDef = HEIST_RISK_MAP.get(params.riskLevel)!;
   const approachDef = HEIST_APPROACH_MAP.get(params.approach)!;
 
-  let rate = HEIST_BASE_SUCCESS_RATE
-    + (params.playerCount - 1) * HEIST_PER_PLAYER_BONUS
+  let rate = configService.getNumber(S.heistBaseRate)
+    + (params.playerCount - 1) * configService.getNumber(S.heistPerPlayerBonus)
     + targetDef.successRateModifier
     + riskDef.successRateModifier
     + approachDef.successRateModifier;
 
   if (params.isSolo) {
-    rate -= HEIST_SOLO_SUCCESS_PENALTY;
+    rate -= configService.getNumber(S.heistSoloPenalty);
   }
 
-  return Math.max(HEIST_MIN_SUCCESS_RATE, Math.min(rate, HEIST_MAX_SUCCESS_RATE));
+  return Math.max(configService.getNumber(S.heistMinRate), Math.min(rate, configService.getNumber(S.heistMaxRate)));
 }
 
 export function calculateMultiplierRange(params: HeistCalcParams): { min: number; max: number } {

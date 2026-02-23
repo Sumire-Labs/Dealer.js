@@ -3,10 +3,7 @@ import {
   MessageFlags,
 } from 'discord.js';
 import { registerModalHandler } from '../handler.js';
-import {
-  LOAN_MIN_AMOUNT,
-  LOAN_MAX_AMOUNT,
-} from '../../config/constants.js';
+import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import {
   borrowChips,
@@ -38,7 +35,7 @@ async function buildViewData(userId: string): Promise<BankViewData> {
     penaltyRemainingMs,
     lastInterestAt: accountSummary.lastInterestAt,
     estimatedInterest: accountSummary.estimatedInterest,
-    baseInterestRate: configService.getBankInterestRate(),
+    baseInterestRate: configService.getBigInt(S.bankInterestRate),
   };
 }
 
@@ -211,9 +208,9 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
 
       const amount = BigInt(parsed);
 
-      if (amount < LOAN_MIN_AMOUNT || amount > LOAN_MAX_AMOUNT) {
+      if (amount < configService.getBigInt(S.loanMinAmount) || amount > configService.getBigInt(S.loanMaxAmount)) {
         await interaction.reply({
-          content: `借入額は${formatChips(LOAN_MIN_AMOUNT)}〜${formatChips(LOAN_MAX_AMOUNT)}の範囲で指定してください。`,
+          content: `借入額は${formatChips(configService.getBigInt(S.loanMinAmount))}〜${formatChips(configService.getBigInt(S.loanMaxAmount))}の範囲で指定してください。`,
           flags: MessageFlags.Ephemeral,
         });
         return;

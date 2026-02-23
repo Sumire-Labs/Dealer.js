@@ -7,7 +7,8 @@ import {
   ActionRowBuilder,
 } from 'discord.js';
 import { registerButtonHandler } from '../handler.js';
-import { MIN_BET, MAX_BET_ROULETTE } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser, getTodayStats } from '../../database/repositories/user.repository.js';
 import { processGameResult } from '../../database/services/economy.service.js';
 import {
@@ -34,7 +35,7 @@ const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n, 100_000n];
 export const rouletteSessionManager = new Map<string, bigint>();
 
 function getSessionBet(userId: string): bigint {
-  return rouletteSessionManager.get(userId) ?? MIN_BET;
+  return rouletteSessionManager.get(userId) ?? configService.getBigInt(S.minBet);
 }
 
 const OUTSIDE_BET_ACTIONS = new Set<string>([
@@ -99,7 +100,7 @@ async function handleRouletteButton(interaction: ButtonInteraction): Promise<voi
 
   // Bet adjustment
   if (action === 'bet_down') {
-    const lower = BET_STEPS.filter(s => s < currentBet).pop() ?? MIN_BET;
+    const lower = BET_STEPS.filter(s => s < currentBet).pop() ?? configService.getBigInt(S.minBet);
     currentBet = lower;
     rouletteSessionManager.set(userId, currentBet);
     const user = await findOrCreateUser(userId);
@@ -109,7 +110,7 @@ async function handleRouletteButton(interaction: ButtonInteraction): Promise<voi
   }
 
   if (action === 'bet_up') {
-    const higher = BET_STEPS.find(s => s > currentBet) ?? MAX_BET_ROULETTE;
+    const higher = BET_STEPS.find(s => s > currentBet) ?? configService.getBigInt(S.maxRoulette);
     currentBet = higher;
     rouletteSessionManager.set(userId, currentBet);
     const user = await findOrCreateUser(userId);
@@ -119,7 +120,7 @@ async function handleRouletteButton(interaction: ButtonInteraction): Promise<voi
   }
 
   if (action === 'bet_max') {
-    currentBet = MAX_BET_ROULETTE;
+    currentBet = configService.getBigInt(S.maxRoulette);
     rouletteSessionManager.set(userId, currentBet);
     const user = await findOrCreateUser(userId);
     const view = buildRouletteIdleView(currentBet, user.chips, userId);

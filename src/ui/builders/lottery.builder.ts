@@ -9,7 +9,8 @@ import {
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
-import { LOTTERY_TICKET_PRICE, LOTTERY_MAX_TICKETS_PER_ROUND } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import type { LotteryRound, LotteryTicket } from '@prisma/client';
 
 export type LotteryTab = 'current' | 'history';
@@ -57,7 +58,7 @@ export function buildLotteryView(data: LotteryViewData): ContainerBuilder {
       );
       container.addTextDisplayComponents(
         new TextDisplayBuilder().setContent(
-          `あなたのチケット (${userTickets.length}/${LOTTERY_MAX_TICKETS_PER_ROUND}):\n${ticketLines.join('\n')}`,
+          `あなたのチケット (${userTickets.length}/${configService.getNumber(S.lotteryMaxTickets)}):\n${ticketLines.join('\n')}`,
         ),
       );
     } else {
@@ -71,12 +72,12 @@ export function buildLotteryView(data: LotteryViewData): ContainerBuilder {
     );
 
     // Action buttons
-    const canBuy = userTickets.length < LOTTERY_MAX_TICKETS_PER_ROUND;
+    const canBuy = userTickets.length < configService.getNumber(S.lotteryMaxTickets);
     container.addActionRowComponents(
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId(`lottery:buy:${userId}`)
-          .setLabel(`🎫 番号選択 (${formatChips(LOTTERY_TICKET_PRICE)})`)
+          .setLabel(`🎫 番号選択 (${formatChips(configService.getBigInt(S.lotteryTicketPrice))})`)
           .setStyle(ButtonStyle.Primary)
           .setDisabled(!canBuy),
         new ButtonBuilder()

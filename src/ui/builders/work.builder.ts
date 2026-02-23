@@ -15,11 +15,8 @@ import {
   LEVEL_THRESHOLDS,
   type ShiftType,
 } from '../../config/jobs.js';
-import {
-  WORK_SHORT_COOLDOWN_MS,
-  WORK_NORMAL_COOLDOWN_MS,
-  WORK_LONG_COOLDOWN_MS,
-} from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { getAvailableJobs } from '../../games/work/work.engine.js';
 import { getRemainingCooldown, buildCooldownKey } from '../../utils/cooldown.js';
 import type { WorkResult } from '../../database/services/work.service.js';
@@ -39,11 +36,14 @@ export interface WorkPanelViewData {
   weeklyChallenges?: { name: string; progress: number; target: number; completed: boolean }[];
 }
 
-const SHIFT_COOLDOWNS: Record<ShiftType, number> = {
-  short: WORK_SHORT_COOLDOWN_MS,
-  normal: WORK_NORMAL_COOLDOWN_MS,
-  long: WORK_LONG_COOLDOWN_MS,
-};
+function getShiftCooldown(type: ShiftType): number {
+  const map: Record<ShiftType, () => number> = {
+    short: () => configService.getNumber(S.workShortCD),
+    normal: () => configService.getNumber(S.workNormalCD),
+    long: () => configService.getNumber(S.workLongCD),
+  };
+  return map[type]();
+}
 
 function buildXpBar(currentXp: number, nextLevelXp: number | null, currentLevel: number): string {
   if (nextLevelXp === null) return '██████████ MAX';
@@ -219,7 +219,7 @@ export function buildShiftSelectView(data: ShiftSelectViewData): ContainerBuilde
   const shiftButtons = SHIFTS.map(shift => {
     const remaining = getRemainingCooldown(buildCooldownKey(userId, shift.cooldownKey));
     const isDisabled = remaining > 0;
-    const cooldownMs = SHIFT_COOLDOWNS[shift.type];
+    const cooldownMs = getShiftCooldown(shift.type);
     const hours = cooldownMs / (60 * 60 * 1000);
     const label = isDisabled
       ? `${shift.emoji} ${shift.label} (${formatTimeDelta(remaining)})`

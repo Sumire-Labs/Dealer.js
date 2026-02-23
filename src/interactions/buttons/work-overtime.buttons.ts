@@ -10,10 +10,10 @@ import {
 import { JOB_MAP } from '../../config/jobs.js';
 import { PROMOTED_JOB_MAP } from '../../config/promoted-jobs.js';
 import {
-  OVERTIME_MAX_ROUNDS,
   OVERTIME_MULTIPLIERS,
-  OVERTIME_RISK_PER_ROUND,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import {
   getOvertimeSession,
   removeOvertimeSession,
@@ -49,7 +49,7 @@ export async function handleOvertimeAction(
       }
 
       const round = session.currentRound;
-      if (round >= OVERTIME_MAX_ROUNDS) {
+      if (round >= configService.getNumber(S.overtimeMaxRounds)) {
         removeOvertimeSession(ownerId);
         await interaction.reply({
           content: '残業は最大3回までです。',
@@ -58,7 +58,7 @@ export async function handleOvertimeAction(
         return;
       }
 
-      const riskPercent = Math.min(session.baseRiskRate + (round + 1) * OVERTIME_RISK_PER_ROUND, 95);
+      const riskPercent = Math.min(session.baseRiskRate + (round + 1) * configService.getNumber(S.overtimeRisk), 95);
       const multiplier = OVERTIME_MULTIPLIERS[round];
 
       const view = buildOvertimeConfirmView({
@@ -139,7 +139,7 @@ export async function handleOvertimeAction(
         session.accumulatedBonus += roundBonus;
         session.currentRound += 1;
 
-        const canContinue = session.currentRound < OVERTIME_MAX_ROUNDS;
+        const canContinue = session.currentRound < configService.getNumber(S.overtimeMaxRounds);
         if (!canContinue) {
           removeOvertimeSession(ownerId);
         }

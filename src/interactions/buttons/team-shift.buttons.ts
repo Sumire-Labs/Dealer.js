@@ -22,8 +22,9 @@ import {
 } from '../../ui/builders/team-shift.builder.js';
 import {
   TEAM_SHIFT_MAX_PLAYERS,
-  TEAM_SHIFT_BONUS_PER_PLAYER,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { performTeamWork } from '../../database/services/team-work.service.js';
 import type { WorkResult } from '../../database/services/work.service.js';
 import { JOB_MAP } from '../../config/jobs.js';
@@ -263,7 +264,7 @@ async function runTeamShift(
   session: TeamShiftSession,
 ): Promise<void> {
   const teamSize = session.players.length;
-  const teamBonusPercent = (teamSize - 1) * TEAM_SHIFT_BONUS_PER_PLAYER;
+  const teamBonusPercent = (teamSize - 1) * configService.getNumber(S.teamShiftBonus);
 
   // Roll team event
   const teamEvent = rollTeamEvent();

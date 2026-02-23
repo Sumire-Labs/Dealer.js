@@ -1,11 +1,12 @@
 import { prisma } from '../client.js';
 import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 
 export async function findOrCreateUser(userId: string) {
   return prisma.user.upsert({
     where: { id: userId },
     update: {},
-    create: { id: userId, chips: configService.getInitialChips() },
+    create: { id: userId, chips: configService.getBigInt(S.initialChips) },
   });
 }
 
@@ -81,7 +82,7 @@ export async function resetUser(userId: string) {
   return prisma.user.update({
     where: { id: userId },
     data: {
-      chips: configService.getInitialChips(),
+      chips: configService.getBigInt(S.initialChips),
       bankBalance: 0n,
       totalWon: 0n,
       totalLost: 0n,

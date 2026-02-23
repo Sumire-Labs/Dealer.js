@@ -8,8 +8,9 @@ import { registerCommand } from '../registry.js';
 import {
   POKER_LOBBY_DURATION_MS,
   POKER_MIN_PLAYERS,
-  POKER_ACTION_TIMEOUT_MS,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { POKER_CONFIG } from '../../config/games.js';
 import { createDeck } from '../../games/poker/poker.deck.js';
 import {
@@ -414,7 +415,8 @@ function startTurnTimer(
 ): void {
   if (session.turnTimer) clearTimeout(session.turnTimer);
 
-  session.turnDeadline = Date.now() + POKER_ACTION_TIMEOUT_MS;
+  const actionTimeout = configService.getNumber(S.pokerActionTimeout);
+  session.turnDeadline = Date.now() + actionTimeout;
 
   session.turnTimer = setTimeout(async () => {
     // Auto-fold on timeout
@@ -423,7 +425,7 @@ function startTurnTimer(
       processAction('fold', player, session.currentBet);
       await advanceGame(channel, session);
     }
-  }, POKER_ACTION_TIMEOUT_MS);
+  }, actionTimeout);
 }
 
 export async function updateTableMessage(

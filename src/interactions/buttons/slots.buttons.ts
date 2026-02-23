@@ -3,7 +3,8 @@ import {
   MessageFlags,
 } from 'discord.js';
 import { registerButtonHandler } from '../handler.js';
-import { MIN_BET, MAX_BET_SLOTS } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser, getTodayStats } from '../../database/repositories/user.repository.js';
 import { processGameResult } from '../../database/services/economy.service.js';
 import { spin } from '../../games/slots/slots.engine.js';
@@ -19,7 +20,7 @@ const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n];
 export const slotsSessionManager = new Map<string, bigint>();
 
 function getSessionBet(userId: string): bigint {
-  return slotsSessionManager.get(userId) ?? MIN_BET;
+  return slotsSessionManager.get(userId) ?? configService.getBigInt(S.minBet);
 }
 
 async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> {
@@ -41,7 +42,7 @@ async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> 
   let currentBet = getSessionBet(userId);
 
   if (action === 'bet_down') {
-    const lower = BET_STEPS.filter(s => s < currentBet).pop() ?? MIN_BET;
+    const lower = BET_STEPS.filter(s => s < currentBet).pop() ?? configService.getBigInt(S.minBet);
     currentBet = lower;
     slotsSessionManager.set(userId, currentBet);
 
@@ -54,7 +55,7 @@ async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> 
   }
 
   if (action === 'bet_up') {
-    const higher = BET_STEPS.find(s => s > currentBet) ?? MAX_BET_SLOTS;
+    const higher = BET_STEPS.find(s => s > currentBet) ?? configService.getBigInt(S.maxSlots);
     currentBet = higher;
     slotsSessionManager.set(userId, currentBet);
 
@@ -67,7 +68,7 @@ async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> 
   }
 
   if (action === 'bet_max') {
-    currentBet = MAX_BET_SLOTS;
+    currentBet = configService.getBigInt(S.maxSlots);
     slotsSessionManager.set(userId, currentBet);
 
     const user = await findOrCreateUser(userId);
@@ -179,7 +180,7 @@ function buildSlotsIdleViewWithButtons(
           .setCustomId(`slots:bet_down:${userId}`)
           .setLabel('◀ BET')
           .setStyle(ButtonStyle.Secondary)
-          .setDisabled(bet <= MIN_BET),
+          .setDisabled(bet <= configService.getBigInt(S.minBet)),
         new ButtonBuilder()
           .setCustomId(`slots:spin:${userId}`)
           .setLabel('🎰 スピン')
@@ -188,12 +189,12 @@ function buildSlotsIdleViewWithButtons(
           .setCustomId(`slots:bet_up:${userId}`)
           .setLabel('BET ▶')
           .setStyle(ButtonStyle.Secondary)
-          .setDisabled(bet >= MAX_BET_SLOTS),
+          .setDisabled(bet >= configService.getBigInt(S.maxSlots)),
         new ButtonBuilder()
           .setCustomId(`slots:bet_max:${userId}`)
           .setLabel('MAX BET')
           .setStyle(ButtonStyle.Danger)
-          .setDisabled(bet >= MAX_BET_SLOTS),
+          .setDisabled(bet >= configService.getBigInt(S.maxSlots)),
       ),
     );
 }

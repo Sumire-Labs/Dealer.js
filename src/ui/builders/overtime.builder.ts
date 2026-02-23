@@ -9,7 +9,9 @@ import {
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
-import { OVERTIME_MAX_ROUNDS, OVERTIME_MULTIPLIERS } from '../../config/constants.js';
+import { OVERTIME_MULTIPLIERS } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 
 export interface OvertimeViewData {
   userId: string;
@@ -35,7 +37,7 @@ export function buildOvertimeConfirmView(data: OvertimeViewData): ContainerBuild
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `${data.jobEmoji} **${data.jobName}** — 残業 ${data.round + 1}/${OVERTIME_MAX_ROUNDS}回目`,
+        `${data.jobEmoji} **${data.jobName}** — 残業 ${data.round + 1}/${configService.getNumber(S.overtimeMaxRounds)}回目`,
       ),
     )
     .addSeparatorComponents(
@@ -92,7 +94,7 @@ export function buildOvertimeResultView(data: OvertimeResultViewData): Container
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `${data.jobEmoji} **${data.jobName}** — 残業 ${data.round + 1}/${OVERTIME_MAX_ROUNDS}回目`,
+        `${data.jobEmoji} **${data.jobName}** — 残業 ${data.round + 1}/${configService.getNumber(S.overtimeMaxRounds)}回目`,
       ),
     )
     .addSeparatorComponents(

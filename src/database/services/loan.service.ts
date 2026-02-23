@@ -1,13 +1,10 @@
 import { prisma } from '../client.js';
 import { findOrCreateUser } from '../repositories/user.repository.js';
 import {
-  LOAN_MAX_TOTAL,
-  LOAN_INTEREST_RATE,
   LOAN_INTEREST_PERIOD_MS,
-  BANKRUPTCY_CHIPS,
-  BANKRUPTCY_PENALTY_DURATION_MS,
-  BANKRUPTCY_PENALTY_RATE,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { checkAchievements } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
 import { hasInventoryItem, consumeInventoryItem } from './shop.service.js';
@@ -16,7 +13,7 @@ import { SHOP_EFFECTS } from '../../config/shop.js';
 export function calculateLoanInterest(loan: { principal: bigint; createdAt: Date }): bigint {
   const elapsedMs = BigInt(Date.now() - loan.createdAt.getTime());
   const periodMs = BigInt(LOAN_INTEREST_PERIOD_MS);
-  return (loan.principal * LOAN_INTEREST_RATE * elapsedMs) / (100n * periodMs);
+  return (loan.principal * configService.getBigInt(S.loanInterestRate) * elapsedMs) / (100n * periodMs);
 }
 
 export interface LoanSummary {
@@ -41,7 +38,7 @@ export async function getLoanSummary(userId: string): Promise<LoanSummary> {
   }
 
   const totalOwed = totalPrincipal + totalInterest;
-  const remaining = LOAN_MAX_TOTAL - totalPrincipal;
+  const remaining = configService.getBigInt(S.loanMaxTotal) - totalPrincipal;
   const remainingCapacity = remaining > 0n ? remaining : 0n;
 
   return {
@@ -62,7 +59,7 @@ export async function borrowChips(userId: string, amount: bigint): Promise<{ new
       where: { userId, paidAt: null },
     });
     const currentPrincipal = loans.reduce((sum, l) => sum + l.principal, 0n);
-    if (currentPrincipal + amount > LOAN_MAX_TOTAL) {
+    if (currentPrincipal + amount > configService.getBigInt(S.loanMaxTotal)) {
       throw new Error('LOAN_LIMIT_EXCEEDED');
     }
 
@@ -233,7 +230,7 @@ export async function declareBankruptcy(userId: string): Promise<{ newBalance: b
     }
 
     // Set chips to bankruptcy amount (+ insurance bonus), clear bank balance
-    const finalChips = BANKRUPTCY_CHIPS + bankruptcyBonus;
+    const finalChips = configService.getBigInt(S.bankruptcyChips) + bankruptcyBonus;
     const updatedUser = await tx.user.update({
       where: { id: userId },
       data: {
@@ -275,15 +272,15 @@ export async function getBankruptcyPenaltyMultiplier(userId: string): Promise<nu
   if (!user.bankruptAt) return 1.0;
 
   const elapsed = Date.now() - user.bankruptAt.getTime();
-  if (elapsed >= BANKRUPTCY_PENALTY_DURATION_MS) return 1.0;
+  if (elapsed >= configService.getNumber(S.bankruptcyPenaltyDuration)) return 1.0;
 
-  return 1.0 - BANKRUPTCY_PENALTY_RATE / 100;
+  return 1.0 - configService.getNumber(S.bankruptcyPenaltyRate) / 100;
 }
 
 export function getBankruptcyPenaltyRemaining(bankruptAt: Date | null): number {
   if (!bankruptAt) return 0;
   const elapsed = Date.now() - bankruptAt.getTime();
-  const remaining = BANKRUPTCY_PENALTY_DURATION_MS - elapsed;
+  const remaining = configService.getNumber(S.bankruptcyPenaltyDuration) - elapsed;
   return remaining > 0 ? remaining : 0;
 }
 

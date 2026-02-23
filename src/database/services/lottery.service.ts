@@ -13,12 +13,10 @@ import {
   calculateLotteryPayouts,
 } from '../../games/lottery/lottery.engine.js';
 import {
-  LOTTERY_TICKET_PRICE,
-  LOTTERY_MAX_TICKETS_PER_ROUND,
   LOTTERY_DRAW_INTERVAL_MS,
-  LOTTERY_JACKPOT_PAYOUT_RATE,
-  LOTTERY_SECOND_PAYOUT_RATE,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { logger } from '../../utils/logger.js';
 
 export async function getOrCreateCurrentRound() {
@@ -49,20 +47,20 @@ export async function buyTicket(
     const ticketCount = await tx.lotteryTicket.count({
       where: { roundId: round.id, userId },
     });
-    if (ticketCount >= LOTTERY_MAX_TICKETS_PER_ROUND) {
-      return { success: false, error: `1ラウンドの購入上限（${LOTTERY_MAX_TICKETS_PER_ROUND}枚）に達しています。` };
+    if (ticketCount >= configService.getNumber(S.lotteryMaxTickets)) {
+      return { success: false, error: `1ラウンドの購入上限（${configService.getNumber(S.lotteryMaxTickets)}枚）に達しています。` };
     }
 
     // Check balance
     const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
-    if (user.chips < LOTTERY_TICKET_PRICE) {
+    if (user.chips < configService.getBigInt(S.lotteryTicketPrice)) {
       return { success: false, error: 'チップが不足しています。' };
     }
 
     // Deduct chips
     await tx.user.update({
       where: { id: userId },
-      data: { chips: { decrement: LOTTERY_TICKET_PRICE } },
+      data: { chips: { decrement: configService.getBigInt(S.lotteryTicketPrice) } },
     });
 
     // Record transaction
@@ -72,7 +70,7 @@ export async function buyTicket(
         userId,
         type: 'LOTTERY_BUY',
         game: 'LOTTERY',
-        amount: -LOTTERY_TICKET_PRICE,
+        amount: -configService.getBigInt(S.lotteryTicketPrice),
         balanceAfter: updatedUser.chips,
       },
     });
@@ -85,7 +83,7 @@ export async function buyTicket(
     // Increment jackpot
     await tx.lotteryRound.update({
       where: { id: round.id },
-      data: { jackpot: { increment: LOTTERY_TICKET_PRICE } },
+      data: { jackpot: { increment: configService.getBigInt(S.lotteryTicketPrice) } },
     });
 
     return { success: true };
@@ -107,9 +105,9 @@ export async function executeDraw(roundId: string): Promise<void> {
     tickets.map(t => ({ userId: t.userId, numbers: t.numbers })),
     winningNumbers,
     round.jackpot,
-    LOTTERY_JACKPOT_PAYOUT_RATE,
-    LOTTERY_SECOND_PAYOUT_RATE,
-    LOTTERY_TICKET_PRICE,
+    configService.getBigInt(S.lotteryJackpotRate),
+    configService.getBigInt(S.lotterySecondRate),
+    configService.getBigInt(S.lotteryTicketPrice),
   );
 
   // Distribute payouts

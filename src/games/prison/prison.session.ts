@@ -1,10 +1,9 @@
 import { secureRandomInt } from '../../utils/random.js';
 import {
-  PRISON_DURATION_MS,
-  PRISON_JAILBREAK_SUCCESS_RATE,
-  PRISON_JAILBREAK_PENALTY_MS,
   PRISON_JAILBREAK_COOLDOWN_MS,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 
 export interface PrisonSession {
   userId: string;
@@ -34,7 +33,7 @@ export function jailUser(userId: string, fineAmount: bigint, heistTarget?: strin
   prisonSessions.set(userId, {
     userId,
     jailedAt: Date.now(),
-    releaseAt: Date.now() + PRISON_DURATION_MS,
+    releaseAt: Date.now() + configService.getNumber(S.prisonDuration),
     fineAmount,
     jailbreakCooldownUntil: 0,
     heistTarget,
@@ -65,13 +64,13 @@ export function attemptJailbreak(userId: string): { success: boolean; newRelease
   }
 
   const roll = secureRandomInt(1, 100);
-  if (roll <= PRISON_JAILBREAK_SUCCESS_RATE) {
+  if (roll <= configService.getNumber(S.prisonJailbreakRate)) {
     prisonSessions.delete(userId);
     return { success: true };
   }
 
   // Failed: extend sentence + set cooldown
-  session.releaseAt += PRISON_JAILBREAK_PENALTY_MS;
+  session.releaseAt += configService.getNumber(S.prisonJailbreakPenalty);
   session.jailbreakCooldownUntil = Date.now() + PRISON_JAILBREAK_COOLDOWN_MS;
 
   return { success: false, newReleaseAt: session.releaseAt };

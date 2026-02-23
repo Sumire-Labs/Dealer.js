@@ -1,6 +1,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { parse } from 'yaml';
 import { logger } from '../utils/logger.js';
+import { SETTING_BY_KEY } from './setting-defs.js';
 
 export interface YamlBotConfig {
   token?: string;
@@ -14,10 +15,7 @@ export interface YamlConfig {
   horseRace?: {
     names?: string[];
   };
-  economy?: {
-    initialChips?: number;
-    bankInterestRate?: number;
-  };
+  settings?: Map<string, number>;
 }
 
 export function loadYamlConfig(path: string): YamlConfig {
@@ -66,15 +64,23 @@ export function loadYamlConfig(path: string): YamlConfig {
       }
     }
 
-    // Parse economy section
-    const economy = parsed['economy'] as Record<string, unknown> | undefined;
-    if (economy && typeof economy === 'object') {
-      result.economy = {};
-      if (typeof economy['initial-chips'] === 'number' && economy['initial-chips'] > 0) {
-        result.economy.initialChips = economy['initial-chips'];
+    // Parse settings section (flat key-value map)
+    const settings = parsed['settings'] as Record<string, unknown> | undefined;
+    if (settings && typeof settings === 'object') {
+      const map = new Map<string, number>();
+      for (const [key, value] of Object.entries(settings)) {
+        if (typeof value !== 'number') {
+          logger.warn(`YAML settings: key "${key}" has non-numeric value, skipping`);
+          continue;
+        }
+        if (!SETTING_BY_KEY.has(key)) {
+          logger.warn(`YAML settings: unknown key "${key}", skipping`);
+          continue;
+        }
+        map.set(key, value);
       }
-      if (typeof economy['bank-interest-rate'] === 'number' && economy['bank-interest-rate'] >= 0) {
-        result.economy.bankInterestRate = economy['bank-interest-rate'];
+      if (map.size > 0) {
+        result.settings = map;
       }
     }
 

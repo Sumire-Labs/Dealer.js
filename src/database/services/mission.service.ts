@@ -13,7 +13,8 @@ import {
   type MissionDefinition,
 } from '../../config/missions.js';
 export type { CompletedMission } from '../../config/missions.js';
-import { MISSION_COMPLETE_BONUS } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { addChips } from './economy.service.js';
 import { checkAchievements } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
@@ -137,11 +138,12 @@ export async function updateMissionProgress(
     const allCompleted = allMissions.every(m => m.completed);
 
     if (allCompleted) {
-      await addChips(userId, MISSION_COMPLETE_BONUS, 'MISSION_REWARD');
+      const missionCompleteBonus = configService.getBigInt(S.missionCompleteBonus);
+      await addChips(userId, missionCompleteBonus, 'MISSION_REWARD');
       completed.push({
         missionKey: '_complete_bonus',
         name: 'コンプリートボーナス',
-        reward: MISSION_COMPLETE_BONUS,
+        reward: missionCompleteBonus,
       });
     }
 

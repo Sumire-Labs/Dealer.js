@@ -11,7 +11,9 @@ import { configService } from '../../config/config.service.js';
 import {
   buildSettingMenuView,
   buildHorseNameSettingView,
-  buildEconomySettingView,
+  buildSettingCategoryPicker,
+  buildSettingCategoryView,
+  buildSettingEditModal,
 } from '../../ui/builders/setting.builder.js';
 
 async function handleSettingButton(interaction: ButtonInteraction): Promise<void> {
@@ -26,6 +28,8 @@ async function handleSettingButton(interaction: ButtonInteraction): Promise<void
     });
     return;
   }
+
+  // ── Horse name actions (legacy, unchanged) ─────────────────────────
 
   if (action === 'horse_names') {
     const names = configService.getHorseNames();
@@ -69,10 +73,10 @@ async function handleSettingButton(interaction: ButtonInteraction): Promise<void
     return;
   }
 
-  if (action === 'economy_settings') {
-    const initialChips = configService.getInitialChips();
-    const bankInterestRate = configService.getBankInterestRate();
-    const container = buildEconomySettingView(initialChips, bankInterestRate, ownerId);
+  // ── Generic config actions ─────────────────────────────────────────
+
+  if (action === 'cfg_menu') {
+    const container = buildSettingCategoryPicker(ownerId);
     await interaction.update({
       components: [container],
       flags: MessageFlags.IsComponentsV2,
@@ -80,52 +84,38 @@ async function handleSettingButton(interaction: ButtonInteraction): Promise<void
     return;
   }
 
-  if (action === 'edit_initial_chips') {
-    const current = configService.getInitialChips();
-    const modal = new ModalBuilder()
-      .setCustomId('setting_modal:edit_initial_chips')
-      .setTitle('初期チップ編集')
-      .addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          new TextInputBuilder()
-            .setCustomId('initial_chips')
-            .setLabel('初期チップ（1,000〜10,000,000）')
-            .setStyle(TextInputStyle.Short)
-            .setPlaceholder('例: 10000')
-            .setValue(current.toString())
-            .setRequired(true),
-        ),
-      );
+  if (action === 'cfg_cat') {
+    const catId = parts[3];
+    const container = buildSettingCategoryView(catId, ownerId);
+    await interaction.update({
+      components: [container],
+      flags: MessageFlags.IsComponentsV2,
+    });
+    return;
+  }
+
+  if (action === 'cfg_edit') {
+    const catId = parts[3];
+    const page = parseInt(parts[4], 10);
+    const modal = buildSettingEditModal(catId, page);
+    if (!modal) return;
     await interaction.showModal(modal);
     return;
   }
 
-  if (action === 'edit_bank_rate') {
-    const current = configService.getBankInterestRate();
-    const modal = new ModalBuilder()
-      .setCustomId('setting_modal:edit_bank_rate')
-      .setTitle('銀行利率編集')
-      .addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          new TextInputBuilder()
-            .setCustomId('bank_rate')
-            .setLabel('日利（0〜100）%')
-            .setStyle(TextInputStyle.Short)
-            .setPlaceholder('例: 1')
-            .setValue(current.toString())
-            .setRequired(true),
-        ),
-      );
-    await interaction.showModal(modal);
+  if (action === 'cfg_reset') {
+    const catId = parts[3];
+    await configService.resetCategory(catId);
+    const container = buildSettingCategoryView(catId, ownerId);
+    await interaction.update({
+      components: [container],
+      flags: MessageFlags.IsComponentsV2,
+    });
     return;
   }
 
-  if (action === 'reset_economy') {
-    await configService.resetInitialChips();
-    await configService.resetBankInterestRate();
-    const initialChips = configService.getInitialChips();
-    const bankInterestRate = configService.getBankInterestRate();
-    const container = buildEconomySettingView(initialChips, bankInterestRate, ownerId);
+  if (action === 'cfg_back') {
+    const container = buildSettingCategoryPicker(ownerId);
     await interaction.update({
       components: [container],
       flags: MessageFlags.IsComponentsV2,

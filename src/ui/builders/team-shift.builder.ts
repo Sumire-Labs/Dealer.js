@@ -10,7 +10,9 @@ import {
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
 import { JOBS } from '../../config/jobs.js';
-import { TEAM_SHIFT_BONUS_PER_PLAYER, TEAM_SHIFT_MAX_PLAYERS } from '../../config/constants.js';
+import { TEAM_SHIFT_MAX_PLAYERS } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import type { TeamShiftSession } from '../../games/work/team-shift.session.js';
 import type { WorkResult } from '../../database/services/work.service.js';
 import type { TeamEvent } from '../../config/team-events.js';
@@ -28,7 +30,7 @@ export function buildTeamShiftTypeSelectView(userId: string): ContainerBuilder {
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `👥 **チームシフト**\n2〜${TEAM_SHIFT_MAX_PLAYERS}人で協力ワーク！\n人数ボーナス: +${TEAM_SHIFT_BONUS_PER_PLAYER}%/人\n\nシフトタイプを選択してください：`,
+        `👥 **チームシフト**\n2〜${TEAM_SHIFT_MAX_PLAYERS}人で協力ワーク！\n人数ボーナス: +${configService.getNumber(S.teamShiftBonus)}%/人\n\nシフトタイプを選択してください：`,
       ),
     )
     .addSeparatorComponents(
@@ -72,7 +74,7 @@ export function buildTeamShiftLobbyView(
     .map(p => `${p.isHost ? '👑' : '👤'} <@${p.userId}>`)
     .join('\n');
 
-  const teamBonus = (session.players.length - 1) * TEAM_SHIFT_BONUS_PER_PLAYER;
+  const teamBonus = (session.players.length - 1) * configService.getNumber(S.teamShiftBonus);
 
   const container = new ContainerBuilder()
     .setAccentColor(CasinoTheme.colors.purple)

@@ -4,7 +4,7 @@ import {
   MessageFlags,
 } from 'discord.js';
 import { registerCommand } from '../registry.js';
-import { MIN_BET, MAX_BET_COINFLIP } from '../../config/constants.js';
+import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { buildCoinflipChoiceView } from '../../ui/builders/coinflip.builder.js';
 import { coinflipSessionManager } from '../../interactions/buttons/coinflip.buttons.js';
@@ -18,8 +18,8 @@ const data = new SlashCommandBuilder()
       .setName('bet')
       .setDescription('ベット額')
       .setRequired(true)
-      .setMinValue(Number(MIN_BET))
-      .setMaxValue(Number(MAX_BET_COINFLIP)),
+      .setMinValue(Number(S.minBet.defaultValue))
+      .setMaxValue(Number(S.maxCoinflip.defaultValue)),
   )
   .toJSON();
 

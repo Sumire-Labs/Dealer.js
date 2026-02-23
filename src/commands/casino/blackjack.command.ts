@@ -4,7 +4,7 @@ import {
   MessageFlags,
 } from 'discord.js';
 import { registerCommand } from '../registry.js';
-import { MIN_BET, MAX_BET_BLACKJACK } from '../../config/constants.js';
+import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser, incrementGameStats } from '../../database/repositories/user.repository.js';
 import { removeChips, addChips } from '../../database/services/economy.service.js';
 import { getBankruptcyPenaltyMultiplier, applyPenalty } from '../../database/services/loan.service.js';
@@ -24,8 +24,8 @@ const data = new SlashCommandBuilder()
       .setName('bet')
       .setDescription('ベット額')
       .setRequired(true)
-      .setMinValue(Number(MIN_BET))
-      .setMaxValue(Number(MAX_BET_BLACKJACK)),
+      .setMinValue(Number(S.minBet.defaultValue))
+      .setMaxValue(Number(S.maxBlackjack.defaultValue)),
   )
   .toJSON();
 

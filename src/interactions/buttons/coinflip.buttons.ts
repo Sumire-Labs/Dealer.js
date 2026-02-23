@@ -1,6 +1,7 @@
 import { type ButtonInteraction, MessageFlags } from 'discord.js';
 import { registerButtonHandler } from '../handler.js';
-import { MIN_BET, MAX_BET_COINFLIP } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser, getTodayStats } from '../../database/repositories/user.repository.js';
 import { processGameResult } from '../../database/services/economy.service.js';
 import { playCoinflip, type CoinSide } from '../../games/coinflip/coinflip.engine.js';
@@ -19,7 +20,7 @@ const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n, 500_000n];
 export const coinflipSessionManager = new Map<string, bigint>();
 
 function getSessionBet(userId: string): bigint {
-  return coinflipSessionManager.get(userId) ?? MIN_BET;
+  return coinflipSessionManager.get(userId) ?? configService.getBigInt(S.minBet);
 }
 
 async function handleCoinflipButton(interaction: ButtonInteraction): Promise<void> {
@@ -39,7 +40,7 @@ async function handleCoinflipButton(interaction: ButtonInteraction): Promise<voi
   let currentBet = getSessionBet(userId);
 
   if (action === 'bet_down') {
-    const lower = BET_STEPS.filter(s => s < currentBet).pop() ?? MIN_BET;
+    const lower = BET_STEPS.filter(s => s < currentBet).pop() ?? configService.getBigInt(S.minBet);
     currentBet = lower;
     coinflipSessionManager.set(userId, currentBet);
 
@@ -53,7 +54,7 @@ async function handleCoinflipButton(interaction: ButtonInteraction): Promise<voi
   }
 
   if (action === 'bet_up') {
-    const higher = BET_STEPS.find(s => s > currentBet) ?? MAX_BET_COINFLIP;
+    const higher = BET_STEPS.find(s => s > currentBet) ?? configService.getBigInt(S.maxCoinflip);
     currentBet = higher;
     coinflipSessionManager.set(userId, currentBet);
 

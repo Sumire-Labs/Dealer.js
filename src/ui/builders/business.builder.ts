@@ -13,12 +13,8 @@ import {
   BUSINESS_TYPES,
   getBusinessLevel,
 } from '../../config/business.js';
-import {
-  BUSINESS_UNLOCK_LEVEL,
-  BUSINESS_EMPLOYEE_MAX,
-  BUSINESS_EMPLOYEE_OWNER_BONUS,
-  BUSINESS_EMPLOYEE_SALARY_RATE,
-} from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import type { BusinessDashboardData, CollectResult } from '../../database/services/business.service.js';
 
 const BIZ_PREFIX = '🏢 ━━━ BUSINESS ━━━ 🏢';
@@ -36,7 +32,7 @@ export function buildBusinessDashboardView(data: BusinessDashboardData, userId: 
   if (!data.unlocked) {
     container.addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `🔒 **ビジネスはワーク Lv.${BUSINESS_UNLOCK_LEVEL} で解放されます**\n現在のレベル: Lv.${data.workLevel}`,
+        `🔒 **ビジネスはワーク Lv.${configService.getNumber(S.businessUnlockLevel)} で解放されます**\n現在のレベル: Lv.${data.workLevel}`,
       ),
     );
     return container;
@@ -117,7 +113,7 @@ export function buildBusinessDashboardView(data: BusinessDashboardData, userId: 
     const empLines = biz.employees.map(e => `👤 <@${e.userId}>`);
     container.addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `**従業員 (${biz.employees.length}/${BUSINESS_EMPLOYEE_MAX}):**\n${empLines.join('\n')}`,
+        `**従業員 (${biz.employees.length}/${configService.getNumber(S.businessEmployeeMax)}):**\n${empLines.join('\n')}`,
       ),
     );
     container.addSeparatorComponents(
@@ -142,7 +138,7 @@ export function buildBusinessDashboardView(data: BusinessDashboardData, userId: 
   const row2 = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(`biz:employees:${userId}`)
-      .setLabel(`👥 従業員管理 (${biz.employees.length}/${BUSINESS_EMPLOYEE_MAX})`)
+      .setLabel(`👥 従業員管理 (${biz.employees.length}/${configService.getNumber(S.businessEmployeeMax)})`)
       .setStyle(ButtonStyle.Secondary),
   );
 
@@ -263,7 +259,7 @@ export function buildBusinessEmployeeView(
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `**👥 従業員管理** (${employees.length}/${BUSINESS_EMPLOYEE_MAX})\n\n従業員ボーナス: オーナー収入 **+${BUSINESS_EMPLOYEE_OWNER_BONUS}%/人**\n従業員給料: 収入の **${BUSINESS_EMPLOYEE_SALARY_RATE}%**`,
+        `**👥 従業員管理** (${employees.length}/${configService.getNumber(S.businessEmployeeMax)})\n\n従業員ボーナス: オーナー収入 **+${configService.getNumber(S.businessOwnerBonus)}%/人**\n従業員給料: 収入の **${configService.getNumber(S.businessSalaryRate)}%**`,
       ),
     )
     .addSeparatorComponents(
@@ -301,7 +297,7 @@ export function buildBusinessEmployeeView(
   );
 
   const actionButtons: ButtonBuilder[] = [];
-  if (employees.length < BUSINESS_EMPLOYEE_MAX) {
+  if (employees.length < configService.getNumber(S.businessEmployeeMax)) {
     actionButtons.push(
       new ButtonBuilder()
         .setCustomId(`biz:hire:${userId}`)

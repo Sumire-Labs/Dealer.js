@@ -3,7 +3,8 @@ import {
   MessageFlags,
 } from 'discord.js';
 import { registerModalHandler } from '../handler.js';
-import { POKER_MIN_BUYIN, POKER_MAX_BUYIN } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { removeChips } from '../../database/services/economy.service.js';
 import {
@@ -55,9 +56,11 @@ async function handleBuyIn(
   }
 
   const amount = BigInt(parsed);
-  if (amount < POKER_MIN_BUYIN || amount > POKER_MAX_BUYIN) {
+  const pokerMinBuyin = configService.getBigInt(S.pokerMinBuyin);
+  const pokerMaxBuyin = configService.getBigInt(S.pokerMaxBuyin);
+  if (amount < pokerMinBuyin || amount > pokerMaxBuyin) {
     await interaction.reply({
-      content: `バイイン額は${formatChips(POKER_MIN_BUYIN)}〜${formatChips(POKER_MAX_BUYIN)}の範囲で指定してください。`,
+      content: `バイイン額は${formatChips(pokerMinBuyin)}〜${formatChips(pokerMaxBuyin)}の範囲で指定してください。`,
       flags: MessageFlags.Ephemeral,
     });
     return;

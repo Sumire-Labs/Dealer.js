@@ -18,9 +18,10 @@ import {
 import { formatChips } from '../../utils/formatters.js';
 import {
   HEIST_MAX_PLAYERS,
-  HEIST_MIN_ENTRY,
   HEIST_LOBBY_DURATION_MS,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { runHeist, startLobbyCountdown } from '../../commands/casino/heist.command.js';
 import { calculateMaxEntryFee } from '../../games/heist/heist.engine.js';
 import {
@@ -103,9 +104,9 @@ async function handleHeistButton(interaction: ButtonInteraction): Promise<void> 
         });
         return;
       }
-      if (amount < HEIST_MIN_ENTRY) {
+      if (amount < configService.getBigInt(S.heistMinEntry)) {
         await interaction.reply({
-          content: `参加費が最低額を下回っています！最低: ${formatChips(HEIST_MIN_ENTRY)}`,
+          content: `参加費が最低額を下回っています！最低: ${formatChips(configService.getBigInt(S.heistMinEntry))}`,
           flags: MessageFlags.Ephemeral,
         });
         return;
