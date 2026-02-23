@@ -254,7 +254,7 @@ export async function runHeist(
         userId: p.userId,
         context: 'heist',
       });
-      const multiplayerAchievements = await checkAchievements({
+      const multiplayerAchievements = session.isSolo ? [] : await checkAchievements({
         userId: p.userId,
         context: 'multiplayer',
       });

@@ -129,11 +129,19 @@ async function handleHeistButton(interaction: ButtonInteraction): Promise<void> 
           flags: MessageFlags.IsComponentsV2,
         });
 
-        // Send public message and run immediately
+        // Send public message (V2) and run immediately
         if (interaction.channel && 'send' in interaction.channel) {
           const target = HEIST_TARGET_MAP.get(targetId)!;
+          const initContainer = new ContainerBuilder()
+            .setAccentColor(0xE74C3C)
+            .addTextDisplayComponents(
+              new TextDisplayBuilder().setContent(
+                `🔫 <@${ownerId}> が ${target.emoji} **${target.name}** にソロ強盗を仕掛ける！`,
+              ),
+            );
           const initMsg = await interaction.channel.send({
-            content: `🔫 <@${ownerId}> が ${target.emoji} **${target.name}** にソロ強盗を仕掛ける！`,
+            components: [initContainer],
+            flags: MessageFlags.IsComponentsV2,
           });
           session.messageId = initMsg.id;
           await runHeist(interaction.channel, session);
