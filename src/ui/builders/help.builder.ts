@@ -43,6 +43,14 @@ function buildNavSelectMenu(
     );
   }
 
+  options.push(
+    new StringSelectMenuOptionBuilder()
+      .setLabel('📖 アイテム図鑑')
+      .setValue('wiki')
+      .setDescription('全アイテムの詳細情報')
+      .setDefault(activeCategoryId === 'wiki'),
+  );
+
   return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId(`help_select:nav:${userId}`)

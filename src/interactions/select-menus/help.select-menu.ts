@@ -4,6 +4,7 @@ import {
 } from 'discord.js';
 import { registerSelectMenuHandler } from '../handler.js';
 import { buildHelpTopView, buildHelpCategoryView } from '../../ui/builders/help.builder.js';
+import { buildWikiTopView } from '../../ui/builders/wiki.builder.js';
 
 async function handleHelpSelectMenu(interaction: StringSelectMenuInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
@@ -20,9 +21,14 @@ async function handleHelpSelectMenu(interaction: StringSelectMenuInteraction): P
   const userId = interaction.user.id;
   const selected = interaction.values[0];
 
-  const view = selected === 'top'
-    ? buildHelpTopView(userId)
-    : buildHelpCategoryView(userId, selected);
+  let view;
+  if (selected === 'wiki') {
+    view = buildWikiTopView(userId);
+  } else if (selected === 'top') {
+    view = buildHelpTopView(userId);
+  } else {
+    view = buildHelpCategoryView(userId, selected);
+  }
 
   await interaction.update({
     components: [view],

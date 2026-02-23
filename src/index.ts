@@ -50,6 +50,7 @@ async function loadModules(): Promise<void> {
   await import('./interactions/buttons/prison.buttons.js');
   await import('./interactions/buttons/inventory.buttons.js');
   await import('./interactions/buttons/help.buttons.js');
+  await import('./interactions/buttons/wiki.buttons.js');
 
   // Select menu handlers
   await import('./interactions/select-menus/bank.select-menu.js');
@@ -58,6 +59,7 @@ async function loadModules(): Promise<void> {
   await import('./interactions/select-menus/leaderboard.select-menu.js');
   await import('./interactions/select-menus/inventory.select-menu.js');
   await import('./interactions/select-menus/help.select-menu.js');
+  await import('./interactions/select-menus/wiki.select-menu.js');
   await import('./interactions/select-menus/work.select-menu.js');
   await import('./interactions/select-menus/business.select-menu.js');
   await import('./interactions/select-menus/heist.select-menu.js');
