@@ -29,20 +29,24 @@ import {
   setCooldown,
   buildCooldownKey,
 } from '../../utils/cooldown.js';
-import { hasActiveBuff } from './shop.service.js';
+import { hasActiveBuff, hasInventoryItem } from './shop.service.js';
 import { SHOP_EFFECTS } from '../../config/shop.js';
 import { getMasteryTier, getMasteryLevelForShifts } from '../../config/work-mastery.js';
 import { getMastery, incrementShifts, updateMasteryLevel } from '../repositories/work-mastery.repository.js';
 import { PROMOTED_JOB_MAP, type PromotedJobDefinition } from '../../config/promoted-jobs.js';
 import { type WorkResult, getToolBonuses, postWorkHooks } from './work.service.js';
 
-function getCooldownMs(type: ShiftType): number {
+function getTeamCooldownMs(type: ShiftType): number {
   const map: Record<ShiftType, () => number> = {
-    short: () => configService.getNumber(S.workShortCD),
-    normal: () => configService.getNumber(S.workNormalCD),
-    long: () => configService.getNumber(S.workLongCD),
+    short: () => configService.getNumber(S.teamShortCD),
+    normal: () => configService.getNumber(S.teamNormalCD),
+    long: () => configService.getNumber(S.teamLongCD),
   };
   return map[type]();
+}
+
+function buildTeamCooldownKey(userId: string, shiftType: ShiftType): string {
+  return buildCooldownKey(userId, `team_work_${shiftType}`);
 }
 
 /**
@@ -62,8 +66,8 @@ export async function performTeamWork(
   const shift = SHIFT_MAP.get(shiftType);
   if (!shift) return { success: false, error: '無効なシフトです。' };
 
-  // Cooldown check
-  const cooldownKey = buildCooldownKey(userId, shift.cooldownKey);
+  // Cooldown check (team shifts have separate cooldowns from solo)
+  const cooldownKey = buildTeamCooldownKey(userId, shiftType);
   if (isOnCooldown(cooldownKey)) {
     return {
       success: false,
@@ -116,9 +120,33 @@ export async function performTeamWork(
     const teamBonus = (totalPay * BigInt(teamBonusPercent)) / 100n;
     let finalPay = totalPay + teamBonus + tipAmount;
 
-    let xpGained = calculateXpGain(job, shift, bonuses);
+    // WORK_PAY_BOOST buff: +25% work pay
     try {
-      if (await hasActiveBuff(userId, 'XP_BOOSTER')) {
+      if (await hasActiveBuff(userId, 'WORK_PAY_BOOST')) {
+        finalPay = BigInt(Math.round(Number(finalPay) * (1 + SHOP_EFFECTS.WORK_PAY_BOOST_PERCENT / 100)));
+      }
+    } catch { /* ignore */ }
+
+    // Worker Collection bonus: +5% work pay
+    try {
+      if (await hasInventoryItem(userId, 'COLLECTION_REWARD_WORKER')) {
+        finalPay = BigInt(Math.round(Number(finalPay) * (1 + SHOP_EFFECTS.COLLECTION_WORKER_PERCENT / 100)));
+      }
+    } catch { /* ignore */ }
+
+    // MASTER_TOOL: +10% all job pay
+    try {
+      if (await hasInventoryItem(userId, 'MASTER_TOOL')) {
+        finalPay = BigInt(Math.round(Number(finalPay) * (1 + SHOP_EFFECTS.MASTER_TOOL_PERCENT / 100)));
+      }
+    } catch { /* ignore */ }
+
+    let xpGained = calculateXpGain(job, shift, bonuses);
+    // Mega XP Booster buff: +100% XP (priority over XP Booster)
+    try {
+      if (await hasActiveBuff(userId, 'MEGA_XP_BOOSTER')) {
+        xpGained = Math.round(xpGained * SHOP_EFFECTS.MEGA_XP_BOOSTER_MULTIPLIER);
+      } else if (await hasActiveBuff(userId, 'XP_BOOSTER')) {
         xpGained = Math.round(xpGained * SHOP_EFFECTS.XP_BOOSTER_MULTIPLIER);
       }
     } catch { /* ignore */ }
@@ -207,7 +235,7 @@ export async function performTeamWork(
 
   if (!result.success) return result;
 
-  setCooldown(cooldownKey, getCooldownMs(shiftType));
+  setCooldown(cooldownKey, getTeamCooldownMs(shiftType));
 
   const { newlyUnlocked, missionsCompleted } = await postWorkHooks(userId, result);
 

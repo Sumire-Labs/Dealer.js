@@ -22,6 +22,8 @@ export interface BankViewData {
   lastInterestAt: Date | null;
   estimatedInterest: bigint;
   baseInterestRate: bigint;
+  effectiveInterestRate: bigint;
+  hasInterestBooster: boolean;
 }
 
 export function buildBankMainView(data: BankViewData, tab: BankTab = 'account'): ContainerBuilder {
@@ -58,7 +60,14 @@ export function buildBankMainView(data: BankViewData, tab: BankTab = 'account'):
     );
 
     // Interest info
-    let interestInfo = `📈 利息情報\n　日利: ${data.baseInterestRate}%\n`;
+    const rateDisplay = data.baseInterestRate === data.effectiveInterestRate
+      ? `${data.baseInterestRate}%`
+      : `${data.effectiveInterestRate}% (基本${data.baseInterestRate}%+ボーナス)`;
+    let interestInfo = `📈 利息情報\n　日利: ${rateDisplay}`;
+    if (data.hasInterestBooster) {
+      interestInfo += `\n　📈 利息ブースター適用中 (x2)`;
+    }
+    interestInfo += '\n';
     if (estimatedInterest > 0n) {
       interestInfo += `　次回利息: ${formatChips(estimatedInterest)}（24時間ごと）`;
     } else {

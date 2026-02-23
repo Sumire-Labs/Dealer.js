@@ -6,6 +6,7 @@ import {
 import { registerCommand } from '../registry.js';
 import { getJailSession, getJailbreakCooldownRemaining } from '../../games/prison/prison.session.js';
 import { buildPrisonView, buildFreeView } from '../../ui/builders/prison.builder.js';
+import { hasInventoryItem } from '../../database/services/shop.service.js';
 
 const data = new SlashCommandBuilder()
   .setName('prison')
@@ -26,7 +27,8 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   }
 
   const jailbreakCd = getJailbreakCooldownRemaining(userId);
-  const view = buildPrisonView(session, jailbreakCd);
+  const hasKey = await hasInventoryItem(userId, 'PRISON_KEY');
+  const view = buildPrisonView(session, jailbreakCd, hasKey);
   await interaction.reply({
     components: [view],
     flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,

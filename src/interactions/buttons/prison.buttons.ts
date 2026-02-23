@@ -5,6 +5,7 @@ import {
   releaseUser,
   attemptJailbreak,
   getJailbreakCooldownRemaining,
+  usePrisonKey,
 } from '../../games/prison/prison.session.js';
 import {
   buildPrisonView,
@@ -14,6 +15,7 @@ import {
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { removeChips } from '../../database/services/economy.service.js';
 import { formatChips } from '../../utils/formatters.js';
+import { hasInventoryItem, consumeInventoryItem } from '../../database/services/shop.service.js';
 
 async function handlePrisonButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
@@ -83,12 +85,39 @@ async function handlePrisonButton(interaction: ButtonInteraction): Promise<void>
       // If failed, follow up with updated prison view after a brief pause
       if (!result.success && updatedSession) {
         const jailbreakCd = getJailbreakCooldownRemaining(ownerId);
-        const prisonView = buildPrisonView(updatedSession, jailbreakCd);
+        const hasKey = await hasInventoryItem(ownerId, 'PRISON_KEY');
+        const prisonView = buildPrisonView(updatedSession, jailbreakCd, hasKey);
         await interaction.followUp({
           components: [prisonView],
           flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
         });
       }
+      break;
+    }
+
+    case 'use_key': {
+      const hasKey = await hasInventoryItem(ownerId, 'PRISON_KEY');
+      if (!hasKey) {
+        await interaction.reply({
+          content: '🔑 脱獄キーを持っていません！ショップで購入してください。',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      await consumeInventoryItem(ownerId, 'PRISON_KEY');
+      usePrisonKey(ownerId);
+
+      const view = buildReleasedView();
+      await interaction.update({
+        components: [view],
+        flags: MessageFlags.IsComponentsV2,
+      });
+
+      await interaction.followUp({
+        content: '🔑 **脱獄キー**を使用して即時釈放されました！',
+        flags: MessageFlags.Ephemeral,
+      });
       break;
     }
   }

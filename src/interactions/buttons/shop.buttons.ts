@@ -1,15 +1,17 @@
-import { type ButtonInteraction, MessageFlags } from 'discord.js';
+import {
+  type ButtonInteraction,
+  MessageFlags,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  ActionRowBuilder,
+  type ModalActionRowComponentBuilder,
+} from 'discord.js';
 import { registerButtonHandler } from '../handler.js';
 import { getBalance } from '../../database/services/economy.service.js';
 import {
   purchaseItem,
-  useItem,
-  equipCosmetic,
-  unequipCosmetic,
-  openMysteryBox,
   getDailyRotation,
-  getUserInventorySummary,
-  recycleItem,
   craftItem,
   getFlashSale,
 } from '../../database/services/shop.service.js';
@@ -23,9 +25,6 @@ import { getShopRank, getNextRank } from '../../config/shop-ranks.js';
 import {
   buildShopView,
   buildPurchaseConfirmView,
-  buildInventoryView,
-  buildUseItemResultView,
-  buildRecycleConfirmView,
 } from '../../ui/builders/shop.builder.js';
 import { buildDailyRotationView } from '../../ui/builders/daily-shop.builder.js';
 import {
@@ -36,19 +35,17 @@ import {
   buildCollectionListView,
   buildCollectionDetailView,
 } from '../../ui/builders/collection.builder.js';
-import { playMysteryBoxAnimation } from '../../ui/animations/mystery-box.animation.js';
 import { playCraftAnimation } from '../../ui/animations/craft.animation.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
-import { formatChips } from '../../utils/formatters.js';
 import { getLifetimeShopSpend } from '../../database/repositories/shop.repository.js';
 import { getInventory } from '../../database/repositories/shop.repository.js';
 
 // Session state per user
-const shopState = new Map<string, { category: number; page: number; invPage: number; craftPage: number; collectionPage: number }>();
+const shopState = new Map<string, { category: number; page: number; craftPage: number; collectionPage: number }>();
 
 function getState(userId: string) {
   if (!shopState.has(userId)) {
-    shopState.set(userId, { category: 0, page: 0, invPage: 0, craftPage: 0, collectionPage: 0 });
+    shopState.set(userId, { category: 0, page: 0, craftPage: 0, collectionPage: 0 });
   }
   return shopState.get(userId)!;
 }
@@ -89,20 +86,6 @@ async function handleShopButton(interaction: ButtonInteraction): Promise<void> {
       break;
     }
 
-    case 'tab_inventory': {
-      const summary = await getUserInventorySummary(userId);
-      const view = buildInventoryView(
-        userId,
-        summary.inventory,
-        summary.activeBuffs,
-        summary.activeTitle,
-        summary.activeBadge,
-        state.invPage,
-      );
-      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
-      break;
-    }
-
     case 'tab_daily': {
       const balance = await getBalance(userId);
       const rotation = await getDailyRotation();
@@ -130,23 +113,13 @@ async function handleShopButton(interaction: ButtonInteraction): Promise<void> {
       break;
     }
 
-    // ── Category navigation ──
-    case 'cat_prev': {
-      state.category = (state.category - 1 + SHOP_CATEGORIES.length) % SHOP_CATEGORIES.length;
-      state.page = 0;
-      const [balance, rankInfo, flashSale] = await Promise.all([
-        getBalance(userId),
-        getRankInfo(userId),
-        getFlashSale(),
-      ]);
-      const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale);
-      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
-      break;
-    }
-
-    case 'cat_next': {
-      state.category = (state.category + 1) % SHOP_CATEGORIES.length;
-      state.page = 0;
+    // ── Category selection (direct button) ──
+    case 'cat_select': {
+      const catIdx = parseInt(parts[3]);
+      if (!isNaN(catIdx) && catIdx >= 0 && catIdx < SHOP_CATEGORIES.length) {
+        state.category = catIdx;
+        state.page = 0;
+      }
       const [balance, rankInfo, flashSale] = await Promise.all([
         getBalance(userId),
         getRankInfo(userId),
@@ -178,29 +151,6 @@ async function handleShopButton(interaction: ButtonInteraction): Promise<void> {
         getFlashSale(),
       ]);
       const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale);
-      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
-      break;
-    }
-
-    // ── Inventory pagination ──
-    case 'inv_prev': {
-      state.invPage = Math.max(0, state.invPage - 1);
-      const summary = await getUserInventorySummary(userId);
-      const view = buildInventoryView(
-        userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.invPage,
-      );
-      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
-      break;
-    }
-
-    case 'inv_next': {
-      state.invPage += 1;
-      const summary = await getUserInventorySummary(userId);
-      const view = buildInventoryView(
-        userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.invPage,
-      );
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
     }
@@ -329,159 +279,30 @@ async function handleShopButton(interaction: ButtonInteraction): Promise<void> {
       break;
     }
 
-    // ── Use consumable ──
-    case 'use': {
-      const itemId = parts[3];
-      const result = await useItem(userId, itemId);
-      if (!result.success) {
-        await interaction.reply({
-          content: result.error ?? '使用に失敗しました。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-      const item = ITEM_MAP.get(itemId);
-      const view = buildUseItemResultView(
-        userId,
-        item?.emoji ?? '✅',
-        item?.name ?? itemId,
-        result.message ?? '使用しました！',
-      );
-      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
-      break;
-    }
-
-    // ── Equip cosmetic ──
-    case 'equip': {
-      const itemId = parts[3];
-      const result = await equipCosmetic(userId, itemId);
-      if (!result.success) {
-        await interaction.reply({
-          content: result.error ?? '装備に失敗しました。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-      const summary = await getUserInventorySummary(userId);
-      const view = buildInventoryView(
-        userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.invPage,
-      );
-      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
-      break;
-    }
-
-    // ── Unequip cosmetic ──
-    case 'unequip': {
-      const itemId = parts[3];
-      const item = ITEM_MAP.get(itemId);
-      const cosmeticType = item?.cosmeticType;
-      if (cosmeticType) {
-        await unequipCosmetic(userId, cosmeticType);
-      }
-      const summary = await getUserInventorySummary(userId);
-      const view = buildInventoryView(
-        userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.invPage,
-      );
-      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
-      break;
-    }
-
-    // ── Open mystery box ──
-    case 'open_box': {
-      const boxId = parts[3];
-      const box = ITEM_MAP.get(boxId);
-      if (!box) return;
-
-      await interaction.update({
-        components: [],
-        flags: MessageFlags.IsComponentsV2,
-      });
-
-      const result = await openMysteryBox(userId, boxId);
-      if (!result.success) {
-        await interaction.followUp({
-          content: result.error ?? '開封に失敗しました。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
-      const resultName = result.loot!.type === 'chips'
-        ? `${formatChips(result.chipsAwarded!)} チップ`
-        : (result.lootItem?.name ?? '不明なアイテム');
-      const resultEmoji = result.loot!.type === 'chips'
-        ? '💰'
-        : (result.lootItem?.emoji ?? '❓');
-
-      const balance = result.newBalance ?? await getBalance(userId);
-
-      await playMysteryBoxAnimation(
-        interaction,
-        userId,
-        box.emoji,
-        resultEmoji,
-        resultName,
-        result.rarity!,
-        result.chipsAwarded,
-        balance,
-      );
-
-      if (result.newlyUnlocked && result.newlyUnlocked.length > 0) {
-        await interaction.followUp({
-          content: buildAchievementNotification(result.newlyUnlocked),
-          flags: MessageFlags.Ephemeral,
-        });
-      }
-      break;
-    }
-
-    // ── Recycle (show confirmation) ──
-    case 'recycle': {
+    // ── Multi-buy modal ──
+    case 'buy_qty': {
       const itemId = parts[3];
       const item = ITEM_MAP.get(itemId);
       if (!item) return;
-      const summary = await getUserInventorySummary(userId);
-      const inv = summary.inventory.find(i => i.itemId === itemId);
-      const qty = inv?.quantity ?? 0;
-      const view = buildRecycleConfirmView(userId, item, 1, qty);
-      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
-      break;
-    }
 
-    // ── Confirm recycle ──
-    case 'confirm_recycle': {
-      const recycleItemId = parts[3];
-      const recycleQty = parseInt(parts[4]) || 1;
-      const result = await recycleItem(userId, recycleItemId, recycleQty);
-      if (!result.success) {
-        await interaction.reply({
-          content: result.error ?? 'リサイクルに失敗しました。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
+      const modal = new ModalBuilder()
+        .setCustomId(`shop_modal:buy_qty:${userId}:${itemId}`)
+        .setTitle(`${item.name} を複数購入`);
 
-      const summary = await getUserInventorySummary(userId);
-      const view = buildInventoryView(
-        userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.invPage,
+      const qtyInput = new TextInputBuilder()
+        .setCustomId('quantity')
+        .setLabel('購入数量 (1〜10)')
+        .setStyle(TextInputStyle.Short)
+        .setMinLength(1)
+        .setMaxLength(2)
+        .setPlaceholder('1〜10')
+        .setRequired(true);
+
+      modal.addComponents(
+        new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(qtyInput),
       );
-      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
 
-      const recycledItem = ITEM_MAP.get(recycleItemId);
-      await interaction.followUp({
-        content: `♻️ **${recycledItem?.name ?? recycleItemId}** をリサイクルし、${formatChips(result.refundAmount!)} を受け取りました！`,
-        flags: MessageFlags.Ephemeral,
-      });
-
-      if (result.newlyUnlocked && result.newlyUnlocked.length > 0) {
-        await interaction.followUp({
-          content: buildAchievementNotification(result.newlyUnlocked),
-          flags: MessageFlags.Ephemeral,
-        });
-      }
+      await interaction.showModal(modal);
       break;
     }
 

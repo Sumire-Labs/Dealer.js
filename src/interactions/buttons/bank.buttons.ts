@@ -38,6 +38,8 @@ async function buildViewData(userId: string): Promise<BankViewData> {
     lastInterestAt: accountSummary.lastInterestAt,
     estimatedInterest: accountSummary.estimatedInterest,
     baseInterestRate: configService.getBigInt(S.bankInterestRate),
+    effectiveInterestRate: accountSummary.effectiveInterestRate,
+    hasInterestBooster: accountSummary.hasInterestBooster,
   };
 }
 

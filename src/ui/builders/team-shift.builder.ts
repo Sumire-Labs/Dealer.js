@@ -106,10 +106,10 @@ export function buildTeamShiftLobbyView(
       .setCustomId(`team:join:${session.channelId}`)
       .setLabel('👤 参加する')
       .setStyle(ButtonStyle.Primary)
-      .setDisabled(session.players.length >= TEAM_SHIFT_MAX_PLAYERS),
+      .setDisabled(session.players.length >= TEAM_SHIFT_MAX_PLAYERS || session.status !== 'lobby'),
   ];
 
-  if (session.players.length >= 2) {
+  if (session.players.length >= 2 && session.status === 'lobby') {
     buttons.push(
       new ButtonBuilder()
         .setCustomId(`team:start:${session.channelId}:${session.hostId}`)
@@ -117,6 +117,14 @@ export function buildTeamShiftLobbyView(
         .setStyle(ButtonStyle.Success),
     );
   }
+
+  buttons.push(
+    new ButtonBuilder()
+      .setCustomId(`team:cancel:${session.channelId}:${session.hostId}`)
+      .setLabel('❌ 解散')
+      .setStyle(ButtonStyle.Danger)
+      .setDisabled(session.status !== 'lobby'),
+  );
 
   container.addActionRowComponents(
     new ActionRowBuilder<ButtonBuilder>().addComponents(...buttons),
@@ -133,16 +141,7 @@ export function buildTeamShiftJobSelectView(
   const container = new ContainerBuilder()
     .setAccentColor(CasinoTheme.colors.gold)
     .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(TEAM_PREFIX),
-    )
-    .addSeparatorComponents(
-      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-    )
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent('🎯 **ジョブを選択してください：**'),
-    )
-    .addSeparatorComponents(
-      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+      new TextDisplayBuilder().setContent(`🎯 <@${userId}> ジョブを選択：`),
     );
 
   const availableJobs = JOBS.filter(j => j.requiredLevel <= workLevel);

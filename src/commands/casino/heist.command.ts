@@ -33,6 +33,7 @@ import { logger } from '../../utils/logger.js';
 import { checkAchievements, buildAchievementNotification } from '../../database/services/achievement.service.js';
 import { jailUser } from '../../games/prison/prison.session.js';
 import { HEIST_TARGET_MAP } from '../../config/heist.js';
+import { hasInventoryItem, consumeInventoryItem } from '../../database/services/shop.service.js';
 
 const data = new SlashCommandBuilder()
   .setName('heist')
@@ -161,14 +162,24 @@ export async function runHeist(
   // Run heist
   session.status = 'running';
 
+  // Check if host has HEIST_INTEL item
+  const hostId = session.players[0].userId;
+  const hostHasIntel = await hasInventoryItem(hostId, 'HEIST_INTEL');
+
   const params: HeistCalcParams = {
     playerCount: session.players.length,
     target: session.target,
     riskLevel: session.riskLevel,
     approach: session.approach,
     isSolo: session.isSolo,
+    hasHeistIntel: hostHasIntel,
   };
   const outcome = calculateHeistOutcome(params);
+
+  // Consume HEIST_INTEL after use
+  if (hostHasIntel) {
+    await consumeInventoryItem(hostId, 'HEIST_INTEL');
+  }
 
   // Play animation
   try {
@@ -223,6 +234,17 @@ export async function runHeist(
     }
   } catch (err) {
     logger.error('Failed to show heist result', { error: String(err) });
+  }
+
+  // Notify HEIST_INTEL usage
+  if (hostHasIntel && channel && 'send' in channel) {
+    try {
+      await channel.send({
+        content: `🕵️ <@${hostId}> の**強盗情報**を使用！(成功率+15%)`,
+      });
+    } catch {
+      // ignore
+    }
   }
 
   // Achievement checks for all players

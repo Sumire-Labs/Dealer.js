@@ -4,6 +4,7 @@ import {
   ContainerBuilder,
   TextDisplayBuilder,
 } from 'discord.js';
+import { logger } from '../../utils/logger.js';
 import { registerButtonHandler } from '../handler.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import {
@@ -149,6 +150,36 @@ async function handleTeamButton(interaction: ButtonInteraction): Promise<void> {
       break;
     }
 
+    case 'cancel': {
+      const channelId = parts[2];
+      const hostId = parts[3];
+      const session = getTeamSession(channelId);
+
+      if (!session) {
+        await interaction.reply({
+          content: 'このチームシフトは終了しています。',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      if (userId !== hostId) {
+        await interaction.reply({
+          content: '主催者のみが解散できます。',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      removeTeamSession(channelId);
+
+      await interaction.update({
+        components: [new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent('❌ チームシフトが解散されました。'))],
+        flags: MessageFlags.IsComponentsV2,
+      });
+      break;
+    }
+
     case 'start': {
       const channelId = parts[2];
       const hostId = parts[3];
@@ -189,17 +220,45 @@ async function handleTeamButton(interaction: ButtonInteraction): Promise<void> {
       });
 
       // Notify players to select jobs
+      let promptsSent = 0;
       for (const player of session.players) {
         try {
           const user = await findOrCreateUser(player.userId);
           const view = buildTeamShiftJobSelectView(player.userId, channelId, user.workLevel);
           await interaction.followUp({
-            content: `<@${player.userId}> ジョブを選択してください！`,
             components: [view],
             flags: MessageFlags.IsComponentsV2,
           });
-        } catch { /* ignore */ }
+          promptsSent++;
+        } catch (err) {
+          logger.error(`Team shift job select followUp failed for ${player.userId}: ${err}`);
+        }
       }
+
+      // If no prompts were sent, clean up the stuck session
+      if (promptsSent === 0) {
+        removeTeamSession(channelId);
+        try {
+          await interaction.followUp({
+            content: '⚠️ ジョブ選択の送信に失敗しました。チームシフトをキャンセルしました。',
+          });
+        } catch { /* ignore */ }
+        break;
+      }
+
+      // Set a timeout for job_select — auto-cancel after 2 minutes if not all ready
+      setTimeout(() => {
+        const current = getTeamSession(channelId);
+        if (current && current.status === 'job_select') {
+          removeTeamSession(channelId);
+          if (interaction.channel && 'send' in interaction.channel) {
+            (interaction.channel as any).send({
+              content: '⏰ ジョブ選択がタイムアウトしました。チームシフトをキャンセルしました。',
+            }).catch(() => {});
+          }
+        }
+      }, 120_000);
+
       break;
     }
 

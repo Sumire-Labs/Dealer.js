@@ -9,6 +9,7 @@ import {
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { ITEM_MAP } from '../../config/shop.js';
+import { buildTabRow } from './shop.builder.js';
 import type { CollectionProgress } from '../../database/services/collection.service.js';
 
 export function buildCollectionListView(
@@ -57,6 +58,9 @@ export function buildCollectionListView(
   if (detailRow.components.length > 0) {
     container.addActionRowComponents(detailRow);
   }
+
+  // Tab row
+  container.addActionRowComponents(buildTabRow(userId, 'collection'));
 
   return container;
 }

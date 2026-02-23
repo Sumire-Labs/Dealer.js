@@ -14,14 +14,40 @@ export interface BankAccountSummary {
   walletBalance: bigint;
   lastInterestAt: Date | null;
   estimatedInterest: bigint;
+  effectiveInterestRate: bigint;
+  hasInterestBooster: boolean;
 }
 
 export async function getBankAccountSummary(userId: string): Promise<BankAccountSummary> {
   const user = await findOrCreateUser(userId);
 
+  // Calculate effective interest rate with shop upgrades
+  let effectiveRate = configService.getBigInt(S.bankInterestRate);
+
+  try {
+    const expansionCount = await getInventoryQuantity(userId, 'BANK_EXPANSION');
+    if (expansionCount > 0) {
+      effectiveRate += SHOP_EFFECTS.BANK_EXPANSION_RATE * BigInt(expansionCount);
+    }
+  } catch { /* never block */ }
+
+  try {
+    if (await hasInventoryItem(userId, 'COLLECTION_REWARD_ROYAL')) {
+      effectiveRate += SHOP_EFFECTS.COLLECTION_ROYAL_RATE;
+    }
+  } catch { /* never block */ }
+
+  let hasBooster = false;
+  try {
+    hasBooster = await hasActiveBuff(userId, 'INTEREST_BOOSTER');
+  } catch { /* never block */ }
+
   let estimatedInterest = 0n;
   if (user.bankBalance >= BANK_MIN_BALANCE_FOR_INTEREST) {
-    estimatedInterest = (user.bankBalance * configService.getBigInt(S.bankInterestRate)) / 100n;
+    estimatedInterest = (user.bankBalance * effectiveRate) / 100n;
+    if (hasBooster) {
+      estimatedInterest *= 2n;
+    }
   }
 
   return {
@@ -29,6 +55,8 @@ export async function getBankAccountSummary(userId: string): Promise<BankAccount
     walletBalance: user.chips,
     lastInterestAt: user.lastInterestAt,
     estimatedInterest,
+    effectiveInterestRate: effectiveRate,
+    hasInterestBooster: hasBooster,
   };
 }
 

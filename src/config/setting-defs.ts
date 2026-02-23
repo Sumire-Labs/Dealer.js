@@ -146,8 +146,11 @@ export const S = {
   businessSalaryRate:  percent('business.salary_rate', 'business', 5, 0, 100, '給料率'),
   businessEventChance: percent('business.event_chance', 'business', 25, 0, 100, 'イベント確率'),
 
-  // ── Team (4) ───────────────────────────────────────────────────────
+  // ── Team (7) ───────────────────────────────────────────────────────
   teamShiftBonus:    percent('team.shift_bonus', 'team', 15, 0, 100, 'シフトボーナス/人'),
+  teamShortCD:       hours('team.short_cd_ms', 'team', 30 * 60 * 1000, 1, 72, 'チーム短期CD'),
+  teamNormalCD:      hours('team.normal_cd_ms', 'team', 2 * 60 * 60 * 1000, 1, 72, 'チーム通常CD'),
+  teamLongCD:        hours('team.long_cd_ms', 'team', 4 * 60 * 60 * 1000, 1, 168, 'チーム長期CD'),
   overtimeMaxRounds: count('team.overtime_max_rounds', 'team', 3, 1, 10, '残業最大ラウンド'),
   overtimeRisk:      percent('team.overtime_risk', 'team', 15, 0, 100, '残業リスク/ラウンド'),
   weeklyAllBonus:    chips('team.weekly_all_bonus', 'team', 25_000n, 1_000, 100_000_000, 'ウィークリー全達成報酬'),
@@ -172,5 +175,5 @@ export const SETTING_CATEGORIES: readonly CategoryMeta[] = [
   { id: 'lottery',    emoji: '\u{1F3AB}', label: '宝くじ',     settings: [S.lotteryTicketPrice, S.lotteryMaxTickets, S.lotteryJackpotRate, S.lotterySecondRate, S.lotteryHouseRate] },
   { id: 'poker',      emoji: '\u{1F0CF}', label: 'ポーカー',   settings: [S.pokerMinBuyin, S.pokerMaxBuyin, S.pokerActionTimeout] },
   { id: 'business',   emoji: '\u{1F3E2}', label: 'ビジネス',   settings: [S.businessUnlockLevel, S.businessEmployeeMax, S.businessOwnerBonus, S.businessSalaryRate, S.businessEventChance] },
-  { id: 'team',       emoji: '\u{1F465}', label: 'チーム',     settings: [S.teamShiftBonus, S.overtimeMaxRounds, S.overtimeRisk, S.weeklyAllBonus] },
+  { id: 'team',       emoji: '\u{1F465}', label: 'チーム',     settings: [S.teamShiftBonus, S.teamShortCD, S.teamNormalCD, S.teamLongCD, S.overtimeMaxRounds, S.overtimeRisk, S.weeklyAllBonus] },
 ];

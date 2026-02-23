@@ -32,6 +32,8 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     lastInterestAt: accountSummary.lastInterestAt,
     estimatedInterest: accountSummary.estimatedInterest,
     baseInterestRate: configService.getBigInt(S.bankInterestRate),
+    effectiveInterestRate: accountSummary.effectiveInterestRate,
+    hasInterestBooster: accountSummary.hasInterestBooster,
   });
 
   await interaction.reply({

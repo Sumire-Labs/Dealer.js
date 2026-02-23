@@ -9,6 +9,7 @@ import {
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { ITEM_MAP } from '../../config/shop.js';
+import { buildTabRow } from './shop.builder.js';
 import type { CraftRecipe } from '../../config/crafting.js';
 import type { UserInventory } from '@prisma/client';
 
@@ -102,6 +103,9 @@ export function buildCraftListView(
     );
   }
 
+  // Tab row
+  container.addActionRowComponents(buildTabRow(userId, 'craft'));
+
   return container;
 }
 
@@ -189,10 +193,6 @@ export function buildCraftResultView(
         .setCustomId(`shop:tab_craft:${userId}`)
         .setLabel('🔨 クラフトに戻る')
         .setStyle(ButtonStyle.Primary),
-      new ButtonBuilder()
-        .setCustomId(`shop:tab_inventory:${userId}`)
-        .setLabel('🎒 インベントリ')
-        .setStyle(ButtonStyle.Secondary),
     ),
   );
 

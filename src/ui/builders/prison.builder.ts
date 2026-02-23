@@ -14,6 +14,7 @@ import type { PrisonSession } from '../../games/prison/prison.session.js';
 export function buildPrisonView(
   session: PrisonSession,
   jailbreakCooldownRemaining: number,
+  hasPrisonKey: boolean = false,
 ): ContainerBuilder {
   const remaining = Math.max(0, session.releaseAt - Date.now());
   const targetLine = session.heistTarget ? `\n📋 逮捕理由: **${session.heistTarget}** への強盗失敗` : '';
@@ -41,7 +42,8 @@ export function buildPrisonView(
         '**釈放方法:**\n' +
         `1. 💰 罰金を支払う (${formatChips(session.fineAmount)})\n` +
         '2. 🔓 脱獄に挑戦する (成功率30%)\n' +
-        '3. ⏰ 刑期満了まで待つ',
+        '3. 🔑 脱獄キーを使う（確実）\n' +
+        '4. ⏰ 刑期満了まで待つ',
       ),
     )
     .addSeparatorComponents(
@@ -64,6 +66,11 @@ export function buildPrisonView(
         .setLabel(jailbreakLabel)
         .setStyle(ButtonStyle.Danger)
         .setDisabled(jailbreakOnCooldown),
+      new ButtonBuilder()
+        .setCustomId(`prison:use_key:${session.userId}`)
+        .setLabel('🔑 脱獄キーを使う')
+        .setStyle(ButtonStyle.Success)
+        .setDisabled(!hasPrisonKey),
     ),
   );
 
