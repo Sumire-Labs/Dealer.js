@@ -95,4 +95,24 @@ export const WEEKLY_CHALLENGE_ALL_BONUS = 25_000n;
 export const MULTI_STEP_EVENT_CHANCE = 25;  // 25%
 export const MULTI_STEP_SESSION_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
+// Overtime
+export const OVERTIME_MAX_ROUNDS = 3;
+export const OVERTIME_MULTIPLIERS = [1.5, 2.0, 3.0];
+export const OVERTIME_RISK_PER_ROUND = 15; // +15%/ラウンド
+export const OVERTIME_SESSION_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+// Team Shift
+export const TEAM_SHIFT_MIN_PLAYERS = 2;
+export const TEAM_SHIFT_MAX_PLAYERS = 4;
+export const TEAM_SHIFT_BONUS_PER_PLAYER = 15; // +15%/人
+export const TEAM_SHIFT_LOBBY_DURATION_MS = 60_000;
+
+// Business
+export const BUSINESS_UNLOCK_LEVEL = 3;
+export const BUSINESS_MAX_ACCUMULATION_MS = 24 * 60 * 60 * 1000; // 24h
+export const BUSINESS_EMPLOYEE_MAX = 3;
+export const BUSINESS_EMPLOYEE_OWNER_BONUS = 10; // +10%/従業員
+export const BUSINESS_EMPLOYEE_SALARY_RATE = 5; // 収入の5%
+export const BUSINESS_EVENT_CHANCE = 25; // 25%
+
 export const COMMAND_COOLDOWN_MS = 3_000; // 3 seconds default cooldown

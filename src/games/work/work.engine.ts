@@ -8,7 +8,13 @@ import {
   LEVEL_THRESHOLDS,
   JOBS,
 } from '../../config/jobs.js';
-import { WORK_TIP_MIN, WORK_TIP_MAX, WORK_STREAK_MAX_BONUS } from '../../config/constants.js';
+import {
+  WORK_TIP_MIN,
+  WORK_TIP_MAX,
+  WORK_STREAK_MAX_BONUS,
+  OVERTIME_MULTIPLIERS,
+  OVERTIME_RISK_PER_ROUND,
+} from '../../config/constants.js';
 import { secureRandomInt } from '../../utils/random.js';
 import { weightedRandom } from '../../utils/random.js';
 import type { MasteryTier } from '../../config/work-mastery.js';
@@ -193,4 +199,30 @@ export function getAvailableJobs(
   }
 
   return available;
+}
+
+/**
+ * Roll an overtime event. Risk increases each round.
+ * Returns a WorkEvent — accident means overtime failure.
+ */
+export function rollOvertimeEvent(baseRiskRate: number, round: number, bonuses?: WorkBonuses): WorkEvent {
+  const totalRiskReduction = (bonuses?.mastery?.accidentReduction ?? 0) + (bonuses?.toolRiskReduction ?? 0);
+  const adjustedBase = Math.max(baseRiskRate - totalRiskReduction, 0);
+  const riskRate = Math.min(adjustedBase + (round + 1) * OVERTIME_RISK_PER_ROUND, 95);
+
+  const roll = secureRandomInt(1, 100);
+  if (roll <= riskRate) {
+    return EVENT_MAP.get('accident')!;
+  }
+  return EVENT_MAP.get('success')!;
+}
+
+/**
+ * Calculate overtime bonus for a given round.
+ * Returns the bonus amount (multiplier difference × baseShiftPay).
+ */
+export function calculateOvertimePay(baseShiftPay: bigint, round: number): bigint {
+  const multiplier = OVERTIME_MULTIPLIERS[round] ?? 1;
+  const bonus = BigInt(Math.round(Number(baseShiftPay) * (multiplier - 1)));
+  return bonus > 0n ? bonus : 0n;
 }

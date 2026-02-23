@@ -36,6 +36,7 @@ model User {
   activeBuffs       ActiveBuff[]
   workMastery       WorkMastery[]
   weeklyChallenges  WorkWeeklyChallenge[]
+  business          Business?
 }
 
 model Transaction {
@@ -113,6 +114,9 @@ enum TransactionType {
   SHOP_BUY
   SHOP_REFUND
   WEEKLY_CHALLENGE_REWARD
+  BUSINESS_COLLECT
+  BUSINESS_INVEST
+  BUSINESS_SALARY
 }
 
 enum GameType {
@@ -248,4 +252,27 @@ model WorkWeeklyChallenge {
 
   @@unique([userId, challengeKey, weekStart])
   @@index([userId, weekStart])
+}
+
+model Business {
+  id              String             @id @default(cuid())
+  ownerId         String             @unique
+  owner           User               @relation(fields: [ownerId], references: [id])
+  type            String
+  level           Int                @default(1)
+  lastCollectedAt DateTime           @default(now())
+  totalEarned     BigInt             @default(0)
+  createdAt       DateTime           @default(now())
+  employees       BusinessEmployee[]
+}
+
+model BusinessEmployee {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id])
+  userId     String
+  hiredAt    DateTime @default(now())
+
+  @@unique([businessId, userId])
+  @@index([userId])
 }
