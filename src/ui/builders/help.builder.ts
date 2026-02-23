@@ -4,29 +4,51 @@ import {
   SeparatorBuilder,
   SeparatorSpacingSize,
   ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
-import { HELP_TOP_CONTENT, HELP_CATEGORIES, HELP_CATEGORY_MAP } from '../../config/help.js';
+import { HELP_TOP_CONTENT, HELP_CATEGORIES, HELP_CATEGORY_MAP, HELP_TIPS } from '../../config/help.js';
 
-function addCategoryButtons(container: ContainerBuilder, userId: string, activeCategoryId?: string): void {
-  const row1 = new ActionRowBuilder<ButtonBuilder>();
-  const row2 = new ActionRowBuilder<ButtonBuilder>();
+const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+  casino: 'スロット・BJ・ルーレットなどのゲーム',
+  multi: '競馬・ポーカー・強盗・宝くじ',
+  economy: 'デイリー・銀行・ローン・破産',
+  work: 'ジョブ・シフト・残業・マスタリー',
+  business: 'ビジネス購入・アップグレード・従業員',
+  shop: 'アイテム・バフ・コスメ・ミステリーボックス',
+  missions: 'デイリーミッション・ウィークリーチャレンジ',
+  achieve: '実績一覧と解除条件',
+};
 
-  HELP_CATEGORIES.forEach((cat, i) => {
-    const isActive = cat.id === activeCategoryId;
-    const btn = new ButtonBuilder()
-      .setCustomId(`help:cat:${userId}:${cat.id}`)
-      .setLabel(`${cat.emoji} ${cat.label}`)
-      .setStyle(isActive ? ButtonStyle.Primary : ButtonStyle.Secondary)
-      .setDisabled(isActive);
-    if (i < 4) row1.addComponents(btn);
-    else row2.addComponents(btn);
-  });
+function buildNavSelectMenu(
+  userId: string,
+  activeCategoryId?: string,
+): ActionRowBuilder<StringSelectMenuBuilder> {
+  const options: StringSelectMenuOptionBuilder[] = [
+    new StringSelectMenuOptionBuilder()
+      .setLabel('🏠 トップ')
+      .setValue('top')
+      .setDescription('ヘルプのトップページ')
+      .setDefault(!activeCategoryId),
+  ];
 
-  container.addActionRowComponents(row1);
-  container.addActionRowComponents(row2);
+  for (const cat of HELP_CATEGORIES) {
+    options.push(
+      new StringSelectMenuOptionBuilder()
+        .setLabel(`${cat.emoji} ${cat.label}`)
+        .setValue(cat.id)
+        .setDescription(CATEGORY_DESCRIPTIONS[cat.id] ?? cat.label)
+        .setDefault(cat.id === activeCategoryId),
+    );
+  }
+
+  return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId(`help_select:nav:${userId}`)
+      .setPlaceholder('カテゴリーを選択...')
+      .addOptions(options),
+  );
 }
 
 export function buildHelpTopView(userId: string): ContainerBuilder {
@@ -43,9 +65,15 @@ export function buildHelpTopView(userId: string): ContainerBuilder {
     )
     .addSeparatorComponents(
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(HELP_TIPS),
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     );
 
-  addCategoryButtons(container, userId);
+  container.addActionRowComponents(buildNavSelectMenu(userId));
   return container;
 }
 
@@ -68,16 +96,6 @@ export function buildHelpCategoryView(userId: string, categoryId: string): Conta
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     );
 
-  // Back to top button
-  container.addActionRowComponents(
-    new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`help:top:${userId}`)
-        .setLabel('🔙 トップに戻る')
-        .setStyle(ButtonStyle.Primary),
-    ),
-  );
-
-  addCategoryButtons(container, userId, categoryId);
+  container.addActionRowComponents(buildNavSelectMenu(userId, categoryId));
   return container;
 }

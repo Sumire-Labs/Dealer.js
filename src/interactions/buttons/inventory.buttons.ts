@@ -20,11 +20,11 @@ import { buildAchievementNotification } from '../../database/services/achievemen
 import { formatChips } from '../../utils/formatters.js';
 
 // Session state per user
-const invState = new Map<string, { page: number }>();
+const invState = new Map<string, { page: number; filter: string }>();
 
-function getState(userId: string) {
+export function getInvState(userId: string) {
   if (!invState.has(userId)) {
-    invState.set(userId, { page: 0 });
+    invState.set(userId, { page: 0, filter: 'all' });
   }
   return invState.get(userId)!;
 }
@@ -43,7 +43,7 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
   }
 
   const userId = interaction.user.id;
-  const state = getState(userId);
+  const state = getInvState(userId);
 
   switch (action) {
     // ── Back to inventory ──
@@ -51,7 +51,7 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
       const summary = await getUserInventorySummary(userId);
       const view = buildInventoryView(
         userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.page,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter,
       );
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
@@ -63,7 +63,7 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
       const summary = await getUserInventorySummary(userId);
       const view = buildInventoryView(
         userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.page,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter,
       );
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
@@ -74,7 +74,7 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
       const summary = await getUserInventorySummary(userId);
       const view = buildInventoryView(
         userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.page,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter,
       );
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
@@ -116,7 +116,7 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
       const summary = await getUserInventorySummary(userId);
       const view = buildInventoryView(
         userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.page,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter,
       );
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
@@ -133,7 +133,7 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
       const summary = await getUserInventorySummary(userId);
       const view = buildInventoryView(
         userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.page,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter,
       );
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
@@ -217,7 +217,7 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
       const summary = await getUserInventorySummary(userId);
       const view = buildInventoryView(
         userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.page,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter,
       );
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
 

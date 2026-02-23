@@ -6,6 +6,8 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
@@ -47,31 +49,26 @@ export function buildTabRow(userId: string, activeTab: ShopTab): ActionRowBuilde
   );
 }
 
-// ── Category buttons (2 rows: 4+3) ──
+// ── Category select menu ──
 
-export function buildCategoryRows(
+export function buildCategorySelectMenu(
   userId: string,
   activeCategoryIndex: number,
-): ActionRowBuilder<ButtonBuilder>[] {
-  const row1 = new ActionRowBuilder<ButtonBuilder>();
-  const row2 = new ActionRowBuilder<ButtonBuilder>();
-
-  for (let i = 0; i < SHOP_CATEGORIES.length; i++) {
-    const cat = SHOP_CATEGORIES[i];
-    const btn = new ButtonBuilder()
-      .setCustomId(`shop:cat_select:${userId}:${i}`)
+): ActionRowBuilder<StringSelectMenuBuilder> {
+  const options = SHOP_CATEGORIES.map((cat, i) =>
+    new StringSelectMenuOptionBuilder()
       .setLabel(`${cat.emoji} ${cat.label}`)
-      .setStyle(i === activeCategoryIndex ? ButtonStyle.Primary : ButtonStyle.Secondary)
-      .setDisabled(i === activeCategoryIndex);
+      .setValue(String(i))
+      .setDescription(`${cat.items.length}個のアイテム`)
+      .setDefault(i === activeCategoryIndex),
+  );
 
-    if (i < 4) {
-      row1.addComponents(btn);
-    } else {
-      row2.addComponents(btn);
-    }
-  }
-
-  return [row1, row2];
+  return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId(`shop_select:category:${userId}`)
+      .setPlaceholder('カテゴリーを選択...')
+      .addOptions(options),
+  );
 }
 
 // ── Shop tab ──
@@ -203,11 +200,8 @@ export function buildShopView(
     );
   }
 
-  // Category button rows (2 rows: 4+3)
-  const catRows = buildCategoryRows(userId, categoryIndex);
-  for (const row of catRows) {
-    container.addActionRowComponents(row);
-  }
+  // Category select menu
+  container.addActionRowComponents(buildCategorySelectMenu(userId, categoryIndex));
 
   // Tab row
   container.addActionRowComponents(buildTabRow(userId, 'shop'));

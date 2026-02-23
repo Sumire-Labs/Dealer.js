@@ -14,6 +14,7 @@ import type { PokerPlayer, WinnerInfo, PotInfo } from '../../games/poker/poker.e
 import { canCheck } from '../../games/poker/poker.engine.js';
 import { formatCard, formatHidden } from '../../games/poker/poker.deck.js';
 import type { PokerPhase } from '../../games/poker/poker.engine.js';
+import { evaluateBestHand } from '../../games/poker/poker.hand.js';
 
 // ─── Helpers ──────────────────────────────────────────
 
@@ -23,6 +24,14 @@ const PHASE_LABELS: Record<PokerPhase, string> = {
   turn: 'TURN',
   river: 'RIVER',
   showdown: 'SHOWDOWN',
+};
+
+const PHASE_PROGRESS: Record<PokerPhase, string> = {
+  preflop: '▶ ━ ━ ━',
+  flop: '✅ ▶ ━ ━',
+  turn: '✅ ✅ ▶ ━',
+  river: '✅ ✅ ✅ ▶',
+  showdown: '✅ ✅ ✅ ✅',
 };
 
 function positionTag(playerIndex: number, dealerIndex: number, playerCount: number): string {
@@ -44,6 +53,21 @@ function buildCommunityLine(communityCards: { suit: string; rank: string }[]): s
     }
   }
   return cards.join('  ');
+}
+
+function getHandStrengthText(holeCards: { suit: string; rank: string }[], communityCards: { suit: string; rank: string }[]): string {
+  const allCards = [...holeCards, ...communityCards];
+  if (allCards.length < 5) return '';
+  const result = evaluateBestHand(allCards as never);
+  return `🃏 ベストハンド: **${result.name}**`;
+}
+
+function getPotOddsText(callAmount: bigint, totalPot: bigint): string {
+  if (callAmount <= 0n) return '';
+  const potAfterCall = totalPot + callAmount;
+  // pot odds = potAfterCall : callAmount
+  const ratio = Number(potAfterCall) / Number(callAmount);
+  return `📊 ポットオッズ: ${ratio.toFixed(1)} : 1`;
 }
 
 // ─── Lobby ────────────────────────────────────────────
@@ -110,6 +134,9 @@ export function buildPokerTableView(
   const communityLine = buildCommunityLine(session.communityCards);
   const totalPot = session.players.reduce((sum, p) => sum + p.totalBet, 0n);
 
+  // Phase progress bar
+  const progressBar = PHASE_PROGRESS[phase];
+
   // Player rows
   const playerBlock = session.players.map((p, i) => {
     const tag = positionTag(i, session.dealerIndex, session.players.length);
@@ -147,7 +174,7 @@ export function buildPokerTableView(
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `━━  **${PHASE_LABELS[phase]}**  ━━\n${communityLine}`,
+        `━━  **${PHASE_LABELS[phase]}**  ━━  ${progressBar}\n${communityLine}`,
       ),
     )
     .addTextDisplayComponents(
@@ -218,6 +245,12 @@ export function buildPlayerPanel(
     `💎 ポット: **${formatChips(totalPot)}**  ·  💰 スタック: **${formatChips(player.stack)}**`,
   ];
 
+  // Hand strength (flop onwards, 5+ cards available)
+  const handStrength = getHandStrengthText(player.holeCards, session.communityCards);
+  if (handStrength) {
+    lines.push(handStrength);
+  }
+
   if (player.folded) {
     lines.push('', '❌ *フォールド済み*');
     return { content: lines.join('\n'), components: [] };
@@ -242,6 +275,14 @@ export function buildPlayerPanel(
 
   const isCheck = canCheck(player, session.currentBet);
   const callAmount = session.currentBet - player.currentBet;
+
+  // Pot odds display (only when calling)
+  if (!isCheck && callAmount > 0n) {
+    const potOdds = getPotOddsText(callAmount, totalPot);
+    if (potOdds) {
+      lines.push(potOdds);
+    }
+  }
 
   const actionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()

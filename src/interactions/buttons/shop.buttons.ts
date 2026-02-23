@@ -17,7 +17,6 @@ import {
 } from '../../database/services/shop.service.js';
 import { getCollectionProgress } from '../../database/services/collection.service.js';
 import {
-  SHOP_CATEGORIES,
   ITEM_MAP,
 } from '../../config/shop.js';
 import { CRAFT_RECIPES } from '../../config/crafting.js';
@@ -41,16 +40,16 @@ import { getLifetimeShopSpend } from '../../database/repositories/shop.repositor
 import { getInventory } from '../../database/repositories/shop.repository.js';
 
 // Session state per user
-const shopState = new Map<string, { category: number; page: number; craftPage: number; collectionPage: number }>();
+export const shopState = new Map<string, { category: number; page: number; craftPage: number; collectionPage: number }>();
 
-function getState(userId: string) {
+export function getState(userId: string) {
   if (!shopState.has(userId)) {
     shopState.set(userId, { category: 0, page: 0, craftPage: 0, collectionPage: 0 });
   }
   return shopState.get(userId)!;
 }
 
-async function getRankInfo(userId: string) {
+export async function getRankInfo(userId: string) {
   const spend = await getLifetimeShopSpend(userId);
   const rank = getShopRank(spend);
   const nextRank = getNextRank(rank);
@@ -109,23 +108,6 @@ async function handleShopButton(interaction: ButtonInteraction): Promise<void> {
     case 'tab_collection': {
       const progress = await getCollectionProgress(userId);
       const view = buildCollectionListView(userId, progress);
-      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
-      break;
-    }
-
-    // ── Category selection (direct button) ──
-    case 'cat_select': {
-      const catIdx = parseInt(parts[3]);
-      if (!isNaN(catIdx) && catIdx >= 0 && catIdx < SHOP_CATEGORIES.length) {
-        state.category = catIdx;
-        state.page = 0;
-      }
-      const [balance, rankInfo, flashSale] = await Promise.all([
-        getBalance(userId),
-        getRankInfo(userId),
-        getFlashSale(),
-      ]);
-      const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale);
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
     }

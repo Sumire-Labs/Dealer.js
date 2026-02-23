@@ -6,19 +6,21 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import type { LeaderboardCategory } from '../../database/repositories/leaderboard.repository.js';
 
 export const LEADERBOARD_PAGE_SIZE = 10;
 
-export const LEADERBOARD_CATEGORIES: { id: LeaderboardCategory; label: string; emoji: string }[] = [
-  { id: 'chips', label: 'チップ', emoji: '💰' },
-  { id: 'net_worth', label: '総資産', emoji: '🏦' },
-  { id: 'total_won', label: '累計勝利', emoji: '🏆' },
-  { id: 'work_level', label: '仕事Lv', emoji: '💼' },
-  { id: 'shop_spend', label: 'ショップ', emoji: '🛒' },
-  { id: 'achievements', label: '実績', emoji: '🏅' },
+export const LEADERBOARD_CATEGORIES: { id: LeaderboardCategory; label: string; emoji: string; description: string }[] = [
+  { id: 'chips', label: 'チップ', emoji: '💰', description: '手持ちチップ額でランキング' },
+  { id: 'net_worth', label: '総資産', emoji: '🏦', description: 'チップ＋銀行残高の合計' },
+  { id: 'total_won', label: '累計勝利', emoji: '🏆', description: '累計獲得チップ額でランキング' },
+  { id: 'work_level', label: '仕事Lv', emoji: '💼', description: '仕事レベルでランキング' },
+  { id: 'shop_spend', label: 'ショップ', emoji: '🛒', description: 'ショップ累計支出額でランキング' },
+  { id: 'achievements', label: '実績', emoji: '🏅', description: '解除した実績数でランキング' },
 ];
 
 export interface LeaderboardDisplayEntry {
@@ -38,6 +40,26 @@ export interface LeaderboardDisplayData {
 }
 
 const RANK_MEDALS = ['🥇', '🥈', '🥉'];
+
+function buildCategorySelectMenu(
+  requesterId: string,
+  currentCategory: LeaderboardCategory,
+): ActionRowBuilder<StringSelectMenuBuilder> {
+  const options = LEADERBOARD_CATEGORIES.map(cat =>
+    new StringSelectMenuOptionBuilder()
+      .setLabel(`${cat.emoji} ${cat.label}`)
+      .setValue(cat.id)
+      .setDescription(cat.description)
+      .setDefault(cat.id === currentCategory),
+  );
+
+  return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId(`lb_select:category:${requesterId}`)
+      .setPlaceholder('カテゴリーを選択...')
+      .addOptions(options),
+  );
+}
 
 export function buildLeaderboardView(data: LeaderboardDisplayData): ContainerBuilder {
   const {
@@ -80,21 +102,8 @@ export function buildLeaderboardView(data: LeaderboardDisplayData): ContainerBui
       ),
     );
 
-  // Category buttons — row 1 (first 3) and row 2 (last 3)
-  const catRow1 = new ActionRowBuilder<ButtonBuilder>();
-  const catRow2 = new ActionRowBuilder<ButtonBuilder>();
-
-  LEADERBOARD_CATEGORIES.forEach((cat, i) => {
-    const btn = new ButtonBuilder()
-      .setCustomId(`lb:cat:${requesterId}:${cat.id}`)
-      .setLabel(`${cat.emoji} ${cat.label}`)
-      .setStyle(cat.id === category ? ButtonStyle.Primary : ButtonStyle.Secondary);
-    if (i < 3) catRow1.addComponents(btn);
-    else catRow2.addComponents(btn);
-  });
-
-  container.addActionRowComponents(catRow1);
-  container.addActionRowComponents(catRow2);
+  // Category select menu
+  container.addActionRowComponents(buildCategorySelectMenu(requesterId, category));
 
   // Pagination buttons
   if (totalPages > 1) {

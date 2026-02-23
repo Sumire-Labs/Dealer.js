@@ -17,7 +17,7 @@ import {
 import { formatChips } from '../../utils/formatters.js';
 import { prisma } from '../../database/client.js';
 
-function formatEntryValue(entry: LeaderboardEntry, category: LeaderboardCategory): LeaderboardDisplayEntry {
+export function formatEntryValue(entry: LeaderboardEntry, category: LeaderboardCategory): LeaderboardDisplayEntry {
   switch (category) {
     case 'chips':
       return { userId: entry.id, value: `${formatChips(entry.chips)}（${entry.totalGames}回）` };
@@ -34,7 +34,7 @@ function formatEntryValue(entry: LeaderboardEntry, category: LeaderboardCategory
   }
 }
 
-interface RequesterFields {
+export interface RequesterFields {
   chips: bigint;
   bankBalance: bigint;
   totalWon: bigint;
@@ -42,7 +42,7 @@ interface RequesterFields {
   lifetimeShopSpend: bigint;
 }
 
-function formatRequesterValue(user: RequesterFields, achievementCount: number, category: LeaderboardCategory): string {
+export function formatRequesterValue(user: RequesterFields, achievementCount: number, category: LeaderboardCategory): string {
   switch (category) {
     case 'chips': return formatChips(user.chips);
     case 'net_worth': return formatChips(user.chips + user.bankBalance);
@@ -53,7 +53,7 @@ function formatRequesterValue(user: RequesterFields, achievementCount: number, c
   }
 }
 
-function getCategoryLabel(category: LeaderboardCategory): string {
+export function getCategoryLabel(category: LeaderboardCategory): string {
   const cat = LEADERBOARD_CATEGORIES.find(c => c.id === category);
   return cat ? `${cat.emoji} ${cat.label}ランキング` : '';
 }
@@ -62,7 +62,7 @@ const VALID_CATEGORIES = new Set<string>(['chips', 'net_worth', 'total_won', 'wo
 
 async function handleLeaderboardButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
-  const action = parts[1]; // prev, next, or cat
+  const action = parts[1]; // prev or next
   const ownerId = parts[2];
 
   if (interaction.user.id !== ownerId) {
@@ -73,19 +73,10 @@ async function handleLeaderboardButton(interaction: ButtonInteraction): Promise<
     return;
   }
 
-  let page: number;
-  let category: LeaderboardCategory;
-
-  if (action === 'cat') {
-    // lb:cat:<userId>:<category>
-    category = VALID_CATEGORIES.has(parts[3]) ? parts[3] as LeaderboardCategory : 'chips';
-    page = 0;
-  } else {
-    // lb:prev:<userId>:<page>:<category> or lb:next:<userId>:<page>:<category>
-    const currentPage = parseInt(parts[3], 10);
-    category = VALID_CATEGORIES.has(parts[4]) ? parts[4] as LeaderboardCategory : 'chips';
-    page = action === 'next' ? currentPage + 1 : currentPage - 1;
-  }
+  // Only pagination: lb:prev:<userId>:<page>:<category> or lb:next:<userId>:<page>:<category>
+  const currentPage = parseInt(parts[3], 10);
+  const category: LeaderboardCategory = VALID_CATEGORIES.has(parts[4]) ? parts[4] as LeaderboardCategory : 'chips';
+  const page = action === 'next' ? currentPage + 1 : currentPage - 1;
 
   const offset = page * LEADERBOARD_PAGE_SIZE;
   const userId = interaction.user.id;

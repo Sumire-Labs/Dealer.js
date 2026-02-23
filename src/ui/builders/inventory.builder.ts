@@ -6,6 +6,8 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
@@ -18,6 +20,36 @@ import type { UserInventory, ActiveBuff } from '@prisma/client';
 
 const ITEMS_PER_INV_PAGE = 5;
 
+const FILTER_OPTIONS: { value: string; label: string; emoji: string }[] = [
+  { value: 'all', label: 'すべて', emoji: '📋' },
+  { value: 'consumable', label: '消耗品', emoji: '🧃' },
+  { value: 'buff', label: 'バフ', emoji: '🧪' },
+  { value: 'upgrade', label: '永続UP', emoji: '⬆️' },
+  { value: 'cosmetic', label: 'コスメ', emoji: '🎨' },
+  { value: 'mystery', label: 'ミステリー', emoji: '📦' },
+  { value: 'insurance', label: '保険', emoji: '🛡️' },
+  { value: 'tool', label: '仕事道具', emoji: '🔧' },
+];
+
+export function buildFilterSelectMenu(
+  userId: string,
+  activeFilter: string,
+): ActionRowBuilder<StringSelectMenuBuilder> {
+  const options = FILTER_OPTIONS.map(opt =>
+    new StringSelectMenuOptionBuilder()
+      .setLabel(`${opt.emoji} ${opt.label}`)
+      .setValue(opt.value)
+      .setDefault(opt.value === activeFilter),
+  );
+
+  return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId(`inv_select:filter:${userId}`)
+      .setPlaceholder('カテゴリーでフィルタ...')
+      .addOptions(options),
+  );
+}
+
 // ── Inventory view ──
 
 export function buildInventoryView(
@@ -27,18 +59,21 @@ export function buildInventoryView(
   activeTitle: string | null,
   activeBadge: string | null,
   page: number,
+  filter: string = 'all',
 ): ContainerBuilder {
   const allEntries: { label: string; actionId?: string; actionLabel?: string; recycleId?: string }[] = [];
 
-  // Active buffs
-  for (const buff of activeBuffs) {
-    const item = ITEM_MAP.get(buff.buffId);
-    if (!item) continue;
-    const remaining = buff.expiresAt.getTime() - Date.now();
-    const hours = Math.ceil(remaining / (60 * 60 * 1000));
-    allEntries.push({
-      label: `${item.emoji} ${item.name} (残り${hours}h)`,
-    });
+  // Active buffs (always show regardless of filter)
+  if (filter === 'all' || filter === 'buff') {
+    for (const buff of activeBuffs) {
+      const item = ITEM_MAP.get(buff.buffId);
+      if (!item) continue;
+      const remaining = buff.expiresAt.getTime() - Date.now();
+      const hours = Math.ceil(remaining / (60 * 60 * 1000));
+      allEntries.push({
+        label: `${item.emoji} ${item.name} (残り${hours}h)`,
+      });
+    }
   }
 
   // Inventory items
@@ -48,6 +83,9 @@ export function buildInventoryView(
     if (!item) continue;
     // Skip collection reward flags
     if (inv.itemId.startsWith('COLLECTION_REWARD_')) continue;
+
+    // Apply filter
+    if (filter !== 'all' && item.category !== filter) continue;
 
     const isEquippedTitle = item.cosmeticType === 'title' && activeTitle === inv.itemId;
     const isEquippedBadge = item.cosmeticType === 'badge' && activeBadge === inv.itemId;
@@ -96,8 +134,9 @@ export function buildInventoryView(
   );
 
   if (allEntries.length === 0) {
+    const filterLabel = filter === 'all' ? '' : ` (${FILTER_OPTIONS.find(f => f.value === filter)?.label ?? filter})`;
     container.addTextDisplayComponents(
-      new TextDisplayBuilder().setContent('アイテムはありません。`/shop` で購入しましょう！'),
+      new TextDisplayBuilder().setContent(`アイテムはありません${filterLabel}。\`/shop\` で購入しましょう！`),
     );
   } else {
     container.addTextDisplayComponents(
@@ -143,6 +182,9 @@ export function buildInventoryView(
     }
     container.addActionRowComponents(recycleRow);
   }
+
+  // Filter select menu
+  container.addActionRowComponents(buildFilterSelectMenu(userId, filter));
 
   // Pagination + shop link
   const navRow = new ActionRowBuilder<ButtonBuilder>();

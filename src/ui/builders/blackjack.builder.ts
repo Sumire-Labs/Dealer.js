@@ -10,7 +10,7 @@ import {
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
 import type { BlackjackState } from '../../games/blackjack/blackjack.engine.js';
-import { evaluateHand } from '../../games/blackjack/blackjack.hand.js';
+import { evaluateHand, type HandValue } from '../../games/blackjack/blackjack.hand.js';
 import { cardToString } from '../../games/blackjack/blackjack.deck.js';
 
 function renderHand(cards: { suit: string; rank: string }[], hideSecond = false): string {
@@ -30,6 +30,39 @@ function handValueText(cards: { suit: string; rank: string }[], hideSecond = fal
   return value.isSoft ? `${value.best}（ソフト）` : `${value.best}`;
 }
 
+function getCardNumericValue(card: { rank: string }): number {
+  if (card.rank === 'A') return 11;
+  if (['J', 'Q', 'K'].includes(card.rank)) return 10;
+  return parseInt(card.rank);
+}
+
+function getDealerUpcardHint(card: { rank: string }): string {
+  const rank = card.rank;
+  if (rank === 'A') return 'A — インシュランス可';
+  if (['10', 'J', 'Q', 'K'].includes(rank)) return `${rank} — BJ警戒`;
+  const val = parseInt(rank);
+  if (val >= 2 && val <= 6) return `${rank} — バスト狙い目`;
+  return `${rank} — 強めの手`;
+}
+
+function getBasicStrategyHint(playerValue: HandValue, dealerUpcard: { rank: string }): string {
+  const pv = playerValue.best;
+  const dv = getCardNumericValue(dealerUpcard);
+
+  if (playerValue.isBust) return '';
+  if (playerValue.isBlackjack) return '💡 ブラックジャック！';
+  if (pv >= 17) return '💡 スタンド推奨';
+  if (pv <= 8) return '💡 ヒット推奨';
+  if (pv === 11) return '💡 ダブル推奨';
+  if (pv === 10 && dv <= 9) return '💡 ダブル推奨';
+  if (pv === 9 && dv >= 3 && dv <= 6) return '💡 ダブル推奨';
+  if (pv >= 13 && pv <= 16 && dv >= 2 && dv <= 6) return '💡 スタンド推奨（ディーラーバスト狙い）';
+  if (pv >= 13 && pv <= 16 && dv >= 7) return '💡 ヒット推奨';
+  if (pv === 12 && dv >= 4 && dv <= 6) return '💡 スタンド推奨';
+  if (pv === 12) return '💡 ヒット推奨';
+  return '';
+}
+
 export function buildBlackjackPlayingView(
   state: BlackjackState,
   userId: string,
@@ -38,6 +71,9 @@ export function buildBlackjackPlayingView(
   const hideDealer = state.phase === 'playing';
   const dealerDisplay = renderHand(state.dealerCards, hideDealer);
   const dealerValueText = handValueText(state.dealerCards, hideDealer);
+
+  // Dealer upcard hint
+  const dealerHint = hideDealer ? `  (${getDealerUpcardHint(state.dealerCards[0])})` : '';
 
   const container = new ContainerBuilder()
     .setAccentColor(CasinoTheme.colors.darkGreen)
@@ -49,7 +85,7 @@ export function buildBlackjackPlayingView(
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `**ディーラー**: ${dealerDisplay}  →  ${dealerValueText}`,
+        `**ディーラー**: ${dealerDisplay}  →  ${dealerValueText}${dealerHint}`,
       ),
     );
 
@@ -63,9 +99,14 @@ export function buildBlackjackPlayingView(
     const handLabel = state.playerHands.length > 1 ? `ハンド ${i + 1}` : 'あなた';
     const betLabel = hand.doubled ? `${formatChips(hand.bet)}（ダブル）` : formatChips(hand.bet);
 
+    // Strategy hint for active hand
+    const playerValue = evaluateHand(hand.cards as never);
+    const strategyHint = isActive ? getBasicStrategyHint(playerValue, state.dealerCards[0]) : '';
+    const hintLine = strategyHint ? `\n${strategyHint}` : '';
+
     container.addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `**${handLabel}**: ${handDisplay}  →  ${valueText}${pointer}\nBet: ${betLabel}`,
+        `**${handLabel}**: ${handDisplay}  →  ${valueText}${pointer}\nBet: ${betLabel}${hintLine}`,
       ),
     );
   }
@@ -74,8 +115,11 @@ export function buildBlackjackPlayingView(
     new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
   );
 
+  // Bet info display
+  const totalBet = state.playerHands.reduce((sum, h) => sum + h.bet, 0n);
+  const insText = state.insuranceBet > 0n ? ` | 🛡️ インシュランス: ${formatChips(state.insuranceBet)}` : '';
   container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(`残高: ${formatChips(balance)}`),
+    new TextDisplayBuilder().setContent(`💰 合計BET: ${formatChips(totalBet)}${insText} | 残高: ${formatChips(balance)}`),
   );
 
   // Action buttons (only if playing)
@@ -223,10 +267,4 @@ function outcomeToText(outcome: string): string {
     case 'lose': return '❌ **負け**';
     default: return outcome;
   }
-}
-
-function getCardNumericValue(card: { rank: string }): number {
-  if (card.rank === 'A') return 11;
-  if (['J', 'Q', 'K'].includes(card.rank)) return 10;
-  return parseInt(card.rank);
 }

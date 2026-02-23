@@ -1,10 +1,9 @@
 import { type ButtonInteraction, MessageFlags } from 'discord.js';
 import { registerButtonHandler } from '../handler.js';
-import { buildHelpTopView, buildHelpCategoryView } from '../../ui/builders/help.builder.js';
+import { buildHelpTopView } from '../../ui/builders/help.builder.js';
 
 async function handleHelpButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
-  const action = parts[1]; // 'top' or 'cat'
   const ownerId = parts[2];
 
   if (interaction.user.id !== ownerId) {
@@ -16,14 +15,7 @@ async function handleHelpButton(interaction: ButtonInteraction): Promise<void> {
   }
 
   const userId = interaction.user.id;
-  let view;
-
-  if (action === 'cat') {
-    const categoryId = parts[3];
-    view = buildHelpCategoryView(userId, categoryId);
-  } else {
-    view = buildHelpTopView(userId);
-  }
+  const view = buildHelpTopView(userId);
 
   await interaction.update({
     components: [view],

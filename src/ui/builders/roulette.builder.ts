@@ -6,6 +6,8 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
@@ -39,58 +41,29 @@ function buildBetRow(bet: bigint, userId: string): ActionRowBuilder<ButtonBuilde
   );
 }
 
-function buildColorRow(userId: string): ActionRowBuilder<ButtonBuilder> {
-  return new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`roulette:red:${userId}`)
-      .setLabel('🔴 赤')
-      .setStyle(ButtonStyle.Danger),
-    new ButtonBuilder()
-      .setCustomId(`roulette:black:${userId}`)
-      .setLabel('⚫ 黒')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(`roulette:inside:${userId}`)
-      .setLabel('🔢 Inside')
-      .setStyle(ButtonStyle.Primary),
-  );
-}
-
-function buildParityRow(userId: string): ActionRowBuilder<ButtonBuilder> {
-  return new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`roulette:even:${userId}`)
-      .setLabel('偶数')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(`roulette:odd:${userId}`)
-      .setLabel('奇数')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(`roulette:low:${userId}`)
-      .setLabel('⬇ Low')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(`roulette:high:${userId}`)
-      .setLabel('⬆ High')
-      .setStyle(ButtonStyle.Secondary),
-  );
-}
-
-function buildDozenRow(userId: string): ActionRowBuilder<ButtonBuilder> {
-  return new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`roulette:1st12:${userId}`)
-      .setLabel('1st12')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(`roulette:2nd12:${userId}`)
-      .setLabel('2nd12')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(`roulette:3rd12:${userId}`)
-      .setLabel('3rd12')
-      .setStyle(ButtonStyle.Secondary),
+export function buildBetSelectMenu(userId: string): ActionRowBuilder<StringSelectMenuBuilder> {
+  return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId(`roulette_select:bet:${userId}`)
+      .setPlaceholder('ベットタイプを選択...')
+      .addOptions(
+        // Outside bets
+        new StringSelectMenuOptionBuilder().setLabel('🔴 赤').setValue('red').setDescription('赤の数字に賭ける — 配当 2倍'),
+        new StringSelectMenuOptionBuilder().setLabel('⚫ 黒').setValue('black').setDescription('黒の数字に賭ける — 配当 2倍'),
+        new StringSelectMenuOptionBuilder().setLabel('偶数').setValue('even').setDescription('偶数の数字に賭ける — 配当 2倍'),
+        new StringSelectMenuOptionBuilder().setLabel('奇数').setValue('odd').setDescription('奇数の数字に賭ける — 配当 2倍'),
+        new StringSelectMenuOptionBuilder().setLabel('⬇ Low (1-18)').setValue('low').setDescription('1〜18に賭ける — 配当 2倍'),
+        new StringSelectMenuOptionBuilder().setLabel('⬆ High (19-36)').setValue('high').setDescription('19〜36に賭ける — 配当 2倍'),
+        new StringSelectMenuOptionBuilder().setLabel('1st12 (1-12)').setValue('1st12').setDescription('1〜12のダズンに賭ける — 配当 3倍'),
+        new StringSelectMenuOptionBuilder().setLabel('2nd12 (13-24)').setValue('2nd12').setDescription('13〜24のダズンに賭ける — 配当 3倍'),
+        new StringSelectMenuOptionBuilder().setLabel('3rd12 (25-36)').setValue('3rd12').setDescription('25〜36のダズンに賭ける — 配当 3倍'),
+        // Inside bets
+        new StringSelectMenuOptionBuilder().setLabel('🎯 ストレート').setValue('straight').setDescription('1つの番号に賭ける — 配当 36倍'),
+        new StringSelectMenuOptionBuilder().setLabel('↔ スプリット').setValue('split').setDescription('隣接する2つの番号に賭ける — 配当 18倍'),
+        new StringSelectMenuOptionBuilder().setLabel('📏 ストリート').setValue('street').setDescription('1行3つの番号に賭ける — 配当 12倍'),
+        new StringSelectMenuOptionBuilder().setLabel('⬜ コーナー').setValue('corner').setDescription('4つの番号に賭ける — 配当 9倍'),
+        new StringSelectMenuOptionBuilder().setLabel('📐 シックスライン').setValue('sixline').setDescription('2行6つの番号に賭ける — 配当 6倍'),
+      ),
   );
 }
 
@@ -116,67 +89,7 @@ export function buildRouletteIdleView(
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     )
     .addActionRowComponents(buildBetRow(bet, userId))
-    .addActionRowComponents(buildColorRow(userId))
-    .addActionRowComponents(buildParityRow(userId))
-    .addActionRowComponents(buildDozenRow(userId));
-}
-
-export function buildRouletteInsideView(
-  bet: bigint,
-  userId: string,
-): ContainerBuilder {
-  return new ContainerBuilder()
-    .setAccentColor(CasinoTheme.colors.darkGreen)
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.roulette),
-    )
-    .addSeparatorComponents(
-      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-    )
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(
-        `💰 BET: **${formatChips(bet)}**\nインサイドベット:`,
-      ),
-    )
-    .addSeparatorComponents(
-      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-    )
-    .addActionRowComponents(
-      new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(`roulette:pick_straight:${userId}`)
-          .setLabel('🎯 ストレート (36x)')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId(`roulette:pick_split:${userId}`)
-          .setLabel('↔️ スプリット (18x)')
-          .setStyle(ButtonStyle.Primary),
-      ),
-    )
-    .addActionRowComponents(
-      new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(`roulette:pick_street:${userId}`)
-          .setLabel('📏 ストリート (12x)')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId(`roulette:pick_corner:${userId}`)
-          .setLabel('⬜ コーナー (9x)')
-          .setStyle(ButtonStyle.Primary),
-      ),
-    )
-    .addActionRowComponents(
-      new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(`roulette:pick_sixline:${userId}`)
-          .setLabel('📐 シックスライン (6x)')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId(`roulette:back:${userId}`)
-          .setLabel('◀ 戻る')
-          .setStyle(ButtonStyle.Secondary),
-      ),
-    );
+    .addActionRowComponents(buildBetSelectMenu(userId));
 }
 
 export function buildRouletteSpinningView(
@@ -246,7 +159,5 @@ export function buildRouletteResultView(
       new TextDisplayBuilder().setContent(balanceLine),
     )
     .addActionRowComponents(buildBetRow(bet, userId))
-    .addActionRowComponents(buildColorRow(userId))
-    .addActionRowComponents(buildParityRow(userId))
-    .addActionRowComponents(buildDozenRow(userId));
+    .addActionRowComponents(buildBetSelectMenu(userId));
 }

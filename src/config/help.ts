@@ -282,3 +282,12 @@ export const HELP_CATEGORIES: HelpCategory[] = [
 export const HELP_CATEGORY_MAP = new Map<string, HelpCategory>(
   HELP_CATEGORIES.map(c => [c.id, c]),
 );
+
+export const HELP_TIPS = `\
+💡 **使い方のコツ**
+- 毎日 \`/daily\` を忘れずに！連続ログインでボーナスUP
+- \`/bank\` に預金すると毎日利息がつく（1%/日）
+- \`/work\` でレベルを上げると高収入ジョブが解放
+- \`/shop\` のバフやアイテムで効率よく稼ごう
+- 破産しそうなら \`/bank\` → ローンを検討
+- ミッションを毎日クリアして追加報酬をゲット`;
