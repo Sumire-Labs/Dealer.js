@@ -24,6 +24,7 @@ async function loadModules(): Promise<void> {
   await import('./commands/casino/work.command.js');
   await import('./commands/casino/roulette.command.js');
   await import('./commands/casino/prison.command.js');
+  await import('./commands/casino/help.command.js');
 
   // Button handlers
   await import('./interactions/buttons/slots.buttons.js');
@@ -44,6 +45,7 @@ async function loadModules(): Promise<void> {
   await import('./interactions/buttons/roulette.buttons.js');
   await import('./interactions/buttons/shop.buttons.js');
   await import('./interactions/buttons/prison.buttons.js');
+  await import('./interactions/buttons/help.buttons.js');
 
   // Modal handlers
   await import('./interactions/modals/bet-amount.modal.js');
