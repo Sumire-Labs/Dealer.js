@@ -1,5 +1,6 @@
 import { config } from './index.js';
 import { DEFAULT_HORSE_NAMES } from './defaults.js';
+import { INITIAL_CHIPS, BANK_INTEREST_RATE } from './constants.js';
 import { loadYamlConfig, type YamlConfig } from './yaml-loader.js';
 import {
   getSetting,
@@ -10,6 +11,8 @@ import { logger } from '../utils/logger.js';
 
 const SETTING_KEYS = {
   horseNames: 'horse_race.names',
+  initialChips: 'economy.initial_chips',
+  bankInterestRate: 'economy.bank_interest_rate',
 } as const;
 
 class ConfigService {
@@ -58,6 +61,52 @@ class ConfigService {
   async resetHorseNames(): Promise<void> {
     await deleteSetting(SETTING_KEYS.horseNames);
     this.dbCache.delete(SETTING_KEYS.horseNames);
+  }
+
+  // --- Economy: Initial Chips ---
+
+  getInitialChips(): bigint {
+    const dbValue = this.dbCache.get(SETTING_KEYS.initialChips);
+    if (typeof dbValue === 'number' && dbValue > 0) {
+      return BigInt(dbValue);
+    }
+    if (this.yamlConfig.economy?.initialChips != null && this.yamlConfig.economy.initialChips > 0) {
+      return BigInt(this.yamlConfig.economy.initialChips);
+    }
+    return INITIAL_CHIPS;
+  }
+
+  async setInitialChips(value: bigint): Promise<void> {
+    await upsertSetting(SETTING_KEYS.initialChips, Number(value));
+    this.dbCache.set(SETTING_KEYS.initialChips, Number(value));
+  }
+
+  async resetInitialChips(): Promise<void> {
+    await deleteSetting(SETTING_KEYS.initialChips);
+    this.dbCache.delete(SETTING_KEYS.initialChips);
+  }
+
+  // --- Economy: Bank Interest Rate ---
+
+  getBankInterestRate(): bigint {
+    const dbValue = this.dbCache.get(SETTING_KEYS.bankInterestRate);
+    if (typeof dbValue === 'number' && dbValue >= 0) {
+      return BigInt(dbValue);
+    }
+    if (this.yamlConfig.economy?.bankInterestRate != null && this.yamlConfig.economy.bankInterestRate >= 0) {
+      return BigInt(this.yamlConfig.economy.bankInterestRate);
+    }
+    return BANK_INTEREST_RATE;
+  }
+
+  async setBankInterestRate(value: bigint): Promise<void> {
+    await upsertSetting(SETTING_KEYS.bankInterestRate, Number(value));
+    this.dbCache.set(SETTING_KEYS.bankInterestRate, Number(value));
+  }
+
+  async resetBankInterestRate(): Promise<void> {
+    await deleteSetting(SETTING_KEYS.bankInterestRate);
+    this.dbCache.delete(SETTING_KEYS.bankInterestRate);
   }
 
   async reload(): Promise<void> {

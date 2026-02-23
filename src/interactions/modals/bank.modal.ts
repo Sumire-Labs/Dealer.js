@@ -22,6 +22,7 @@ import {
 } from '../../database/services/bank-account.service.js';
 import { buildBankMainView, type BankViewData } from '../../ui/builders/bank.builder.js';
 import { formatChips } from '../../utils/formatters.js';
+import { configService } from '../../config/config.service.js';
 
 async function buildViewData(userId: string): Promise<BankViewData> {
   const user = await findOrCreateUser(userId);
@@ -37,6 +38,7 @@ async function buildViewData(userId: string): Promise<BankViewData> {
     penaltyRemainingMs,
     lastInterestAt: accountSummary.lastInterestAt,
     estimatedInterest: accountSummary.estimatedInterest,
+    baseInterestRate: configService.getBankInterestRate(),
   };
 }
 

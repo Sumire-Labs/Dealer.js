@@ -12,7 +12,7 @@ import { registerCommand } from '../registry.js';
 import { findOrCreateUser, resetUser } from '../../database/repositories/user.repository.js';
 import { createTransaction } from '../../database/repositories/transaction.repository.js';
 import { CasinoTheme } from '../../ui/themes/casino.theme.js';
-import { INITIAL_CHIPS } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
 import { formatChips } from '../../utils/formatters.js';
 
 const data = new SlashCommandBuilder()
@@ -34,7 +34,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     userId: targetUser.id,
     type: 'ADMIN_RESET',
     amount: 0n,
-    balanceAfter: INITIAL_CHIPS,
+    balanceAfter: configService.getInitialChips(),
   });
 
   const container = new ContainerBuilder()
@@ -47,7 +47,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     )
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        `<@${targetUser.id}> のアカウントをリセットしました。\nチップを **${formatChips(INITIAL_CHIPS)}** に設定し、統計をクリアしました。`,
+        `<@${targetUser.id}> のアカウントをリセットしました。\nチップを **${formatChips(configService.getInitialChips())}** に設定し、統計をクリアしました。`,
       ),
     );
 

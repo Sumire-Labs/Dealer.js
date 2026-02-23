@@ -8,6 +8,7 @@ import { findOrCreateUser } from '../../database/repositories/user.repository.js
 import { getLoanSummary, getBankruptcyPenaltyRemaining } from '../../database/services/loan.service.js';
 import { getBankAccountSummary } from '../../database/services/bank-account.service.js';
 import { buildBankMainView } from '../../ui/builders/bank.builder.js';
+import { configService } from '../../config/config.service.js';
 
 const data = new SlashCommandBuilder()
   .setName('bank')
@@ -29,6 +30,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     penaltyRemainingMs: penaltyRemaining,
     lastInterestAt: accountSummary.lastInterestAt,
     estimatedInterest: accountSummary.estimatedInterest,
+    baseInterestRate: configService.getBankInterestRate(),
   });
 
   await interaction.reply({

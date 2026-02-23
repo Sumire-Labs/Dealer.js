@@ -14,6 +14,10 @@ export interface YamlConfig {
   horseRace?: {
     names?: string[];
   };
+  economy?: {
+    initialChips?: number;
+    bankInterestRate?: number;
+  };
 }
 
 export function loadYamlConfig(path: string): YamlConfig {
@@ -59,6 +63,18 @@ export function loadYamlConfig(path: string): YamlConfig {
             (n: unknown): n is string => typeof n === 'string' && n.trim().length > 0,
           ),
         };
+      }
+    }
+
+    // Parse economy section
+    const economy = parsed['economy'] as Record<string, unknown> | undefined;
+    if (economy && typeof economy === 'object') {
+      result.economy = {};
+      if (typeof economy['initial-chips'] === 'number' && economy['initial-chips'] > 0) {
+        result.economy.initialChips = economy['initial-chips'];
+      }
+      if (typeof economy['bank-interest-rate'] === 'number' && economy['bank-interest-rate'] >= 0) {
+        result.economy.bankInterestRate = economy['bank-interest-rate'];
       }
     }
 

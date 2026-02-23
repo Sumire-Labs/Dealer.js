@@ -1,10 +1,10 @@
 import { prisma } from '../client.js';
 import { findOrCreateUser } from '../repositories/user.repository.js';
 import {
-  BANK_INTEREST_RATE,
   BANK_INTEREST_PERIOD_MS,
   BANK_MIN_BALANCE_FOR_INTEREST,
 } from '../../config/constants.js';
+import { configService } from '../../config/config.service.js';
 import { hasActiveBuff, getInventoryQuantity } from './shop.service.js';
 import { SHOP_EFFECTS } from '../../config/shop.js';
 
@@ -20,7 +20,7 @@ export async function getBankAccountSummary(userId: string): Promise<BankAccount
 
   let estimatedInterest = 0n;
   if (user.bankBalance >= BANK_MIN_BALANCE_FOR_INTEREST) {
-    estimatedInterest = (user.bankBalance * BANK_INTEREST_RATE) / 100n;
+    estimatedInterest = (user.bankBalance * configService.getBankInterestRate()) / 100n;
   }
 
   return {
@@ -170,7 +170,7 @@ export async function applyInterest(userId: string): Promise<bigint | null> {
     }
 
     // Calculate effective interest rate with shop upgrades
-    let effectiveRate = BANK_INTEREST_RATE;
+    let effectiveRate = configService.getBankInterestRate();
     try {
       // BANK_EXPANSION: +1% per stack
       const expansionCount = await getInventoryQuantity(userId, 'BANK_EXPANSION');

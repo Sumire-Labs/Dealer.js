@@ -1,12 +1,11 @@
 import { prisma } from '../client.js';
-
-const INITIAL_CHIPS = 10000n;
+import { configService } from '../../config/config.service.js';
 
 export async function findOrCreateUser(userId: string) {
   return prisma.user.upsert({
     where: { id: userId },
     update: {},
-    create: { id: userId, chips: INITIAL_CHIPS },
+    create: { id: userId, chips: configService.getInitialChips() },
   });
 }
 
@@ -82,7 +81,7 @@ export async function resetUser(userId: string) {
   return prisma.user.update({
     where: { id: userId },
     data: {
-      chips: INITIAL_CHIPS,
+      chips: configService.getInitialChips(),
       bankBalance: 0n,
       totalWon: 0n,
       totalLost: 0n,

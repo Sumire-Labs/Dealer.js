@@ -21,6 +21,7 @@ export interface BankViewData {
   penaltyRemainingMs: number;
   lastInterestAt: Date | null;
   estimatedInterest: bigint;
+  baseInterestRate: bigint;
 }
 
 export function buildBankMainView(data: BankViewData, tab: BankTab = 'account'): ContainerBuilder {
@@ -57,7 +58,7 @@ export function buildBankMainView(data: BankViewData, tab: BankTab = 'account'):
     );
 
     // Interest info
-    let interestInfo = `📈 利息情報\n　日利: 1%\n`;
+    let interestInfo = `📈 利息情報\n　日利: ${data.baseInterestRate}%\n`;
     if (estimatedInterest > 0n) {
       interestInfo += `　次回利息: ${formatChips(estimatedInterest)}（24時間ごと）`;
     } else {
