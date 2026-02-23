@@ -26,3 +26,7 @@ horse-race:
     - 養命酒
     - 岸田
     - しーしぇん
+
+economy:
+  initial-chips: 10000        # 新規ユーザーの初期チップ
+  bank-interest-rate: 10       # 銀行の日利 (%)
