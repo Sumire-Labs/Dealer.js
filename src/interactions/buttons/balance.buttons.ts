@@ -1,6 +1,6 @@
 import { type ButtonInteraction, MessageFlags } from 'discord.js';
 import { registerButtonHandler } from '../handler.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
+import { findOrCreateUser, getTodayStats } from '../../database/repositories/user.repository.js';
 import { getUserRank } from '../../database/repositories/leaderboard.repository.js';
 import { buildBalanceView, type BalanceTab } from '../../ui/builders/balance.builder.js';
 import { buildProfileView } from '../../ui/builders/profile.builder.js';
@@ -51,6 +51,9 @@ async function handleBalanceButton(interaction: ButtonInteraction): Promise<void
   // Balance / Stats tabs
   const rank = await getUserRank(targetId, 'chips');
 
+  // Fetch today's stats for the stats tab
+  const todayStats = tab === 'stats' ? await getTodayStats(targetId) : undefined;
+
   const container = buildBalanceView({
     userId: ownerId,
     targetId,
@@ -62,6 +65,7 @@ async function handleBalanceButton(interaction: ButtonInteraction): Promise<void
     totalGames: dbUser.totalGames,
     rank,
     isSelf: ownerId === targetId,
+    todayStats,
   }, tab);
 
   await interaction.update({

@@ -58,6 +58,9 @@ async function loadModules(): Promise<void> {
   await import('./interactions/select-menus/leaderboard.select-menu.js');
   await import('./interactions/select-menus/inventory.select-menu.js');
   await import('./interactions/select-menus/help.select-menu.js');
+  await import('./interactions/select-menus/work.select-menu.js');
+  await import('./interactions/select-menus/business.select-menu.js');
+  await import('./interactions/select-menus/heist.select-menu.js');
 
   // Modal handlers
   await import('./interactions/modals/bet-amount.modal.js');

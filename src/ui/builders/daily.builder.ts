@@ -131,10 +131,10 @@ export function buildDailyMissionsView(
     const reward = formatChips(m.reward);
 
     if (m.completed) {
-      return `✅ ${name} [${m.target}/${m.target}] — ${reward} ✔️`;
+      return `✅ ${name} [${m.target}/${m.target}] — ${reward} ✔️\n${buildMissionProgressBar(m.target, m.target)}`;
     }
     const icon = m.progress > 0 ? '🔶' : '🔴';
-    return `${icon} ${name} [${m.progress}/${m.target}] — ${reward}`;
+    return `${icon} ${name} [${m.progress}/${m.target}] — ${reward}\n${buildMissionProgressBar(m.progress, m.target)}`;
   });
 
   const completedCount = missions.filter(m => m.completed).length;
@@ -202,4 +202,13 @@ export function buildDailyMissionsHelpView(
           .setStyle(ButtonStyle.Secondary),
       ),
     );
+}
+
+function buildMissionProgressBar(progress: number, target: number): string {
+  const ratio = Math.min(progress / target, 1);
+  const filled = Math.round(ratio * 10);
+  const empty = 10 - filled;
+  const bar = '█'.repeat(filled) + '░'.repeat(empty);
+  const percent = Math.round(ratio * 100);
+  return `[${bar}] ${percent}%`;
 }

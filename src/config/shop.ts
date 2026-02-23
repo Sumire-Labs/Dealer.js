@@ -27,6 +27,7 @@ export interface ShopItem {
   dailyEligible?: boolean;  // Can appear in daily rotation
   rankRequired?: ShopRank;  // Minimum shop rank to purchase
   giftable?: boolean;       // Can be sent as a gift
+  sourceHint?: string;      // Hint for how to obtain this item (shown in craft view)
 }
 
 export interface MysteryBoxLoot {
@@ -84,6 +85,7 @@ export const CONSUMABLES: ShopItem[] = [
     category: 'consumable',
     dailyEligible: true,
     giftable: true,
+    sourceHint: '/shop で購入',
   },
   {
     id: 'HEIST_INTEL',
@@ -130,6 +132,7 @@ export const BUFFS: ShopItem[] = [
     category: 'buff',
     buffDurationMs: BUFF_DURATION_MS,
     dailyEligible: true,
+    sourceHint: '/shop で購入',
   },
   {
     id: 'INTEREST_BOOSTER',
@@ -431,6 +434,7 @@ export const MYSTERY_BOXES: MysteryBoxDefinition[] = [
     category: 'mystery',
     dailyEligible: true,
     giftable: true,
+    sourceHint: '/shop ミステリーで購入',
     lootTable: [
       { type: 'chips', chipsMin: 500n, chipsMax: 1_500n, rarity: 'common', weight: 50 },
       { type: 'item', itemId: 'MISSION_REROLL', rarity: 'uncommon', weight: 10 },
@@ -451,6 +455,7 @@ export const MYSTERY_BOXES: MysteryBoxDefinition[] = [
     category: 'mystery',
     dailyEligible: true,
     giftable: true,
+    sourceHint: '/shop ミステリーで購入',
     lootTable: [
       { type: 'chips', chipsMin: 5_000n, chipsMax: 10_000n, rarity: 'common', weight: 40 },
       { type: 'item', itemId: 'XP_BOOSTER', rarity: 'uncommon', weight: 10 },
@@ -473,6 +478,7 @@ export const MYSTERY_BOXES: MysteryBoxDefinition[] = [
     price: 70_000n,
     category: 'mystery',
     giftable: true,
+    sourceHint: '/shop ミステリーで購入',
     lootTable: [
       { type: 'chips', chipsMin: 25_000n, chipsMax: 50_000n, rarity: 'common', weight: 30 },
       { type: 'item', itemId: 'VIP_PASS', rarity: 'uncommon', weight: 10 },
@@ -549,6 +555,7 @@ export const INSURANCE: ShopItem[] = [
     category: 'insurance',
     maxStack: 3,
     dailyEligible: true,
+    sourceHint: '/shop で購入',
   },
 ];
 

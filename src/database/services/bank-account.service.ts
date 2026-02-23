@@ -18,8 +18,8 @@ export interface BankAccountSummary {
   hasInterestBooster: boolean;
 }
 
-export async function getBankAccountSummary(userId: string): Promise<BankAccountSummary> {
-  const user = await findOrCreateUser(userId);
+export async function getBankAccountSummary(userId: string, existingUser?: { chips: bigint; bankBalance: bigint; lastInterestAt: Date | null }): Promise<BankAccountSummary> {
+  const user = existingUser ?? await findOrCreateUser(userId);
 
   // Calculate effective interest rate with shop upgrades
   let effectiveRate = configService.getBigInt(S.bankInterestRate);

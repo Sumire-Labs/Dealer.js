@@ -6,6 +6,8 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
@@ -65,19 +67,21 @@ export function buildHeistTargetSelectView(userId: string, amount: bigint): Cont
     new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
   );
 
-  const buttons = HEIST_TARGETS.map(t =>
-    new ButtonBuilder()
-      .setCustomId(`heist:target:${userId}:${amount}:${t.id}`)
+  const targetOptions = HEIST_TARGETS.map(t => {
+    const rateSign = t.successRateModifier >= 0 ? '+' : '';
+    return new StringSelectMenuOptionBuilder()
       .setLabel(`${t.emoji} ${t.name}`)
-      .setStyle(
-        t.id === 'convenience_store' ? ButtonStyle.Success
-          : t.id === 'bank' ? ButtonStyle.Primary
-            : ButtonStyle.Danger,
-      ),
-  );
+      .setDescription(`報酬 ${t.multiplierMin}x〜${t.multiplierMax}x | 成功率 ${rateSign}${t.successRateModifier}%`)
+      .setValue(t.id);
+  });
 
   container.addActionRowComponents(
-    new ActionRowBuilder<ButtonBuilder>().addComponents(...buttons),
+    new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId(`heist_select:target:${userId}:${amount}`)
+        .setPlaceholder('🎯 ターゲットを選択...')
+        .addOptions(targetOptions),
+    ),
   );
 
   return container;
@@ -123,19 +127,22 @@ export function buildHeistRiskSelectView(
     new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
   );
 
-  const buttons = HEIST_RISKS.map(r =>
-    new ButtonBuilder()
-      .setCustomId(`heist:risk:${userId}:${amount}:${targetId}:${r.id}`)
+  const riskOptions = HEIST_RISKS.map(r => {
+    const maxFee = calculateMaxEntryFee(targetId, r.id);
+    const rateSign = r.successRateModifier >= 0 ? '+' : '';
+    return new StringSelectMenuOptionBuilder()
       .setLabel(`${r.emoji} ${r.name}`)
-      .setStyle(
-        r.id === 'low' ? ButtonStyle.Success
-          : r.id === 'mid' ? ButtonStyle.Primary
-            : ButtonStyle.Danger,
-      ),
-  );
+      .setDescription(`成功率 ${rateSign}${r.successRateModifier}% | 倍率 x${r.multiplierScale} | 上限 ${formatChips(maxFee)}`)
+      .setValue(r.id);
+  });
 
   container.addActionRowComponents(
-    new ActionRowBuilder<ButtonBuilder>().addComponents(...buttons),
+    new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId(`heist_select:risk:${userId}:${amount}:${targetId}`)
+        .setPlaceholder('⚡ リスクレベルを選択...')
+        .addOptions(riskOptions),
+    ),
   );
 
   return container;
@@ -182,28 +189,31 @@ export function buildHeistApproachSelectView(
     new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
   );
 
-  // Approach buttons
-  const approachButtons = HEIST_APPROACHES.map(a =>
-    new ButtonBuilder()
-      .setCustomId(`heist:approach:${userId}:${amount}:${targetId}:${riskId}:${a.id}`)
+  // Approach SelectMenu (Group)
+  const groupOptions = HEIST_APPROACHES.map(a => {
+    const rateSign = a.successRateModifier >= 0 ? '+' : '';
+    return new StringSelectMenuOptionBuilder()
       .setLabel(`${a.emoji} ${a.name} (グループ)`)
-      .setStyle(a.id === 'stealth' ? ButtonStyle.Primary : ButtonStyle.Danger),
-  );
+      .setDescription(`成功率 ${rateSign}${a.successRateModifier}% | 倍率 x${a.multiplierScale}`)
+      .setValue(`group:${a.id}`);
+  });
 
-  container.addActionRowComponents(
-    new ActionRowBuilder<ButtonBuilder>().addComponents(...approachButtons),
-  );
-
-  // Solo buttons
-  const soloButtons = HEIST_APPROACHES.map(a =>
-    new ButtonBuilder()
-      .setCustomId(`heist:solo:${userId}:${amount}:${targetId}:${riskId}:${a.id}`)
+  // Approach SelectMenu (Solo)
+  const soloOptions = HEIST_APPROACHES.map(a => {
+    const rateSign = a.successRateModifier >= 0 ? '+' : '';
+    return new StringSelectMenuOptionBuilder()
       .setLabel(`${a.emoji} ${a.name} (ソロ)`)
-      .setStyle(ButtonStyle.Secondary),
-  );
+      .setDescription(`成功率 ${rateSign}${a.successRateModifier}% | 倍率 x${a.multiplierScale}`)
+      .setValue(`solo:${a.id}`);
+  });
 
   container.addActionRowComponents(
-    new ActionRowBuilder<ButtonBuilder>().addComponents(...soloButtons),
+    new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId(`heist_select:approach:${userId}:${amount}:${targetId}:${riskId}`)
+        .setPlaceholder('🔫 アプローチを選択...')
+        .addOptions([...groupOptions, ...soloOptions]),
+    ),
   );
 
   return container;

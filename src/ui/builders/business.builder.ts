@@ -6,6 +6,8 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
@@ -60,19 +62,23 @@ export function buildBusinessDashboardView(data: BusinessDashboardData, userId: 
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     );
 
-    // Buy buttons
-    const buyButtons = BUSINESS_TYPES.map(bt =>
-      new ButtonBuilder()
-        .setCustomId(`biz:buy:${userId}:${bt.id}`)
+    // Buy SelectMenu
+    const buyOptions = BUSINESS_TYPES.map(bt => {
+      const lv1 = bt.levels[0];
+      return new StringSelectMenuOptionBuilder()
         .setLabel(`${bt.emoji} ${bt.name}`)
-        .setStyle(ButtonStyle.Primary),
-    );
+        .setDescription(`💰${formatChips(bt.purchaseCost)} | 収入 ${formatChips(lv1.incomePerHour)}/h`)
+        .setValue(bt.id);
+    });
 
-    for (let i = 0; i < buyButtons.length; i += 5) {
-      container.addActionRowComponents(
-        new ActionRowBuilder<ButtonBuilder>().addComponents(...buyButtons.slice(i, i + 5)),
-      );
-    }
+    container.addActionRowComponents(
+      new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId(`biz_select:buy:${userId}`)
+          .setPlaceholder('🏢 ビジネスを選択...')
+          .addOptions(buyOptions),
+      ),
+    );
 
     return container;
   }

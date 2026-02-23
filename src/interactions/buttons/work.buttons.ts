@@ -10,7 +10,6 @@ import { registerButtonHandler } from '../handler.js';
 import { performWork, resolveMultiStepWork, getWorkPanelData } from '../../database/services/work.service.js';
 import {
   buildWorkPanelView,
-  buildShiftSelectView,
   buildWorkResultView,
   buildMultiStepEventView,
   buildWeeklyChallengeView,
@@ -22,7 +21,6 @@ import { CasinoTheme } from '../../ui/themes/casino.theme.js';
 import { formatTimeDelta } from '../../utils/formatters.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 import { buildMissionNotification } from '../../database/services/mission.service.js';
-import { rollSpecialShifts } from '../../config/special-shifts.js';
 import { configService } from '../../config/config.service.js';
 import { S } from '../../config/setting-defs.js';
 import { setCooldown, buildCooldownKey } from '../../utils/cooldown.js';
@@ -73,37 +71,6 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
         xpForNextLevel: panelData.xpForNextLevel,
         masteries: panelData.masteries,
         weeklyChallenges,
-      });
-
-      await interaction.update({
-        components: [view],
-        flags: MessageFlags.IsComponentsV2,
-      });
-      break;
-    }
-
-    case 'job': {
-      const jobId = parts[3];
-
-      const job = JOB_MAP.get(jobId) ?? PROMOTED_JOB_MAP.get(jobId);
-      if (!job) {
-        await interaction.reply({
-          content: '無効な職種です。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
-      // Roll special shifts
-      const specialShifts = rollSpecialShifts(ownerId);
-
-      const view = buildShiftSelectView({
-        userId: ownerId,
-        jobId: job.id,
-        jobName: job.name,
-        jobEmoji: job.emoji,
-        isPromoted: 'isPromoted' in job,
-        specialShifts,
       });
 
       await interaction.update({

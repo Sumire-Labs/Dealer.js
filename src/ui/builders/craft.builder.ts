@@ -46,8 +46,9 @@ export function buildCraftListView(
       const materialLines = recipe.materials.map(m => {
         const item = ITEM_MAP.get(m.itemId);
         const owned = invMap.get(m.itemId) ?? 0;
-        const enough = owned >= m.quantity ? '✅' : '❌';
-        return `  ${enough} ${item?.emoji ?? '❓'} ${item?.name ?? m.itemId} (${owned}/${m.quantity})`;
+        const enough = owned >= m.quantity;
+        const hint = !enough && item?.sourceHint ? ` — ${item.sourceHint}` : '';
+        return `  ${enough ? '✅' : '❌'} ${item?.emoji ?? '❓'} ${item?.name ?? m.itemId} (${owned}/${m.quantity})${hint}`;
       });
       const resultItem = ITEM_MAP.get(recipe.resultItemId);
       lines.push(`${recipe.emoji} **${recipe.name}**`);

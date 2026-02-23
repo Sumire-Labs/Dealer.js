@@ -29,8 +29,7 @@ export function buildCollectionListView(
   const lines: string[] = [];
   for (const p of progress) {
     const status = p.completed ? '✅' : `${p.ownedItems.length}/${p.total}`;
-    lines.push(`${p.collection.emoji} **${p.collection.name}** — ${status}`);
-    lines.push(`  ${p.collection.rewardDescription}`);
+    lines.push(`${p.collection.emoji} **${p.collection.name}** [${status}] — 報酬: ${p.collection.rewardDescription}`);
   }
 
   if (lines.length === 0) {

@@ -10,7 +10,6 @@ import {
 import { registerButtonHandler } from '../handler.js';
 import {
   getBusinessDashboard,
-  buyBusiness,
   upgradeBusinessLevel,
   collectIncome,
   fireEmployee,
@@ -38,34 +37,6 @@ async function handleBusinessButton(interaction: ButtonInteraction): Promise<voi
   }
 
   switch (action) {
-    case 'buy': {
-      const typeId = parts[3];
-
-      const result = await buyBusiness(ownerId, typeId);
-      if (!result.success) {
-        await interaction.reply({
-          content: result.error!,
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
-      const typeDef = BUSINESS_TYPE_MAP.get(typeId);
-      await interaction.reply({
-        content: `${typeDef?.emoji ?? '🏢'} **${typeDef?.name ?? typeId}** を購入しました！`,
-        flags: MessageFlags.Ephemeral,
-      });
-
-      // Update the dashboard
-      const dashboard = await getBusinessDashboard(ownerId);
-      const view = buildBusinessDashboardView(dashboard, ownerId);
-      await interaction.message.edit({
-        components: [view],
-        flags: MessageFlags.IsComponentsV2,
-      });
-      break;
-    }
-
     case 'collect': {
       const result = await collectIncome(ownerId);
       if (!result.success) {

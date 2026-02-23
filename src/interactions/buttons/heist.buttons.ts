@@ -11,19 +11,14 @@ import {
 } from '../../games/heist/heist.session.js';
 import {
   buildHeistLobbyView,
-  buildHeistRiskSelectView,
   buildHeistApproachSelectView,
-  buildHeistConfirmView,
 } from '../../ui/builders/heist.builder.js';
 import { formatChips } from '../../utils/formatters.js';
 import {
   HEIST_MAX_PLAYERS,
   HEIST_LOBBY_DURATION_MS,
 } from '../../config/constants.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
 import { runHeist, startLobbyCountdown } from '../../commands/casino/heist.command.js';
-import { calculateMaxEntryFee } from '../../games/heist/heist.engine.js';
 import {
   type HeistTarget,
   type HeistRiskLevel,
@@ -38,118 +33,6 @@ async function handleHeistButton(interaction: ButtonInteraction): Promise<void> 
 
   switch (action) {
     // --- Ephemeral selection phase (no session yet) ---
-
-    case 'target': {
-      const ownerId = parts[2];
-      const amount = BigInt(parts[3]);
-      const targetId = parts[4] as HeistTarget;
-
-      if (userId !== ownerId) {
-        await interaction.reply({ content: '他のプレイヤーの操作はできません。', flags: MessageFlags.Ephemeral });
-        return;
-      }
-
-      // Validate target exists
-      if (!HEIST_TARGET_MAP.has(targetId)) {
-        await interaction.reply({ content: '無効なターゲットです。', flags: MessageFlags.Ephemeral });
-        return;
-      }
-
-      const view = buildHeistRiskSelectView(ownerId, amount, targetId);
-      await interaction.update({
-        components: [view],
-        flags: MessageFlags.IsComponentsV2,
-      });
-      break;
-    }
-
-    case 'risk': {
-      const ownerId = parts[2];
-      const amount = BigInt(parts[3]);
-      const targetId = parts[4] as HeistTarget;
-      const riskId = parts[5] as HeistRiskLevel;
-
-      if (userId !== ownerId) {
-        await interaction.reply({ content: '他のプレイヤーの操作はできません。', flags: MessageFlags.Ephemeral });
-        return;
-      }
-
-      const view = buildHeistApproachSelectView(ownerId, amount, targetId, riskId);
-      await interaction.update({
-        components: [view],
-        flags: MessageFlags.IsComponentsV2,
-      });
-      break;
-    }
-
-    case 'approach': {
-      // Group mode: show confirmation screen
-      const ownerId = parts[2];
-      const amount = BigInt(parts[3]);
-      const targetId = parts[4] as HeistTarget;
-      const riskId = parts[5] as HeistRiskLevel;
-      const approachId = parts[6] as HeistApproach;
-
-      if (userId !== ownerId) {
-        await interaction.reply({ content: '他のプレイヤーの操作はできません。', flags: MessageFlags.Ephemeral });
-        return;
-      }
-
-      // Validate entry fee against target+risk max
-      const maxFee = calculateMaxEntryFee(targetId, riskId);
-      if (amount > maxFee) {
-        await interaction.reply({
-          content: `参加費がこの組み合わせの上限を超えています！最大: ${formatChips(maxFee)}`,
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-      if (amount < configService.getBigInt(S.heistMinEntry)) {
-        await interaction.reply({
-          content: `参加費が最低額を下回っています！最低: ${formatChips(configService.getBigInt(S.heistMinEntry))}`,
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
-      const confirmView = buildHeistConfirmView(ownerId, amount, targetId, riskId, approachId, false);
-      await interaction.update({
-        components: [confirmView],
-        flags: MessageFlags.IsComponentsV2,
-      });
-      break;
-    }
-
-    case 'solo': {
-      // Solo mode: show confirmation screen
-      const ownerId = parts[2];
-      const amount = BigInt(parts[3]);
-      const targetId = parts[4] as HeistTarget;
-      const riskId = parts[5] as HeistRiskLevel;
-      const approachId = parts[6] as HeistApproach;
-
-      if (userId !== ownerId) {
-        await interaction.reply({ content: '他のプレイヤーの操作はできません。', flags: MessageFlags.Ephemeral });
-        return;
-      }
-
-      // Validate entry fee
-      const maxFee = calculateMaxEntryFee(targetId, riskId);
-      if (amount > maxFee) {
-        await interaction.reply({
-          content: `参加費がこの組み合わせの上限を超えています！最大: ${formatChips(maxFee)}`,
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
-      const confirmView = buildHeistConfirmView(ownerId, amount, targetId, riskId, approachId, true);
-      await interaction.update({
-        components: [confirmView],
-        flags: MessageFlags.IsComponentsV2,
-      });
-      break;
-    }
 
     case 'confirm': {
       // Execute heist after confirmation

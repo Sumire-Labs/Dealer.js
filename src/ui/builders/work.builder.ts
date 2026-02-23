@@ -6,6 +6,8 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
 } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips, formatTimeDelta } from '../../utils/formatters.js';
@@ -55,7 +57,8 @@ function buildXpBar(currentXp: number, nextLevelXp: number | null, currentLevel:
   const empty = 10 - filled;
   const bar = '█'.repeat(filled) + '░'.repeat(empty);
   const percent = Math.round(ratio * 100);
-  return `${bar} ${percent}%`;
+  const remaining = needed - progress;
+  return `${bar} ${percent}% (あと${remaining}XP)`;
 }
 
 export function buildWorkPanelView(data: WorkPanelViewData): ContainerBuilder {
@@ -94,7 +97,7 @@ export function buildWorkPanelView(data: WorkPanelViewData): ContainerBuilder {
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     );
 
-  // Job list with mastery tiers
+  // Job list with mastery tiers + estimated pay with mastery bonus
   const jobLines: string[] = [];
 
   // Base jobs
@@ -103,7 +106,13 @@ export function buildWorkPanelView(data: WorkPanelViewData): ContainerBuilder {
       const masteryInfo = masteries?.get(job.id);
       const tier = getMasteryTier(masteryInfo?.level ?? 0);
       const masteryLabel = `${tier.emoji}`;
-      jobLines.push(`${job.emoji} ${job.name} ${masteryLabel}　${formatChips(job.basePay.min)}〜${formatChips(job.basePay.max)}`);
+      const bonusPct = tier.payBonus;
+      const estMin = job.basePay.min + (job.basePay.min * BigInt(bonusPct)) / 100n;
+      const estMax = job.basePay.max + (job.basePay.max * BigInt(bonusPct)) / 100n;
+      const payRange = bonusPct > 0
+        ? `${formatChips(estMin)}〜${formatChips(estMax)} (+${bonusPct}%)`
+        : `${formatChips(job.basePay.min)}〜${formatChips(job.basePay.max)}`;
+      jobLines.push(`${job.emoji} ${job.name} ${masteryLabel}　${payRange}`);
     } else {
       jobLines.push(`🔒 ${job.name} (Lv.${job.requiredLevel})`);
     }
@@ -154,20 +163,32 @@ export function buildWorkPanelView(data: WorkPanelViewData): ContainerBuilder {
     new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
   );
 
-  // Job selection buttons (only available jobs)
-  const buttons = availableJobs.map(job =>
-    new ButtonBuilder()
-      .setCustomId(`work:job:${userId}:${job.id}`)
-      .setLabel(job.emoji + ' ' + job.name)
-      .setStyle('isPromoted' in job ? ButtonStyle.Success : ButtonStyle.Secondary),
-  );
+  // Job selection StringSelectMenu
+  const jobOptions = availableJobs.map(job => {
+    const masteryInfo = masteries?.get(job.id);
+    const tier = getMasteryTier(masteryInfo?.level ?? 0);
+    const bonusPct = tier.payBonus;
+    const estMin = job.basePay.min + (job.basePay.min * BigInt(bonusPct)) / 100n;
+    const estMax = job.basePay.max + (job.basePay.max * BigInt(bonusPct)) / 100n;
+    const isPromoted = 'isPromoted' in job;
+    const reqLevel = 'requiredLevel' in job ? (job as import('../../config/jobs.js').JobDefinition).requiredLevel : 5;
+    const desc = isPromoted
+      ? `⭐ 昇進ジョブ | ${formatChips(job.basePay.min)}〜${formatChips(job.basePay.max)}`
+      : `Lv.${reqLevel}〜 | ${formatChips(estMin)}〜${formatChips(estMax)} ${tier.emoji}`;
+    return new StringSelectMenuOptionBuilder()
+      .setLabel(`${job.emoji} ${job.name}`)
+      .setDescription(desc)
+      .setValue(job.id);
+  });
 
-  // Discord allows max 5 buttons per row
-  for (let i = 0; i < buttons.length; i += 5) {
-    container.addActionRowComponents(
-      new ActionRowBuilder<ButtonBuilder>().addComponents(...buttons.slice(i, i + 5)),
-    );
-  }
+  container.addActionRowComponents(
+    new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId(`work_select:job:${userId}`)
+        .setPlaceholder('💼 ジョブを選択...')
+        .addOptions(jobOptions),
+    ),
+  );
 
   // Extra buttons row: team shift + weekly challenges
   container.addActionRowComponents(

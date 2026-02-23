@@ -86,6 +86,7 @@ export const WORK_TOOLS: WorkToolDefinition[] = [
     maxStack: 1,
     targetJobId: 'all',
     toolPayBonus: 5,
+    sourceHint: '/shop 仕事道具で購入',
   },
 ];
 

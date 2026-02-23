@@ -14,10 +14,12 @@ export async function buildBankViewData(
   userId: string,
   options?: { historyPage?: number; loanPage?: number },
 ): Promise<BankViewData> {
-  const [user, loanSummary, accountSummary, individualLoans, fixedDeposits] = await Promise.all([
-    findOrCreateUser(userId),
+  // Resolve user first to avoid race condition (duplicate upsert with getBankAccountSummary)
+  const user = await findOrCreateUser(userId);
+
+  const [loanSummary, accountSummary, individualLoans, fixedDeposits] = await Promise.all([
     getLoanSummary(userId),
-    getBankAccountSummary(userId),
+    getBankAccountSummary(userId, user),
     getLoanDetails(userId),
     getFixedDepositsForDisplay(userId),
   ]);
