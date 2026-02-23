@@ -27,6 +27,7 @@ import {
   HEIST_APPROACH_MAP,
   type HeistTarget,
   type HeistRiskLevel,
+  type HeistApproach,
 } from '../../config/heist.js';
 
 // --- Selection Views (ephemeral) ---
@@ -204,6 +205,79 @@ export function buildHeistApproachSelectView(
   container.addActionRowComponents(
     new ActionRowBuilder<ButtonBuilder>().addComponents(...soloButtons),
   );
+
+  return container;
+}
+
+// --- Confirmation View ---
+
+export function buildHeistConfirmView(
+  userId: string,
+  amount: bigint,
+  targetId: HeistTarget,
+  riskId: HeistRiskLevel,
+  approachId: HeistApproach,
+  isSolo: boolean,
+): ContainerBuilder {
+  const target = HEIST_TARGET_MAP.get(targetId)!;
+  const risk = HEIST_RISK_MAP.get(riskId)!;
+  const approach = HEIST_APPROACH_MAP.get(approachId)!;
+
+  const params: HeistCalcParams = {
+    playerCount: 1,
+    target: targetId,
+    riskLevel: riskId,
+    approach: approachId,
+    isSolo,
+  };
+  const successRate = calculateSuccessRate(params);
+  const { min, max } = calculateMultiplierRange(params);
+  const minReturn = BigInt(Math.round(Number(amount) * min));
+  const maxReturn = BigInt(Math.round(Number(amount) * max));
+  const mode = isSolo ? 'solo' : 'group';
+
+  const container = new ContainerBuilder()
+    .setAccentColor(CasinoTheme.colors.red)
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.heist),
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent('**📋 最終確認**'),
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(
+        `${target.emoji} **ターゲット**: ${target.name}\n` +
+        `${risk.emoji} **リスク**: ${risk.name}\n` +
+        `${approach.emoji} **アプローチ**: ${approach.name}\n` +
+        `👤 **モード**: ${isSolo ? 'ソロ' : 'グループ'}\n` +
+        `💰 **参加費**: ${formatChips(amount)}\n` +
+        `📊 **成功率**: ${successRate}%\n` +
+        `💎 **倍率**: ${min}x〜${max}x\n` +
+        `💵 **推定リターン**: ${formatChips(minReturn)}〜${formatChips(maxReturn)}\n` +
+        `📝 **フェーズ数**: ${target.phases.length}`,
+      ),
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    )
+    .addActionRowComponents(
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`heist:confirm:${userId}:${amount}:${targetId}:${riskId}:${approachId}:${mode}`)
+          .setLabel('🔫 決行')
+          .setStyle(ButtonStyle.Danger),
+        new ButtonBuilder()
+          .setCustomId(`heist:back:${userId}:${amount}:${targetId}:${riskId}`)
+          .setLabel('↩ 戻る')
+          .setStyle(ButtonStyle.Secondary),
+      ),
+    );
 
   return container;
 }

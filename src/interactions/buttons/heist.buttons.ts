@@ -13,6 +13,7 @@ import {
   buildHeistLobbyView,
   buildHeistRiskSelectView,
   buildHeistApproachSelectView,
+  buildHeistConfirmView,
 } from '../../ui/builders/heist.builder.js';
 import { formatChips } from '../../utils/formatters.js';
 import {
@@ -81,7 +82,7 @@ async function handleHeistButton(interaction: ButtonInteraction): Promise<void> 
     }
 
     case 'approach': {
-      // Group mode: create lobby
+      // Group mode: show confirmation screen
       const ownerId = parts[2];
       const amount = BigInt(parts[3]);
       const targetId = parts[4] as HeistTarget;
@@ -110,68 +111,16 @@ async function handleHeistButton(interaction: ButtonInteraction): Promise<void> 
         return;
       }
 
-      // Check for existing session
-      const channelId = interaction.channelId;
-      const existing = getActiveHeistSession(channelId);
-      if (existing) {
-        await interaction.reply({
-          content: 'このチャンネルではすでにヘイストが進行中です！',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
-      // Check balance again
-      const user = await findOrCreateUser(ownerId);
-      if (user.chips < amount) {
-        await interaction.reply({
-          content: `チップが不足しています！ 残高: ${formatChips(user.chips)}`,
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
-      // Deduct chips from host
-      await removeChips(ownerId, amount, 'HEIST_JOIN', 'HEIST');
-
-      // Create session
-      const session: HeistSessionState = {
-        channelId,
-        hostId: ownerId,
-        players: [{ userId: ownerId, isHost: true }],
-        status: 'waiting',
-        lobbyDeadline: Date.now() + HEIST_LOBBY_DURATION_MS,
-        entryFee: amount,
-        target: targetId,
-        riskLevel: riskId,
-        approach: approachId,
-        isSolo: false,
-      };
-
-      setActiveHeistSession(channelId, session);
-
-      // Dismiss ephemeral
+      const confirmView = buildHeistConfirmView(ownerId, amount, targetId, riskId, approachId, false);
       await interaction.update({
-        content: '✅ ロビーを作成しました！',
-        components: [],
+        components: [confirmView],
         flags: MessageFlags.IsComponentsV2,
       });
-
-      // Send public lobby message
-      if (interaction.channel && 'send' in interaction.channel) {
-        const remainingSeconds = Math.ceil(HEIST_LOBBY_DURATION_MS / 1000);
-        const lobbyView = buildHeistLobbyView(session, remainingSeconds);
-        const msg = await interaction.channel.send({
-          components: [lobbyView],
-          flags: MessageFlags.IsComponentsV2,
-        });
-        session.messageId = msg.id;
-        startLobbyCountdown(interaction.channel, session);
-      }
       break;
     }
 
     case 'solo': {
+      // Solo mode: show confirmation screen
       const ownerId = parts[2];
       const amount = BigInt(parts[3]);
       const targetId = parts[4] as HeistTarget;
@@ -190,6 +139,28 @@ async function handleHeistButton(interaction: ButtonInteraction): Promise<void> 
           content: `参加費がこの組み合わせの上限を超えています！最大: ${formatChips(maxFee)}`,
           flags: MessageFlags.Ephemeral,
         });
+        return;
+      }
+
+      const confirmView = buildHeistConfirmView(ownerId, amount, targetId, riskId, approachId, true);
+      await interaction.update({
+        components: [confirmView],
+        flags: MessageFlags.IsComponentsV2,
+      });
+      break;
+    }
+
+    case 'confirm': {
+      // Execute heist after confirmation
+      const ownerId = parts[2];
+      const amount = BigInt(parts[3]);
+      const targetId = parts[4] as HeistTarget;
+      const riskId = parts[5] as HeistRiskLevel;
+      const approachId = parts[6] as HeistApproach;
+      const mode = parts[7] as 'group' | 'solo';
+
+      if (userId !== ownerId) {
+        await interaction.reply({ content: '他のプレイヤーの操作はできません。', flags: MessageFlags.Ephemeral });
         return;
       }
 
@@ -217,38 +188,95 @@ async function handleHeistButton(interaction: ButtonInteraction): Promise<void> 
       // Deduct chips
       await removeChips(ownerId, amount, 'HEIST_JOIN', 'HEIST');
 
-      // Create solo session
-      const session: HeistSessionState = {
-        channelId,
-        hostId: ownerId,
-        players: [{ userId: ownerId, isHost: true }],
-        status: 'running',
-        lobbyDeadline: 0,
-        entryFee: amount,
-        target: targetId,
-        riskLevel: riskId,
-        approach: approachId,
-        isSolo: true,
-      };
+      if (mode === 'group') {
+        // Create group lobby session
+        const session: HeistSessionState = {
+          channelId,
+          hostId: ownerId,
+          players: [{ userId: ownerId, isHost: true }],
+          status: 'waiting',
+          lobbyDeadline: Date.now() + HEIST_LOBBY_DURATION_MS,
+          entryFee: amount,
+          target: targetId,
+          riskLevel: riskId,
+          approach: approachId,
+          isSolo: false,
+        };
 
-      setActiveHeistSession(channelId, session);
+        setActiveHeistSession(channelId, session);
 
-      // Dismiss ephemeral
+        // Dismiss ephemeral
+        await interaction.update({
+          content: '✅ ロビーを作成しました！',
+          components: [],
+          flags: MessageFlags.IsComponentsV2,
+        });
+
+        // Send public lobby message
+        if (interaction.channel && 'send' in interaction.channel) {
+          const remainingSeconds = Math.ceil(HEIST_LOBBY_DURATION_MS / 1000);
+          const lobbyView = buildHeistLobbyView(session, remainingSeconds);
+          const msg = await interaction.channel.send({
+            components: [lobbyView],
+            flags: MessageFlags.IsComponentsV2,
+          });
+          session.messageId = msg.id;
+          startLobbyCountdown(interaction.channel, session);
+        }
+      } else {
+        // Create solo session and run immediately
+        const session: HeistSessionState = {
+          channelId,
+          hostId: ownerId,
+          players: [{ userId: ownerId, isHost: true }],
+          status: 'running',
+          lobbyDeadline: 0,
+          entryFee: amount,
+          target: targetId,
+          riskLevel: riskId,
+          approach: approachId,
+          isSolo: true,
+        };
+
+        setActiveHeistSession(channelId, session);
+
+        // Dismiss ephemeral
+        await interaction.update({
+          content: '🔫 ソロヘイスト開始！',
+          components: [],
+          flags: MessageFlags.IsComponentsV2,
+        });
+
+        // Send public message and run immediately
+        if (interaction.channel && 'send' in interaction.channel) {
+          const target = HEIST_TARGET_MAP.get(targetId)!;
+          const initMsg = await interaction.channel.send({
+            content: `🔫 <@${ownerId}> が ${target.emoji} **${target.name}** にソロ強盗を仕掛ける！`,
+          });
+          session.messageId = initMsg.id;
+          await runHeist(interaction.channel, session);
+        }
+      }
+      break;
+    }
+
+    case 'back': {
+      // Return to approach selection
+      const ownerId = parts[2];
+      const amount = BigInt(parts[3]);
+      const targetId = parts[4] as HeistTarget;
+      const riskId = parts[5] as HeistRiskLevel;
+
+      if (userId !== ownerId) {
+        await interaction.reply({ content: '他のプレイヤーの操作はできません。', flags: MessageFlags.Ephemeral });
+        return;
+      }
+
+      const view = buildHeistApproachSelectView(ownerId, amount, targetId, riskId);
       await interaction.update({
-        content: '🔫 ソロヘイスト開始！',
-        components: [],
+        components: [view],
         flags: MessageFlags.IsComponentsV2,
       });
-
-      // Send public message and run immediately
-      if (interaction.channel && 'send' in interaction.channel) {
-        const target = HEIST_TARGET_MAP.get(targetId)!;
-        const initMsg = await interaction.channel.send({
-          content: `🔫 <@${ownerId}> が ${target.emoji} **${target.name}** にソロ強盗を仕掛ける！`,
-        });
-        session.messageId = initMsg.id;
-        await runHeist(interaction.channel, session);
-      }
       break;
     }
 
