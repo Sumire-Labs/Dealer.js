@@ -15,6 +15,7 @@ import {
   type LeaderboardDisplayEntry,
 } from '../../ui/builders/leaderboard.builder.js';
 import { formatChips } from '../../utils/formatters.js';
+import { prisma } from '../../database/client.js';
 
 function formatEntryValue(entry: LeaderboardEntry, category: LeaderboardCategory): LeaderboardDisplayEntry {
   switch (category) {
@@ -91,7 +92,7 @@ async function handleLeaderboardButton(interaction: ButtonInteraction): Promise<
     getUserRank(userId, category),
     getTotalPlayerCount(),
     category === 'achievements'
-      ? (await import('../../database/client.js')).prisma.userAchievement.count({ where: { userId } })
+      ? prisma.userAchievement.count({ where: { userId } })
       : Promise.resolve(0),
   ]);
 
