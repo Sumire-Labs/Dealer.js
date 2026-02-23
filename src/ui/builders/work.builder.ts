@@ -241,10 +241,9 @@ export function buildShiftSelectView(data: ShiftSelectViewData): ContainerBuilde
     const remaining = getRemainingCooldown(buildCooldownKey(userId, shift.cooldownKey));
     const isDisabled = remaining > 0;
     const cooldownMs = getShiftCooldown(shift.type);
-    const hours = cooldownMs / (60 * 60 * 1000);
     const label = isDisabled
       ? `${shift.emoji} ${shift.label} (${formatTimeDelta(remaining)})`
-      : `${shift.emoji} ${shift.label} (${hours}h)`;
+      : `${shift.emoji} ${shift.label} (${formatTimeDelta(cooldownMs)})`;
 
     return new ButtonBuilder()
       .setCustomId(`work:shift:${userId}:${jobId}:${shift.type}`)
