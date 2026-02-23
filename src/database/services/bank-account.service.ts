@@ -182,6 +182,15 @@ export async function transferChips(
   });
 }
 
+export async function getBankTransactionHistory(userId: string, page: number) {
+  const limit = 10;
+  const offset = (page - 1) * limit;
+  const { getBankTransactions } = await import('../repositories/transaction.repository.js');
+  const { transactions, total } = await getBankTransactions(userId, limit, offset);
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  return { transactions, page, totalPages };
+}
+
 export async function applyInterest(userId: string): Promise<bigint | null> {
   return prisma.$transaction(async (tx) => {
     const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });

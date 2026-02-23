@@ -9,7 +9,6 @@ import {
   borrowChips,
   repayChips,
   getLoanSummary,
-  getBankruptcyPenaltyRemaining,
 } from '../../database/services/loan.service.js';
 import {
   depositChips,
@@ -17,41 +16,11 @@ import {
   transferChips,
   getBankAccountSummary,
 } from '../../database/services/bank-account.service.js';
-import { buildBankMainView, type BankViewData } from '../../ui/builders/bank.builder.js';
+import { buildBankViewData } from '../../database/services/bank-view.service.js';
+import { buildBankMainView } from '../../ui/builders/bank.builder.js';
+import { createFixedDeposit } from '../../database/services/fixed-deposit.service.js';
 import { formatChips } from '../../utils/formatters.js';
 import { configService } from '../../config/config.service.js';
-
-async function buildViewData(userId: string): Promise<BankViewData> {
-  const user = await findOrCreateUser(userId);
-  const loanSummary = await getLoanSummary(userId);
-  const accountSummary = await getBankAccountSummary(userId);
-  const penaltyRemainingMs = getBankruptcyPenaltyRemaining(user.bankruptAt);
-
-  return {
-    userId,
-    walletBalance: user.chips,
-    bankBalance: accountSummary.bankBalance,
-    loanSummary,
-    penaltyRemainingMs,
-    lastInterestAt: accountSummary.lastInterestAt,
-    estimatedInterest: accountSummary.estimatedInterest,
-    baseInterestRate: configService.getBigInt(S.bankInterestRate),
-    effectiveInterestRate: accountSummary.effectiveInterestRate,
-    hasInterestBooster: accountSummary.hasInterestBooster,
-  };
-}
-
-function parseRecipientId(input: string): string {
-  // Strip <@!123> or <@123> mention format
-  const mentionMatch = input.match(/^<@!?(\d{17,20})>$/);
-  if (mentionMatch) return mentionMatch[1];
-
-  // Plain ID
-  const idMatch = input.match(/^(\d{17,20})$/);
-  if (idMatch) return idMatch[1];
-
-  throw new Error('INVALID_RECIPIENT');
-}
 
 async function handleBankModal(interaction: ModalSubmitInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
@@ -75,7 +44,7 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
 
       try {
         await depositChips(userId, amount);
-        const data = await buildViewData(userId);
+        const data = await buildBankViewData(userId);
         const view = buildBankMainView(data, 'account');
 
         await interaction.reply({
@@ -113,7 +82,7 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
 
       try {
         await withdrawChips(userId, amount);
-        const data = await buildViewData(userId);
+        const data = await buildBankViewData(userId);
         const view = buildBankMainView(data, 'account');
 
         await interaction.reply({
@@ -149,11 +118,68 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
       }
 
       let recipientId: string;
+      const mentionMatch = recipientInput.match(/^<@!?(\d{17,20})>$/);
+      if (mentionMatch) {
+        recipientId = mentionMatch[1];
+      } else {
+        const idMatch = recipientInput.match(/^(\d{17,20})$/);
+        if (idMatch) {
+          recipientId = idMatch[1];
+        } else {
+          await interaction.reply({
+            content: '有効なユーザーIDを入力してください。（例: 123456789012345678）',
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+      }
+
+      const amount = BigInt(parsed);
+
       try {
-        recipientId = parseRecipientId(recipientInput);
-      } catch {
+        const result = await transferChips(userId, recipientId, amount);
         await interaction.reply({
-          content: '有効なユーザーIDを入力してください。（例: 123456789012345678）',
+          content:
+            `送金完了！\n` +
+            `📤 送金額: ${formatChips(amount)}\n` +
+            `👤 送金先: <@${recipientId}>\n` +
+            `🏦 あなたの口座残高: ${formatChips(result.senderBankBalance)}`,
+          flags: MessageFlags.Ephemeral,
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (message === 'INSUFFICIENT_BANK_BALANCE') {
+          const accountSummary = await getBankAccountSummary(userId);
+          await interaction.reply({
+            content: `口座残高が不足しています！ 口座残高: ${formatChips(accountSummary.bankBalance)}`,
+            flags: MessageFlags.Ephemeral,
+          });
+        } else if (message === 'RECIPIENT_NOT_FOUND') {
+          await interaction.reply({
+            content: 'そのユーザーは登録されていません。',
+            flags: MessageFlags.Ephemeral,
+          });
+        } else if (message === 'SELF_TRANSFER') {
+          await interaction.reply({
+            content: '自分自身には送金できません。',
+            flags: MessageFlags.Ephemeral,
+          });
+        } else {
+          throw error;
+        }
+      }
+      break;
+    }
+
+    case 'transfer_amount': {
+      // From UserSelectMenu flow: customId = bank_modal:transfer_amount:{recipientId}
+      const recipientId = parts[2];
+      const amountStr = interaction.fields.getTextInputValue('amount').trim();
+      const parsed = parseInt(amountStr);
+
+      if (isNaN(parsed) || parsed <= 0) {
+        await interaction.reply({
+          content: '有効な数値を入力してください。',
           flags: MessageFlags.Ephemeral,
         });
         return;
@@ -220,7 +246,7 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
 
       try {
         await borrowChips(userId, amount);
-        const data = await buildViewData(userId);
+        const data = await buildBankViewData(userId);
         const view = buildBankMainView(data, 'loan');
 
         await interaction.reply({
@@ -258,7 +284,7 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
 
       try {
         await repayChips(userId, amount);
-        const data = await buildViewData(userId);
+        const data = await buildBankViewData(userId);
         const view = buildBankMainView(data, 'loan');
 
         await interaction.reply({
@@ -276,6 +302,57 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
         } else if (message === 'NO_LOANS') {
           await interaction.reply({
             content: '返済すべきローンがありません。',
+            flags: MessageFlags.Ephemeral,
+          });
+        } else {
+          throw error;
+        }
+      }
+      break;
+    }
+
+    case 'fixed_create': {
+      // customId = bank_modal:fixed_create:{termDays}
+      const termDays = parseInt(parts[2]);
+      const amountStr = interaction.fields.getTextInputValue('amount').trim();
+      const parsed = parseInt(amountStr);
+
+      if (isNaN(parsed) || parsed <= 0) {
+        await interaction.reply({
+          content: '有効な数値を入力してください。',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      const amount = BigInt(parsed);
+
+      try {
+        const result = await createFixedDeposit(userId, amount, termDays);
+        await interaction.reply({
+          content:
+            `定期預金を作成しました！\n` +
+            `📌 預入額: ${formatChips(result.deposit.amount)}\n` +
+            `📅 期間: ${termDays}日\n` +
+            `💰 満期時受取: ${formatChips(result.deposit.expectedPayout)}`,
+          flags: MessageFlags.Ephemeral,
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (message === 'BELOW_MINIMUM') {
+          await interaction.reply({
+            content: `最低預入額は ${formatChips(configService.getBigInt(S.fixedDepositMinAmount))} です。`,
+            flags: MessageFlags.Ephemeral,
+          });
+        } else if (message === 'MAX_SLOTS_REACHED') {
+          await interaction.reply({
+            content: `定期預金の枠が上限（${configService.getNumber(S.fixedDepositMaxSlots)}件）に達しています。`,
+            flags: MessageFlags.Ephemeral,
+          });
+        } else if (message === 'INSUFFICIENT_BANK_BALANCE') {
+          const accountSummary = await getBankAccountSummary(userId);
+          await interaction.reply({
+            content: `口座残高が不足しています！ 口座残高: ${formatChips(accountSummary.bankBalance)}`,
             flags: MessageFlags.Ephemeral,
           });
         } else {

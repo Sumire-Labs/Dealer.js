@@ -154,6 +154,12 @@ export const S = {
   overtimeMaxRounds: count('team.overtime_max_rounds', 'team', 3, 1, 10, '残業最大ラウンド'),
   overtimeRisk:      percent('team.overtime_risk', 'team', 15, 0, 100, '残業リスク/ラウンド'),
   weeklyAllBonus:    chips('team.weekly_all_bonus', 'team', 25_000n, 1_000, 100_000_000, 'ウィークリー全達成報酬'),
+
+  // ── Fixed Deposit (4) ────────────────────────────────────────────────
+  fixedDeposit7dMultiplier:  count('fixed_deposit.7d_multiplier', 'fixedDeposit', 3, 1, 20, '7日定期倍率'),
+  fixedDeposit30dMultiplier: count('fixed_deposit.30d_multiplier', 'fixedDeposit', 5, 1, 50, '30日定期倍率'),
+  fixedDepositMinAmount:     chips('fixed_deposit.min_amount', 'fixedDeposit', 10_000n, 1_000, 100_000_000, '定期預金最低額'),
+  fixedDepositMaxSlots:      count('fixed_deposit.max_slots', 'fixedDeposit', 3, 1, 10, '定期預金最大枠'),
 };
 
 // ── Aggregate helpers ────────────────────────────────────────────────
@@ -176,4 +182,5 @@ export const SETTING_CATEGORIES: readonly CategoryMeta[] = [
   { id: 'poker',      emoji: '\u{1F0CF}', label: 'ポーカー',   settings: [S.pokerMinBuyin, S.pokerMaxBuyin, S.pokerActionTimeout] },
   { id: 'business',   emoji: '\u{1F3E2}', label: 'ビジネス',   settings: [S.businessUnlockLevel, S.businessEmployeeMax, S.businessOwnerBonus, S.businessSalaryRate, S.businessEventChance] },
   { id: 'team',       emoji: '\u{1F465}', label: 'チーム',     settings: [S.teamShiftBonus, S.teamShortCD, S.teamNormalCD, S.teamLongCD, S.overtimeMaxRounds, S.overtimeRisk, S.weeklyAllBonus] },
+  { id: 'fixedDeposit', emoji: '\u{1F4CC}', label: '定期預金', settings: [S.fixedDeposit7dMultiplier, S.fixedDeposit30dMultiplier, S.fixedDepositMinAmount, S.fixedDepositMaxSlots] },
 ];

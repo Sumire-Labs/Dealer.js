@@ -51,6 +51,9 @@ async function loadModules(): Promise<void> {
   await import('./interactions/buttons/inventory.buttons.js');
   await import('./interactions/buttons/help.buttons.js');
 
+  // Select menu handlers
+  await import('./interactions/select-menus/bank.select-menu.js');
+
   // Modal handlers
   await import('./interactions/modals/bet-amount.modal.js');
   await import('./interactions/modals/setting.modal.js');

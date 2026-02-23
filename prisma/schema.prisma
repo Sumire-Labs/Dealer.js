@@ -38,6 +38,7 @@ model User {
   weeklyChallenges  WorkWeeklyChallenge[]
   business          Business?
   collections       UserCollection[]
+  fixedDeposits     FixedDeposit[]
 }
 
 model Transaction {
@@ -122,6 +123,9 @@ enum TransactionType {
   SHOP_CRAFT
   GIFT_SEND
   GIFT_RECEIVE
+  FIXED_DEPOSIT_CREATE
+  FIXED_DEPOSIT_MATURE
+  FIXED_DEPOSIT_EARLY_WITHDRAW
 }
 
 enum GameType {
@@ -281,6 +285,21 @@ model BusinessEmployee {
 
   @@unique([businessId, userId])
   @@index([userId])
+}
+
+model FixedDeposit {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  amount       BigInt
+  termDays     Int       // 7 or 30
+  interestRate BigInt    // 預入時の適用利率(計算済み)
+  depositedAt  DateTime  @default(now())
+  maturesAt    DateTime
+  withdrawnAt  DateTime?
+
+  @@index([userId, withdrawnAt])
+  @@index([maturesAt, withdrawnAt])
 }
 
 model UserCollection {

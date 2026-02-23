@@ -59,6 +59,42 @@ export async function getLoanSummary(userId: string): Promise<LoanSummary> {
   };
 }
 
+export interface IndividualLoanDetail {
+  id: string;
+  principal: bigint;
+  interest: bigint;
+  total: bigint;
+  createdAt: Date;
+  elapsedMs: number;
+}
+
+export async function getLoanDetails(userId: string): Promise<IndividualLoanDetail[]> {
+  const loans = await prisma.loan.findMany({
+    where: { userId, paidAt: null },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  let loanDiscountActive = false;
+  try {
+    loanDiscountActive = await hasActiveBuff(userId, 'LOAN_DISCOUNT');
+  } catch { /* never block */ }
+
+  return loans.map((loan) => {
+    let interest = calculateLoanInterest(loan);
+    if (loanDiscountActive) {
+      interest = BigInt(Math.round(Number(interest) * SHOP_EFFECTS.LOAN_DISCOUNT_RATE));
+    }
+    return {
+      id: loan.id,
+      principal: loan.principal,
+      interest,
+      total: loan.principal + interest,
+      createdAt: loan.createdAt,
+      elapsedMs: Date.now() - loan.createdAt.getTime(),
+    };
+  });
+}
+
 export async function borrowChips(userId: string, amount: bigint): Promise<{ newBalance: bigint; newlyUnlocked: AchievementDefinition[] }> {
   return prisma.$transaction(async (tx) => {
     await findOrCreateUser(userId);

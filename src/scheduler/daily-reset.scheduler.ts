@@ -2,6 +2,7 @@ import { cleanupStaleSessions } from '../database/repositories/race.repository.j
 import { applyInterestToAll } from '../database/services/bank-account.service.js';
 import { checkAndExecuteDraws } from '../database/services/lottery.service.js';
 import { checkAndRefreshRotation, checkAndRefreshFlashSale } from '../database/services/shop.service.js';
+import { processMatureDeposits } from '../database/services/fixed-deposit.service.js';
 import { logger } from '../utils/logger.js';
 
 const CLEANUP_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
@@ -10,6 +11,7 @@ const LOTTERY_CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const SHOP_ROTATION_CHECK_MS = 5 * 60 * 1000; // 5 minutes
 const FLASH_SALE_CHECK_MS = 2 * 60 * 60 * 1000; // 2 hours
 const WEEKLY_CHALLENGE_CHECK_MS = 60 * 60 * 1000; // 1 hour
+const FIXED_DEPOSIT_CHECK_MS = 60 * 60 * 1000; // 1 hour
 
 export function startScheduler(): void {
   // Periodic cleanup of stale race sessions
@@ -83,6 +85,18 @@ export function startScheduler(): void {
       logger.error('Weekly challenge check failed', { error: String(err) });
     }
   }, WEEKLY_CHALLENGE_CHECK_MS);
+
+  // Periodic fixed deposit maturity check
+  setInterval(async () => {
+    try {
+      const count = await processMatureDeposits();
+      if (count > 0) {
+        logger.info(`Processed ${count} mature fixed deposits`);
+      }
+    } catch (err) {
+      logger.error('Fixed deposit maturity check failed', { error: String(err) });
+    }
+  }, FIXED_DEPOSIT_CHECK_MS);
 
   logger.info('Scheduler started');
 }
