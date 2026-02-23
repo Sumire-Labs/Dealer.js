@@ -11,7 +11,7 @@ import {
 } from '../../ui/builders/daily.builder.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 import { buildMissionNotification } from '../../database/services/mission.service.js';
-import { DAILY_COOLDOWN_MS } from '../../config/constants.js';
+import { getJstResetDate, getNextResetTimestamp } from '../../database/services/daily.service.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 
 async function handleDailyButton(interaction: ButtonInteraction): Promise<void> {
@@ -32,18 +32,13 @@ async function handleDailyButton(interaction: ButtonInteraction): Promise<void> 
   switch (action) {
     case 'tab_bonus': {
       const user = await findOrCreateUser(userId);
-      const now = Date.now();
+      const todayKey = getJstResetDate(new Date());
+      const lastKey = user.lastDaily ? getJstResetDate(user.lastDaily) : null;
 
-      if (user.lastDaily) {
-        const elapsed = now - user.lastDaily.getTime();
-        if (elapsed < DAILY_COOLDOWN_MS) {
-          const nextClaimAt = user.lastDaily.getTime() + DAILY_COOLDOWN_MS;
-          const view = buildDailyBonusAlreadyClaimed(nextClaimAt, user.chips, userId);
-          await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
-        } else {
-          const view = buildDailyBonusUnclaimed(user.chips, userId);
-          await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
-        }
+      if (lastKey === todayKey) {
+        const nextClaimAt = getNextResetTimestamp();
+        const view = buildDailyBonusAlreadyClaimed(nextClaimAt, user.chips, userId);
+        await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       } else {
         const view = buildDailyBonusUnclaimed(user.chips, userId);
         await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
@@ -64,7 +59,7 @@ async function handleDailyButton(interaction: ButtonInteraction): Promise<void> 
 
       if (!result.success) {
         const balance = await getBalance(userId);
-        const nextClaimAt = result.nextClaimAt ?? (Date.now() + DAILY_COOLDOWN_MS);
+        const nextClaimAt = result.nextClaimAt ?? getNextResetTimestamp();
         const view = buildDailyBonusAlreadyClaimed(nextClaimAt, balance, userId);
         await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
         return;

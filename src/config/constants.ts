@@ -1,7 +1,7 @@
 export const INITIAL_CHIPS = 10_000n;
 export const DAILY_BONUS = 2_500n;
 export const DAILY_BONUS_BROKE = 5_000n;
-export const DAILY_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+export const DAILY_RESET_HOUR_JST = 5; // 毎朝 JST 05:00 リセット
 
 export const MIN_BET = 100n;
 export const MAX_BET_SLOTS = 50_000n;

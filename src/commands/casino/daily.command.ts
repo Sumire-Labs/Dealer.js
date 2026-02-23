@@ -12,7 +12,7 @@ import {
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 import { buildMissionNotification } from '../../database/services/mission.service.js';
 import { getBalance } from '../../database/services/economy.service.js';
-import { DAILY_COOLDOWN_MS } from '../../config/constants.js';
+import { getNextResetTimestamp } from '../../database/services/daily.service.js';
 
 const data = new SlashCommandBuilder()
   .setName('daily')
@@ -25,7 +25,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
 
   if (!result.success) {
     const balance = await getBalance(userId);
-    const nextClaimAt = result.nextClaimAt ?? (Date.now() + DAILY_COOLDOWN_MS);
+    const nextClaimAt = result.nextClaimAt ?? getNextResetTimestamp();
     const view = buildDailyBonusAlreadyClaimed(nextClaimAt, balance, userId);
 
     await interaction.reply({
