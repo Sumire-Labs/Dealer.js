@@ -1,6 +1,8 @@
 import {
   type ButtonInteraction,
   MessageFlags,
+  ContainerBuilder,
+  TextDisplayBuilder,
 } from 'discord.js';
 import { registerButtonHandler } from '../handler.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
@@ -91,8 +93,7 @@ async function handleTeamButton(interaction: ButtonInteraction): Promise<void> {
 
       // Update the work panel message to confirm
       await interaction.update({
-        content: '✅ チームシフトロビーを作成しました！',
-        components: [],
+        components: [new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent('✅ チームシフトロビーを作成しました！'))],
         flags: MessageFlags.IsComponentsV2,
       });
 
@@ -243,8 +244,7 @@ async function handleTeamButton(interaction: ButtonInteraction): Promise<void> {
       setPlayerJob(channelId, userId, jobId);
 
       await interaction.update({
-        content: `✅ **${job.emoji} ${job.name}** を選択しました！他のメンバーを待っています...`,
-        components: [],
+        components: [new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent(`✅ **${job.emoji} ${job.name}** を選択しました！他のメンバーを待っています...`))],
         flags: MessageFlags.IsComponentsV2,
       });
 

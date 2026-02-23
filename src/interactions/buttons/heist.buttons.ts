@@ -1,4 +1,4 @@
-import { type ButtonInteraction, MessageFlags } from 'discord.js';
+import { type ButtonInteraction, MessageFlags, ContainerBuilder, TextDisplayBuilder } from 'discord.js';
 import { registerButtonHandler } from '../handler.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { removeChips } from '../../database/services/economy.service.js';
@@ -207,8 +207,7 @@ async function handleHeistButton(interaction: ButtonInteraction): Promise<void> 
 
         // Dismiss ephemeral
         await interaction.update({
-          content: '✅ ロビーを作成しました！',
-          components: [],
+          components: [new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent('✅ ロビーを作成しました！'))],
           flags: MessageFlags.IsComponentsV2,
         });
 
@@ -242,8 +241,7 @@ async function handleHeistButton(interaction: ButtonInteraction): Promise<void> 
 
         // Dismiss ephemeral
         await interaction.update({
-          content: '🔫 ソロヘイスト開始！',
-          components: [],
+          components: [new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent('🔫 ソロヘイスト開始！'))],
           flags: MessageFlags.IsComponentsV2,
         });
 
