@@ -82,7 +82,10 @@ export async function updateMissionProgress(
   event: MissionEvent,
 ): Promise<CompletedMission[]> {
   const date = getTodayDateString();
-  const missions = await getMissionsForDate(userId, date);
+  let missions = await getMissionsForDate(userId, date);
+  if (missions.length === 0) {
+    missions = await assignDailyMissions(userId);
+  }
   if (missions.length === 0) return [];
 
   const completed: CompletedMission[] = [];
