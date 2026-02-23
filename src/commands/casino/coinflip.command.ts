@@ -7,7 +7,7 @@ import { registerCommand } from '../registry.js';
 import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { buildCoinflipChoiceView } from '../../ui/builders/coinflip.builder.js';
-import { coinflipSessionManager } from '../../interactions/buttons/coinflip.buttons.js';
+import { setSessionBet as setCoinflipBet } from '../../interactions/buttons/coinflip.buttons.js';
 import { formatChips } from '../../utils/formatters.js';
 
 const data = new SlashCommandBuilder()
@@ -37,7 +37,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   }
 
   // Store bet for button handler
-  coinflipSessionManager.set(userId, bet);
+  setCoinflipBet(userId, bet);
 
   const choiceView = buildCoinflipChoiceView(bet, user.chips, userId);
   await interaction.reply({

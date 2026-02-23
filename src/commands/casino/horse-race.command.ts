@@ -166,89 +166,91 @@ export async function runRace(
   session.status = 'running';
   await updateRaceStatus(session.id, 'RUNNING');
 
-  const result = simulateRace(session.horses);
-
-  // Play animation
   try {
-    if (session.messageId && channel && 'messages' in channel) {
-      const message = await channel.messages.fetch(session.messageId);
-      await playRaceAnimation(message, session.horses, result.frames);
-    }
-  } catch (err) {
-    logger.error('Race animation failed', { error: String(err) });
-  }
+    const result = simulateRace(session.horses);
 
-  // Calculate payouts
-  const winnerIndex = result.placements[0];
-  const payouts = calculatePayouts(session.bets, winnerIndex, session.horses);
-
-  // Process payouts with bankruptcy penalty
-  for (const p of payouts) {
-    let payout = p.payout;
-    const bet = session.bets.find(b => b.userId === p.userId);
-    const betAmount = bet ? bet.amount : 0n;
-    if (payout > betAmount) {
-      const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(p.userId);
-      if (penaltyMultiplier < 1.0) {
-        const winnings = payout - betAmount;
-        payout = betAmount + applyPenalty(winnings, penaltyMultiplier);
+    // Play animation
+    try {
+      if (session.messageId && channel && 'messages' in channel) {
+        const message = await channel.messages.fetch(session.messageId);
+        await playRaceAnimation(message, session.horses, result.frames);
       }
+    } catch (err) {
+      logger.error('Race animation failed', { error: String(err) });
     }
-    await addChips(p.userId, payout, 'WIN', 'HORSE_RACE');
-  }
 
-  // Update game stats for all bettors
-  for (const bet of session.bets) {
-    const payoutEntry = payouts.find(p => p.userId === bet.userId);
-    if (payoutEntry) {
-      let payout = payoutEntry.payout;
-      if (payout > bet.amount) {
-        const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(bet.userId);
+    // Calculate payouts
+    const winnerIndex = result.placements[0];
+    const payouts = calculatePayouts(session.bets, winnerIndex, session.horses);
+
+    // Process payouts with bankruptcy penalty
+    for (const p of payouts) {
+      let payout = p.payout;
+      const bet = session.bets.find(b => b.userId === p.userId);
+      const betAmount = bet ? bet.amount : 0n;
+      if (payout > betAmount) {
+        const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(p.userId);
         if (penaltyMultiplier < 1.0) {
-          const winnings = payout - bet.amount;
-          payout = bet.amount + applyPenalty(winnings, penaltyMultiplier);
+          const winnings = payout - betAmount;
+          payout = betAmount + applyPenalty(winnings, penaltyMultiplier);
         }
       }
-      const profit = payout - bet.amount;
-      await incrementGameStats(bet.userId, profit > 0n ? profit : 0n, profit < 0n ? -profit : 0n);
-    } else {
-      await incrementGameStats(bet.userId, 0n, bet.amount);
+      await addChips(p.userId, payout, 'WIN', 'HORSE_RACE');
     }
-  }
 
-  // Mark finished
-  session.status = 'finished';
-  await updateRaceStatus(
-    session.id,
-    'FINISHED',
-    result.placements.map((idx, rank) => ({
-      horseIndex: idx,
-      horseName: session.horses[idx].name,
-      rank: rank + 1,
-    })),
-  );
-
-  // Show results
-  const resultView = buildRaceResultView(
-    session.horses,
-    result.placements,
-    session.bets,
-    payouts,
-  );
-
-  try {
-    if (session.messageId && channel && 'messages' in channel) {
-      const message = await channel.messages.fetch(session.messageId);
-      await message.edit({
-        components: [resultView],
-        flags: MessageFlags.IsComponentsV2,
-      });
+    // Update game stats for all bettors
+    for (const bet of session.bets) {
+      const payoutEntry = payouts.find(p => p.userId === bet.userId);
+      if (payoutEntry) {
+        let payout = payoutEntry.payout;
+        if (payout > bet.amount) {
+          const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(bet.userId);
+          if (penaltyMultiplier < 1.0) {
+            const winnings = payout - bet.amount;
+            payout = bet.amount + applyPenalty(winnings, penaltyMultiplier);
+          }
+        }
+        const profit = payout - bet.amount;
+        await incrementGameStats(bet.userId, profit > 0n ? profit : 0n, profit < 0n ? -profit : 0n);
+      } else {
+        await incrementGameStats(bet.userId, 0n, bet.amount);
+      }
     }
-  } catch (err) {
-    logger.error('Failed to show race result', { error: String(err) });
-  }
 
-  removeActiveSession(channelId);
+    // Mark finished
+    session.status = 'finished';
+    await updateRaceStatus(
+      session.id,
+      'FINISHED',
+      result.placements.map((idx, rank) => ({
+        horseIndex: idx,
+        horseName: session.horses[idx].name,
+        rank: rank + 1,
+      })),
+    );
+
+    // Show results
+    const resultView = buildRaceResultView(
+      session.horses,
+      result.placements,
+      session.bets,
+      payouts,
+    );
+
+    try {
+      if (session.messageId && channel && 'messages' in channel) {
+        const message = await channel.messages.fetch(session.messageId);
+        await message.edit({
+          components: [resultView],
+          flags: MessageFlags.IsComponentsV2,
+        });
+      }
+    } catch (err) {
+      logger.error('Failed to show race result', { error: String(err) });
+    }
+  } finally {
+    removeActiveSession(channelId);
+  }
 }
 
 registerCommand({ data, execute: execute as never });

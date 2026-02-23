@@ -19,6 +19,11 @@ const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n, 500_000n];
 // Session storage: userId -> bet amount
 export const coinflipSessionManager = new Map<string, bigint>();
 
+export function setSessionBet(userId: string, bet: bigint): void {
+  if (coinflipSessionManager.size > 10_000) coinflipSessionManager.clear();
+  coinflipSessionManager.set(userId, bet);
+}
+
 function getSessionBet(userId: string): bigint {
   return coinflipSessionManager.get(userId) ?? configService.getBigInt(S.minBet);
 }
@@ -42,7 +47,7 @@ async function handleCoinflipButton(interaction: ButtonInteraction): Promise<voi
   if (action === 'bet_down') {
     const lower = BET_STEPS.filter(s => s < currentBet).pop() ?? configService.getBigInt(S.minBet);
     currentBet = lower;
-    coinflipSessionManager.set(userId, currentBet);
+    setSessionBet(userId, currentBet);
 
     const user = await findOrCreateUser(userId);
     const idleView = buildCoinflipIdleView(currentBet, user.chips, userId);
@@ -56,7 +61,7 @@ async function handleCoinflipButton(interaction: ButtonInteraction): Promise<voi
   if (action === 'bet_up') {
     const higher = BET_STEPS.find(s => s > currentBet) ?? configService.getBigInt(S.maxCoinflip);
     currentBet = higher;
-    coinflipSessionManager.set(userId, currentBet);
+    setSessionBet(userId, currentBet);
 
     const user = await findOrCreateUser(userId);
     const idleView = buildCoinflipIdleView(currentBet, user.chips, userId);

@@ -398,11 +398,33 @@ export async function startTeamLobbyCountdown(
                 components: [view],
                 flags: 1 << 15, // IsComponentsV2
               });
-              await channel.send({
-                content: `⏰ ロビー時間終了！参加者はジョブを選択してください。\n${session.players.map((p: any) => `<@${p.userId}>`).join(' ')}`,
-              });
+
+              // Send job select prompts to each player
+              for (const player of session.players) {
+                try {
+                  const user = await findOrCreateUser(player.userId);
+                  const jobView = buildTeamShiftJobSelectView(player.userId, session.channelId, user.workLevel);
+                  await channel.send({
+                    components: [jobView],
+                    flags: MessageFlags.IsComponentsV2,
+                  });
+                } catch (err) {
+                  logger.error(`Team shift job select send failed for ${player.userId}: ${err}`);
+                }
+              }
             } catch { /* ignore */ }
           }
+
+          // Set a timeout for job_select — auto-cancel after 2 minutes if not all ready
+          setTimeout(() => {
+            const current = getTeamSession(session.channelId);
+            if (current && current.status === 'job_select') {
+              removeTeamSession(session.channelId);
+              channel.send({
+                content: '⏰ ジョブ選択がタイムアウトしました。チームシフトをキャンセルしました。',
+              }).catch(() => {});
+            }
+          }, 120_000);
         } else {
           removeTeamSession(session.channelId);
           try {

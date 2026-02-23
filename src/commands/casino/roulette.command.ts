@@ -8,7 +8,7 @@ import { configService } from '../../config/config.service.js';
 import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { buildRouletteIdleView } from '../../ui/builders/roulette.builder.js';
-import { rouletteSessionManager } from '../../interactions/buttons/roulette.buttons.js';
+import { setSessionBet as setRouletteBet } from '../../interactions/buttons/roulette.buttons.js';
 import { formatChips } from '../../utils/formatters.js';
 
 const data = new SlashCommandBuilder()
@@ -38,7 +38,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     return;
   }
 
-  rouletteSessionManager.set(userId, bet);
+  setRouletteBet(userId, bet);
 
   const view = buildRouletteIdleView(bet, user.chips, userId);
   await interaction.reply({

@@ -25,6 +25,11 @@ const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n, 100_000n];
 
 export const rouletteSessionManager = new Map<string, bigint>();
 
+export function setSessionBet(userId: string, bet: bigint): void {
+  if (rouletteSessionManager.size > 10_000) rouletteSessionManager.clear();
+  rouletteSessionManager.set(userId, bet);
+}
+
 export function getSessionBet(userId: string): bigint {
   return rouletteSessionManager.get(userId) ?? configService.getBigInt(S.minBet);
 }
@@ -49,7 +54,7 @@ async function handleRouletteButton(interaction: ButtonInteraction): Promise<voi
   if (action === 'bet_down') {
     const lower = BET_STEPS.filter(s => s < currentBet).pop() ?? configService.getBigInt(S.minBet);
     currentBet = lower;
-    rouletteSessionManager.set(userId, currentBet);
+    setSessionBet(userId, currentBet);
     const user = await findOrCreateUser(userId);
     const view = buildRouletteIdleView(currentBet, user.chips, userId);
     await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
@@ -59,7 +64,7 @@ async function handleRouletteButton(interaction: ButtonInteraction): Promise<voi
   if (action === 'bet_up') {
     const higher = BET_STEPS.find(s => s > currentBet) ?? configService.getBigInt(S.maxRoulette);
     currentBet = higher;
-    rouletteSessionManager.set(userId, currentBet);
+    setSessionBet(userId, currentBet);
     const user = await findOrCreateUser(userId);
     const view = buildRouletteIdleView(currentBet, user.chips, userId);
     await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
@@ -68,7 +73,7 @@ async function handleRouletteButton(interaction: ButtonInteraction): Promise<voi
 
   if (action === 'bet_max') {
     currentBet = configService.getBigInt(S.maxRoulette);
-    rouletteSessionManager.set(userId, currentBet);
+    setSessionBet(userId, currentBet);
     const user = await findOrCreateUser(userId);
     const view = buildRouletteIdleView(currentBet, user.chips, userId);
     await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });

@@ -134,7 +134,7 @@ export async function executeDraw(roundId: string): Promise<void> {
       try {
         const hasLuckyTicket = await hasInventoryItem(userId, 'LUCKY_TICKET');
         if (hasLuckyTicket) {
-          finalAmount = BigInt(Math.round(Number(amount) * SHOP_EFFECTS.LUCKY_TICKET_MULTIPLIER));
+          finalAmount = amount * BigInt(SHOP_EFFECTS.LUCKY_TICKET_MULTIPLIER);
           await consumeInventoryItem(userId, 'LUCKY_TICKET');
         }
       } catch (err) {

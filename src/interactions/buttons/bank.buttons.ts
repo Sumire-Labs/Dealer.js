@@ -154,7 +154,13 @@ async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
       }
       try {
         await depositChips(userId, user.chips);
-      } catch { /* already validated */ }
+      } catch (error) {
+        await interaction.reply({
+          content: `入金に失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}`,
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
       const data = await buildBankViewData(userId);
       const view = buildBankMainView(data, 'account');
       await interaction.update({
@@ -175,7 +181,13 @@ async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
       }
       try {
         await withdrawChips(userId, user.bankBalance);
-      } catch { /* already validated */ }
+      } catch (error) {
+        await interaction.reply({
+          content: `出金に失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}`,
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
       const data = await buildBankViewData(userId);
       const view = buildBankMainView(data, 'account');
       await interaction.update({
@@ -197,7 +209,13 @@ async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
       }
       try {
         await depositChips(userId, half);
-      } catch { /* already validated */ }
+      } catch (error) {
+        await interaction.reply({
+          content: `入金に失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}`,
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
       const data = await buildBankViewData(userId);
       const view = buildBankMainView(data, 'account');
       await interaction.update({

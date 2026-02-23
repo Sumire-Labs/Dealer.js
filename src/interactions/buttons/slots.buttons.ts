@@ -19,6 +19,11 @@ const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n];
 // Session bet storage: userId -> current bet
 export const slotsSessionManager = new Map<string, bigint>();
 
+export function setSessionBet(userId: string, bet: bigint): void {
+  if (slotsSessionManager.size > 10_000) slotsSessionManager.clear();
+  slotsSessionManager.set(userId, bet);
+}
+
 function getSessionBet(userId: string): bigint {
   return slotsSessionManager.get(userId) ?? configService.getBigInt(S.minBet);
 }
@@ -44,7 +49,7 @@ async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> 
   if (action === 'bet_down') {
     const lower = BET_STEPS.filter(s => s < currentBet).pop() ?? configService.getBigInt(S.minBet);
     currentBet = lower;
-    slotsSessionManager.set(userId, currentBet);
+    setSessionBet(userId, currentBet);
 
     const user = await findOrCreateUser(userId);
     await interaction.update({
@@ -57,7 +62,7 @@ async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> 
   if (action === 'bet_up') {
     const higher = BET_STEPS.find(s => s > currentBet) ?? configService.getBigInt(S.maxSlots);
     currentBet = higher;
-    slotsSessionManager.set(userId, currentBet);
+    setSessionBet(userId, currentBet);
 
     const user = await findOrCreateUser(userId);
     await interaction.update({
@@ -69,7 +74,7 @@ async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> 
 
   if (action === 'bet_max') {
     currentBet = configService.getBigInt(S.maxSlots);
-    slotsSessionManager.set(userId, currentBet);
+    setSessionBet(userId, currentBet);
 
     const user = await findOrCreateUser(userId);
     await interaction.update({

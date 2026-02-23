@@ -1,4 +1,5 @@
 import { findOrCreateUser } from '../repositories/user.repository.js';
+import { logger } from '../../utils/logger.js';
 import {
   createBusiness,
   getBusiness,
@@ -231,7 +232,9 @@ export async function collectIncome(userId: string): Promise<CollectResult> {
       try {
         await addChips(emp.userId, salaryPerEmployee, 'BUSINESS_SALARY');
         totalSalaries += salaryPerEmployee;
-      } catch { /* ignore if user doesn't exist */ }
+      } catch (err) {
+        logger.error(`Failed to pay employee salary to ${emp.userId}`, { error: String(err) });
+      }
     }
   }
 

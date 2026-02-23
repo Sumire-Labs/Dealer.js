@@ -12,7 +12,7 @@ import { spin } from '../../games/slots/slots.engine.js';
 import { buildSlotsSpinningView } from '../../ui/builders/slots.builder.js';
 import { playSlotsAnimation } from '../../ui/animations/slots.animation.js';
 import { formatChips } from '../../utils/formatters.js';
-import { slotsSessionManager } from '../../interactions/buttons/slots.buttons.js';
+import { setSessionBet as setSlotsBet } from '../../interactions/buttons/slots.buttons.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 
 const data = new SlashCommandBuilder()
@@ -51,7 +51,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   }
 
   // Store session bet for button interactions
-  slotsSessionManager.set(userId, bet);
+  setSlotsBet(userId, bet);
 
   // Show spinning placeholder and defer
   const spinPlaceholder = buildSlotsSpinningView(['🔄', '🔄', '🔄']);

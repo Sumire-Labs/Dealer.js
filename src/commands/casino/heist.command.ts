@@ -162,118 +162,120 @@ export async function runHeist(
   // Run heist
   session.status = 'running';
 
-  // Check if host has HEIST_INTEL item
-  const hostId = session.players[0].userId;
-  const hostHasIntel = await hasInventoryItem(hostId, 'HEIST_INTEL');
-
-  const params: HeistCalcParams = {
-    playerCount: session.players.length,
-    target: session.target,
-    riskLevel: session.riskLevel,
-    approach: session.approach,
-    isSolo: session.isSolo,
-    hasHeistIntel: hostHasIntel,
-  };
-  const outcome = calculateHeistOutcome(params);
-
-  // Consume HEIST_INTEL after use
-  if (hostHasIntel) {
-    await consumeInventoryItem(hostId, 'HEIST_INTEL');
-  }
-
-  // Play animation
   try {
-    if (session.messageId && channel && 'messages' in channel) {
-      const message = await channel.messages.fetch(session.messageId);
-      await playHeistAnimation(message, outcome.phaseResults);
+    // Check if host has HEIST_INTEL item
+    const hostId = session.players[0].userId;
+    const hostHasIntel = await hasInventoryItem(hostId, 'HEIST_INTEL');
+
+    const params: HeistCalcParams = {
+      playerCount: session.players.length,
+      target: session.target,
+      riskLevel: session.riskLevel,
+      approach: session.approach,
+      isSolo: session.isSolo,
+      hasHeistIntel: hostHasIntel,
+    };
+    const outcome = calculateHeistOutcome(params);
+
+    // Consume HEIST_INTEL after use
+    if (hostHasIntel) {
+      await consumeInventoryItem(hostId, 'HEIST_INTEL');
     }
-  } catch (err) {
-    logger.error('Heist animation failed', { error: String(err) });
-  }
 
-  // Process result
-  let arrested = false;
-  if (outcome.success) {
-    const multiplierInt = Math.round(outcome.multiplier * 1_000_000);
-    const payout = (session.entryFee * BigInt(multiplierInt)) / 1_000_000n;
-
-    for (const p of session.players) {
-      await addChips(p.userId, payout, 'HEIST_WIN', 'HEIST');
-      const net = payout - session.entryFee;
-      await incrementGameStats(p.userId, net > 0n ? net : 0n, 0n);
-    }
-  } else {
-    // Failed: arrest all players
-    arrested = true;
-    const targetDef = HEIST_TARGET_MAP.get(session.target)!;
-    for (const p of session.players) {
-      await incrementGameStats(p.userId, 0n, session.entryFee);
-      jailUser(p.userId, configService.getBigInt(S.prisonFine), targetDef.name);
-    }
-  }
-
-  session.status = 'finished';
-
-  // Show result
-  const resultView = buildHeistResultView(
-    outcome.success,
-    outcome.phaseResults,
-    session.players,
-    session.entryFee,
-    outcome.multiplier,
-    session.target,
-    arrested,
-  );
-
-  try {
-    if (session.messageId && channel && 'messages' in channel) {
-      await channel.messages.edit(session.messageId, {
-        components: [resultView],
-        flags: MessageFlags.IsComponentsV2,
-      });
-    }
-  } catch (err) {
-    logger.error('Failed to show heist result', { error: String(err) });
-  }
-
-  // Notify HEIST_INTEL usage
-  if (hostHasIntel && channel && 'send' in channel) {
+    // Play animation
     try {
-      await channel.send({
-        content: `🕵️ <@${hostId}> の**強盗情報**を使用！(成功率+15%)`,
-      });
-    } catch {
-      // ignore
+      if (session.messageId && channel && 'messages' in channel) {
+        const message = await channel.messages.fetch(session.messageId);
+        await playHeistAnimation(message, outcome.phaseResults);
+      }
+    } catch (err) {
+      logger.error('Heist animation failed', { error: String(err) });
     }
-  }
 
-  // Achievement checks for all players
-  for (const p of session.players) {
+    // Process result
+    let arrested = false;
+    if (outcome.success) {
+      const multiplierInt = Math.round(outcome.multiplier * 1_000_000);
+      const payout = (session.entryFee * BigInt(multiplierInt)) / 1_000_000n;
+
+      for (const p of session.players) {
+        await addChips(p.userId, payout, 'HEIST_WIN', 'HEIST');
+        const net = payout - session.entryFee;
+        await incrementGameStats(p.userId, net > 0n ? net : 0n, 0n);
+      }
+    } else {
+      // Failed: arrest all players
+      arrested = true;
+      const targetDef = HEIST_TARGET_MAP.get(session.target)!;
+      for (const p of session.players) {
+        await incrementGameStats(p.userId, 0n, session.entryFee);
+        jailUser(p.userId, configService.getBigInt(S.prisonFine), targetDef.name);
+      }
+    }
+
+    session.status = 'finished';
+
+    // Show result
+    const resultView = buildHeistResultView(
+      outcome.success,
+      outcome.phaseResults,
+      session.players,
+      session.entryFee,
+      outcome.multiplier,
+      session.target,
+      arrested,
+    );
+
     try {
-      const heistAchievements = await checkAchievements({
-        userId: p.userId,
-        context: 'heist',
-      });
-      const multiplayerAchievements = session.isSolo ? [] : await checkAchievements({
-        userId: p.userId,
-        context: 'multiplayer',
-      });
-      const allAchievements = [...heistAchievements, ...multiplayerAchievements];
-
-      if (allAchievements.length > 0 && channel && 'send' in channel) {
-        await channel.send({
-          content: `<@${p.userId}> ${buildAchievementNotification(allAchievements)}`,
+      if (session.messageId && channel && 'messages' in channel) {
+        await channel.messages.edit(session.messageId, {
+          components: [resultView],
+          flags: MessageFlags.IsComponentsV2,
         });
       }
-    } catch {
-      // Achievement notification should not block
+    } catch (err) {
+      logger.error('Failed to show heist result', { error: String(err) });
     }
+
+    // Notify HEIST_INTEL usage
+    if (hostHasIntel && channel && 'send' in channel) {
+      try {
+        await channel.send({
+          content: `🕵️ <@${hostId}> の**強盗情報**を使用！(成功率+15%)`,
+        });
+      } catch {
+        // ignore
+      }
+    }
+
+    // Achievement checks for all players
+    for (const p of session.players) {
+      try {
+        const heistAchievements = await checkAchievements({
+          userId: p.userId,
+          context: 'heist',
+        });
+        const multiplayerAchievements = session.isSolo ? [] : await checkAchievements({
+          userId: p.userId,
+          context: 'multiplayer',
+        });
+        const allAchievements = [...heistAchievements, ...multiplayerAchievements];
+
+        if (allAchievements.length > 0 && channel && 'send' in channel) {
+          await channel.send({
+            content: `<@${p.userId}> ${buildAchievementNotification(allAchievements)}`,
+          });
+        }
+      } catch {
+        // Achievement notification should not block
+      }
+    }
+
+    // Set channel cooldown
+    setCooldown(`heist:${session.channelId}`, configService.getNumber(S.heistChannelCD));
+  } finally {
+    removeActiveHeistSession(session.channelId);
   }
-
-  // Set channel cooldown
-  setCooldown(`heist:${session.channelId}`, configService.getNumber(S.heistChannelCD));
-
-  removeActiveHeistSession(session.channelId);
 }
 
 registerCommand({ data, execute: execute as never });
