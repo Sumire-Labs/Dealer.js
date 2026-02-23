@@ -59,7 +59,7 @@ export const HEIST_MIN_SUCCESS_RATE = 5;
 export const HEIST_SOLO_SUCCESS_PENALTY = 15;
 export const HEIST_SOLO_MULTIPLIER_SCALE = 0.7;
 export const HEIST_SOLO_MIN_MULTIPLIER = 1.2;
-export const HEIST_CHANNEL_COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
+export const HEIST_CHANNEL_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
 
 // Prison
 export const PRISON_DURATION_MS = 5 * 60 * 1000;              // 5分
