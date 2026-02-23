@@ -45,7 +45,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
 
   await interaction.reply({
     components: [view],
-    flags: MessageFlags.IsComponentsV2,
+    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
   });
 }
 
