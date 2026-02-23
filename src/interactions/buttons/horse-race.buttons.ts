@@ -91,7 +91,7 @@ async function handleStartRace(interaction: ButtonInteraction, parts: string[]):
 
   // Force close betting
   session.startsAt = Date.now();
-  await interaction.update({});
+  await interaction.deferUpdate();
   await runRace(interaction.channel, session);
 }
 

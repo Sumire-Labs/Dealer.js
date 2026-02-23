@@ -53,8 +53,6 @@ async function handleBlackjackButton(interaction: ButtonInteraction): Promise<vo
     return;
   }
 
-  const user = await findOrCreateUser(userId);
-
   switch (action) {
     case 'hit':
       hit(state);
@@ -66,44 +64,45 @@ async function handleBlackjackButton(interaction: ButtonInteraction): Promise<vo
 
     case 'double': {
       const hand = state.playerHands[state.activeHandIndex];
-      if (user.chips < hand.bet) {
+      try {
+        await removeChips(userId, hand.bet, 'LOSS', 'BLACKJACK');
+      } catch {
         await interaction.reply({
-          content: `ダブルに必要なチップが足りません！ 必要: ${formatChips(hand.bet)}、残高: ${formatChips(user.chips)}`,
+          content: `ダブルに必要なチップが足りません！ 必要: ${formatChips(hand.bet)}`,
           flags: MessageFlags.Ephemeral,
         });
         return;
       }
-      // Deduct extra bet for double
-      await removeChips(userId, hand.bet, 'LOSS', 'BLACKJACK');
       doubleDown(state);
       break;
     }
 
     case 'split': {
       const hand = state.playerHands[state.activeHandIndex];
-      if (user.chips < hand.bet) {
+      try {
+        await removeChips(userId, hand.bet, 'LOSS', 'BLACKJACK');
+      } catch {
         await interaction.reply({
-          content: `スプリットに必要なチップが足りません！ 必要: ${formatChips(hand.bet)}、残高: ${formatChips(user.chips)}`,
+          content: `スプリットに必要なチップが足りません！ 必要: ${formatChips(hand.bet)}`,
           flags: MessageFlags.Ephemeral,
         });
         return;
       }
-      // Deduct extra bet for split
-      await removeChips(userId, hand.bet, 'LOSS', 'BLACKJACK');
       split(state);
       break;
     }
 
     case 'insurance': {
       const insBet = state.playerHands[0].bet / 2n;
-      if (user.chips < insBet) {
+      try {
+        await removeChips(userId, insBet, 'LOSS', 'BLACKJACK');
+      } catch {
         await interaction.reply({
-          content: `インシュランスに必要なチップが足りません！ 必要: ${formatChips(insBet)}、残高: ${formatChips(user.chips)}`,
+          content: `インシュランスに必要なチップが足りません！ 必要: ${formatChips(insBet)}`,
           flags: MessageFlags.Ephemeral,
         });
         return;
       }
-      await removeChips(userId, insBet, 'LOSS', 'BLACKJACK');
       takeInsurance(state);
       break;
     }

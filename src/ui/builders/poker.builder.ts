@@ -66,8 +66,9 @@ function getPotOddsText(callAmount: bigint, totalPot: bigint): string {
   if (callAmount <= 0n) return '';
   const potAfterCall = totalPot + callAmount;
   // pot odds = potAfterCall : callAmount
-  const ratio = Number(potAfterCall) / Number(callAmount);
-  return `📊 ポットオッズ: ${ratio.toFixed(1)} : 1`;
+  const ratioX10 = potAfterCall * 10n / callAmount;
+  const ratio = (Number(ratioX10) / 10).toFixed(1);
+  return `📊 ポットオッズ: ${ratio} : 1`;
 }
 
 // ─── Lobby ────────────────────────────────────────────

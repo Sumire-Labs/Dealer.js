@@ -23,6 +23,11 @@ import { buildAchievementNotification } from '../../database/services/achievemen
 
 const giftItemPage = new Map<string, number>();
 
+function setGiftPage(key: string, value: number): void {
+  if (giftItemPage.size > 10_000) giftItemPage.clear();
+  giftItemPage.set(key, value);
+}
+
 async function handleGiftButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
   const action = parts[1];
@@ -42,7 +47,7 @@ async function handleGiftButton(interaction: ButtonInteraction): Promise<void> {
     case 'type_item': {
       const receiverId = parts[3];
       const summary = await getUserInventorySummary(senderId);
-      giftItemPage.set(senderId, 0);
+      setGiftPage(senderId, 0);
       const view = buildGiftItemSelectView(senderId, receiverId, summary.inventory, 0);
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
@@ -156,7 +161,7 @@ async function handleGiftButton(interaction: ButtonInteraction): Promise<void> {
       const receiverId = parts[3];
       const currentPage = giftItemPage.get(senderId) ?? 0;
       const newPage = Math.max(0, currentPage - 1);
-      giftItemPage.set(senderId, newPage);
+      setGiftPage(senderId, newPage);
       const summary = await getUserInventorySummary(senderId);
       const view = buildGiftItemSelectView(senderId, receiverId, summary.inventory, newPage);
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
@@ -167,7 +172,7 @@ async function handleGiftButton(interaction: ButtonInteraction): Promise<void> {
       const receiverId = parts[3];
       const currentPage = giftItemPage.get(senderId) ?? 0;
       const newPage = currentPage + 1;
-      giftItemPage.set(senderId, newPage);
+      setGiftPage(senderId, newPage);
       const summary = await getUserInventorySummary(senderId);
       const view = buildGiftItemSelectView(senderId, receiverId, summary.inventory, newPage);
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });

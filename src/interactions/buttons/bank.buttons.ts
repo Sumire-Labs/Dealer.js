@@ -32,6 +32,11 @@ import { S } from '../../config/setting-defs.js';
 const bankHistoryPage = new Map<string, number>();
 const bankLoanPage = new Map<string, number>();
 
+function setPageGuarded(map: Map<string, number>, key: string, value: number): void {
+  if (map.size > 10_000) map.clear();
+  map.set(key, value);
+}
+
 // ── Handler ──────────────────────────────────────────────────────────
 
 async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
@@ -322,7 +327,7 @@ async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
     case 'loan_prev': {
       const current = bankLoanPage.get(userId) ?? 1;
       const newPage = Math.max(1, current - 1);
-      bankLoanPage.set(userId, newPage);
+      setPageGuarded(bankLoanPage, userId, newPage);
       const data = await buildBankViewData(userId);
       data.loanPage = newPage;
       const view = buildBankMainView(data, 'loan');
@@ -336,7 +341,7 @@ async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
     case 'loan_next': {
       const current = bankLoanPage.get(userId) ?? 1;
       const newPage = current + 1;
-      bankLoanPage.set(userId, newPage);
+      setPageGuarded(bankLoanPage, userId, newPage);
       const data = await buildBankViewData(userId);
       data.loanPage = newPage;
       const view = buildBankMainView(data, 'loan');
@@ -351,7 +356,7 @@ async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
     case 'history_prev': {
       const current = bankHistoryPage.get(userId) ?? 1;
       const newPage = Math.max(1, current - 1);
-      bankHistoryPage.set(userId, newPage);
+      setPageGuarded(bankHistoryPage, userId, newPage);
       const data = await buildBankViewData(userId, { historyPage: newPage });
       const view = buildBankMainView(data, 'history');
       await interaction.update({
@@ -364,7 +369,7 @@ async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
     case 'history_next': {
       const current = bankHistoryPage.get(userId) ?? 1;
       const newPage = current + 1;
-      bankHistoryPage.set(userId, newPage);
+      setPageGuarded(bankHistoryPage, userId, newPage);
       const data = await buildBankViewData(userId, { historyPage: newPage });
       const view = buildBankMainView(data, 'history');
       await interaction.update({

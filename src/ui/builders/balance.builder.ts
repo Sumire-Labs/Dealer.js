@@ -58,8 +58,8 @@ export function buildBalanceView(data: BalanceDisplayData, tab: BalanceTab = 'ba
     );
   } else {
     const net = totalWon - totalLost;
-    const winRate = totalGames > 0
-      ? ((Number(totalWon) / (Number(totalWon) + Number(totalLost)) || 0) * 100).toFixed(1)
+    const winRate = totalGames > 0 && (totalWon + totalLost) > 0n
+      ? (Number(totalWon * 1000n / (totalWon + totalLost)) / 10).toFixed(1)
       : '0.0';
 
     const statsLines = [

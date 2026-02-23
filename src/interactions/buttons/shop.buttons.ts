@@ -5,6 +5,8 @@ import {
   TextInputBuilder,
   TextInputStyle,
   ActionRowBuilder,
+  ContainerBuilder,
+  TextDisplayBuilder,
   type ModalActionRowComponentBuilder,
 } from 'discord.js';
 import { registerButtonHandler } from '../handler.js';
@@ -44,6 +46,7 @@ export const shopState = new Map<string, { category: number; page: number; craft
 
 export function getState(userId: string) {
   if (!shopState.has(userId)) {
+    if (shopState.size > 10_000) shopState.clear();
     shopState.set(userId, { category: 0, page: 0, craftPage: 0, collectionPage: 0 });
   }
   return shopState.get(userId)!;
@@ -307,9 +310,9 @@ async function handleShopButton(interaction: ButtonInteraction): Promise<void> {
       const recipe = CRAFT_RECIPES.find(r => r.id === craftRecipeId);
       if (!recipe) return;
 
-      // Clear UI for animation
+      // Show processing state for animation
       await interaction.update({
-        components: [],
+        components: [new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent('⏳ 合成中...'))],
         flags: MessageFlags.IsComponentsV2,
       });
 

@@ -1,4 +1,4 @@
-import { type ButtonInteraction, MessageFlags } from 'discord.js';
+import { type ButtonInteraction, MessageFlags, ContainerBuilder, TextDisplayBuilder } from 'discord.js';
 import { registerButtonHandler } from '../handler.js';
 import { getBalance } from '../../database/services/economy.service.js';
 import {
@@ -24,6 +24,7 @@ const invState = new Map<string, { page: number; filter: string }>();
 
 export function getInvState(userId: string) {
   if (!invState.has(userId)) {
+    if (invState.size > 10_000) invState.clear();
     invState.set(userId, { page: 0, filter: 'all' });
   }
   return invState.get(userId)!;
@@ -146,7 +147,7 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
       if (!box) return;
 
       await interaction.update({
-        components: [],
+        components: [new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent('⏳ 開封中...'))],
         flags: MessageFlags.IsComponentsV2,
       });
 

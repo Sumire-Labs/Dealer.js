@@ -9,7 +9,7 @@ import {
 import { checkAchievements } from './achievement.service.js';
 import { ITEM_MAP, SHOP_EFFECTS } from '../../config/shop.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
-import { getSetting, upsertSetting } from '../repositories/setting.repository.js';
+import { getSetting } from '../repositories/setting.repository.js';
 
 const MAX_GIFTS_PER_DAY = 5;
 
@@ -25,10 +25,20 @@ async function getGiftCount(userId: string): Promise<number> {
   return val ?? 0;
 }
 
-async function incrementGiftCount(userId: string): Promise<void> {
+async function getGiftCountTx(userId: string, tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0]): Promise<number> {
   const key = getGiftCountKey(userId);
-  const current = await getGiftCount(userId);
-  await upsertSetting(key, current + 1);
+  const setting = await tx.botSetting.findUnique({ where: { key } });
+  return (setting?.value as number) ?? 0;
+}
+
+async function incrementGiftCountTx(userId: string, tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0]): Promise<void> {
+  const key = getGiftCountKey(userId);
+  const current = await getGiftCountTx(userId, tx);
+  await tx.botSetting.upsert({
+    where: { key },
+    update: { value: current + 1 },
+    create: { key, value: current + 1 },
+  });
 }
 
 // ── Send gift item ──
@@ -53,13 +63,13 @@ export async function sendGiftItem(
   if (!item) return { success: false, error: 'アイテムが見つかりません。' };
   if (!item.giftable) return { success: false, error: 'このアイテムはギフトできません。' };
 
-  // Check daily limit
-  const giftCount = await getGiftCount(senderId);
-  if (giftCount >= MAX_GIFTS_PER_DAY) {
-    return { success: false, error: `本日のギフト上限（${MAX_GIFTS_PER_DAY}回）に達しています。` };
-  }
-
   return prisma.$transaction(async (tx) => {
+    // Check daily limit atomically inside transaction
+    const giftCount = await getGiftCountTx(senderId, tx);
+    if (giftCount >= MAX_GIFTS_PER_DAY) {
+      return { success: false, error: `本日のギフト上限（${MAX_GIFTS_PER_DAY}回）に達しています。` };
+    }
+
     // Ensure both users exist
     await findOrCreateUser(senderId);
     await findOrCreateUser(receiverId);
@@ -101,13 +111,13 @@ export async function sendGiftItem(
       },
     });
 
-    // Increment gift count
-    await incrementGiftCount(senderId);
+    // Increment gift count atomically
+    await incrementGiftCountTx(senderId, tx);
 
     // Achievement checks
     let newlyUnlocked: AchievementDefinition[] = [];
     try {
-      const totalGifts = (await getGiftCount(senderId));
+      const totalGifts = giftCount + 1;
       newlyUnlocked = await checkAchievements({
         userId: senderId,
         context: 'shop',
@@ -145,16 +155,16 @@ export async function sendGiftChips(
     return { success: false, error: '送金額は1以上にしてください。' };
   }
 
-  // Check daily limit
-  const giftCount = await getGiftCount(senderId);
-  if (giftCount >= MAX_GIFTS_PER_DAY) {
-    return { success: false, error: `本日のギフト上限（${MAX_GIFTS_PER_DAY}回）に達しています。` };
-  }
-
   const fee = (amount * BigInt(SHOP_EFFECTS.GIFT_FEE_RATE)) / 100n;
   const totalDeduction = amount + fee;
 
   return prisma.$transaction(async (tx) => {
+    // Check daily limit atomically inside transaction
+    const giftCount = await getGiftCountTx(senderId, tx);
+    if (giftCount >= MAX_GIFTS_PER_DAY) {
+      return { success: false, error: `本日のギフト上限（${MAX_GIFTS_PER_DAY}回）に達しています。` };
+    }
+
     const sender = await tx.user.findUniqueOrThrow({ where: { id: senderId } });
     await findOrCreateUser(receiverId);
 
@@ -192,13 +202,13 @@ export async function sendGiftChips(
       },
     });
 
-    // Increment gift count
-    await incrementGiftCount(senderId);
+    // Increment gift count atomically
+    await incrementGiftCountTx(senderId, tx);
 
     // Achievement checks
     let newlyUnlocked: AchievementDefinition[] = [];
     try {
-      const totalGifts = (await getGiftCount(senderId));
+      const totalGifts = giftCount + 1;
       newlyUnlocked = await checkAchievements({
         userId: senderId,
         context: 'shop',
