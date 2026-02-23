@@ -7,7 +7,6 @@ export interface LeaderboardEntry {
   chips: bigint;
   bankBalance: bigint;
   totalWon: bigint;
-  totalLost: bigint;
   totalGames: number;
   workLevel: number;
   workXp: number;
@@ -15,124 +14,77 @@ export interface LeaderboardEntry {
   achievementCount: number;
 }
 
+const CATEGORY_SELECTS: Record<LeaderboardCategory, Record<string, boolean | object>> = {
+  chips: { id: true, chips: true, totalGames: true },
+  net_worth: {}, // handled by raw SQL
+  total_won: { id: true, totalWon: true },
+  work_level: { id: true, workLevel: true, workXp: true },
+  shop_spend: { id: true, lifetimeShopSpend: true },
+  achievements: { id: true, _count: { select: { achievements: true } } },
+};
+
+const ENTRY_DEFAULTS: Omit<LeaderboardEntry, 'id'> = {
+  chips: 0n,
+  bankBalance: 0n,
+  totalWon: 0n,
+  totalGames: 0,
+  workLevel: 0,
+  workXp: 0,
+  lifetimeShopSpend: 0n,
+  achievementCount: 0,
+};
+
+function toEntry(row: Record<string, unknown>): LeaderboardEntry {
+  return {
+    ...ENTRY_DEFAULTS,
+    id: row.id as string,
+    ...(row.chips != null && { chips: row.chips as bigint }),
+    ...(row.bankBalance != null && { bankBalance: row.bankBalance as bigint }),
+    ...(row.totalWon != null && { totalWon: row.totalWon as bigint }),
+    ...(row.totalGames != null && { totalGames: row.totalGames as number }),
+    ...(row.workLevel != null && { workLevel: row.workLevel as number }),
+    ...(row.workXp != null && { workXp: row.workXp as number }),
+    ...(row.lifetimeShopSpend != null && { lifetimeShopSpend: row.lifetimeShopSpend as bigint }),
+    ...(row._count != null && { achievementCount: (row._count as { achievements: number }).achievements }),
+  };
+}
+
 export async function getTopPlayers(
   category: LeaderboardCategory,
   limit = 10,
   offset = 0,
 ): Promise<LeaderboardEntry[]> {
-  if (category === 'achievements') {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        chips: true,
-        bankBalance: true,
-        totalWon: true,
-        totalLost: true,
-        totalGames: true,
-        workLevel: true,
-        workXp: true,
-        lifetimeShopSpend: true,
-        _count: { select: { achievements: true } },
-      },
-      orderBy: { achievements: { _count: 'desc' } },
-      take: limit,
-      skip: offset,
-    });
-    return users.map(u => ({
-      id: u.id,
-      chips: u.chips,
-      bankBalance: u.bankBalance,
-      totalWon: u.totalWon,
-      totalLost: u.totalLost,
-      totalGames: u.totalGames,
-      workLevel: u.workLevel,
-      workXp: u.workXp,
-      lifetimeShopSpend: u.lifetimeShopSpend,
-      achievementCount: u._count.achievements,
-    }));
-  }
-
   if (category === 'net_worth') {
-    const rows = await prisma.$queryRaw<
-      {
-        id: string;
-        chips: bigint;
-        bankBalance: bigint;
-        totalWon: bigint;
-        totalLost: bigint;
-        totalGames: number;
-        workLevel: number;
-        workXp: number;
-        lifetimeShopSpend: bigint;
-      }[]
-    >`
-      SELECT "id", "chips", "bankBalance", "totalWon", "totalLost", "totalGames",
-             "workLevel", "workXp", "lifetimeShopSpend"
+    const rows = await prisma.$queryRaw<{ id: string; chips: bigint; bankBalance: bigint }[]>`
+      SELECT "id", "chips", "bankBalance"
       FROM "User"
       ORDER BY ("chips" + "bankBalance") DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
-    // queryRaw returns numbers for Int columns — need achievementCount separately
-    const ids = rows.map(r => r.id);
-    const counts = await prisma.userAchievement.groupBy({
-      by: ['userId'],
-      where: { userId: { in: ids } },
-      _count: true,
-    });
-    const countMap = new Map(counts.map(c => [c.userId, c._count]));
-
     return rows.map(r => ({
+      ...ENTRY_DEFAULTS,
       id: r.id,
       chips: r.chips,
       bankBalance: r.bankBalance,
-      totalWon: r.totalWon,
-      totalLost: r.totalLost,
-      totalGames: Number(r.totalGames),
-      workLevel: Number(r.workLevel),
-      workXp: Number(r.workXp),
-      lifetimeShopSpend: r.lifetimeShopSpend,
-      achievementCount: countMap.get(r.id) ?? 0,
     }));
   }
 
-  // Standard orderBy categories
-  const orderByMap: Record<string, object> = {
-    chips: { chips: 'desc' },
-    total_won: { totalWon: 'desc' },
-    work_level: [{ workLevel: 'desc' }, { workXp: 'desc' }],
-    shop_spend: { lifetimeShopSpend: 'desc' },
+  const orderByMap = {
+    chips: { chips: 'desc' as const },
+    total_won: { totalWon: 'desc' as const },
+    work_level: [{ workLevel: 'desc' as const }, { workXp: 'desc' as const }],
+    shop_spend: { lifetimeShopSpend: 'desc' as const },
+    achievements: { achievements: { _count: 'desc' as const } },
   };
 
   const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      chips: true,
-      bankBalance: true,
-      totalWon: true,
-      totalLost: true,
-      totalGames: true,
-      workLevel: true,
-      workXp: true,
-      lifetimeShopSpend: true,
-      _count: { select: { achievements: true } },
-    },
+    select: CATEGORY_SELECTS[category] as never,
     orderBy: orderByMap[category] as never,
     take: limit,
     skip: offset,
   });
 
-  return users.map(u => ({
-    id: u.id,
-    chips: u.chips,
-    bankBalance: u.bankBalance,
-    totalWon: u.totalWon,
-    totalLost: u.totalLost,
-    totalGames: u.totalGames,
-    workLevel: u.workLevel,
-    workXp: u.workXp,
-    lifetimeShopSpend: u.lifetimeShopSpend,
-    achievementCount: u._count.achievements,
-  }));
+  return (users as Record<string, unknown>[]).map(toEntry);
 }
 
 export async function getTotalPlayerCount(): Promise<number> {
@@ -144,13 +96,14 @@ export async function getUserRank(userId: string, category: LeaderboardCategory)
     const userAchCount = await prisma.userAchievement.count({
       where: { userId },
     });
-    // Count users with more achievements
-    const allCounts = await prisma.userAchievement.groupBy({
-      by: ['userId'],
-      _count: true,
-    });
-    const higherCount = allCounts.filter(c => c._count > userAchCount).length;
-    return higherCount + 1;
+    const result = await prisma.$queryRaw<[{ count: bigint }]>`
+      SELECT COUNT(*) as count FROM (
+        SELECT "userId" FROM "UserAchievement"
+        GROUP BY "userId"
+        HAVING COUNT(*) > ${userAchCount}
+      ) t
+    `;
+    return Number(result[0].count) + 1;
   }
 
   if (category === 'net_worth') {
@@ -168,13 +121,13 @@ export async function getUserRank(userId: string, category: LeaderboardCategory)
     return Number(count[0].count) + 1;
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { chips: true, totalWon: true, workLevel: true, workXp: true, lifetimeShopSpend: true },
-  });
-  if (!user) return -1;
-
   if (category === 'work_level') {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { workLevel: true, workXp: true },
+    });
+    if (!user) return -1;
+
     const count = await prisma.user.count({
       where: {
         OR: [
@@ -186,16 +139,19 @@ export async function getUserRank(userId: string, category: LeaderboardCategory)
     return count + 1;
   }
 
-  const fieldMap = {
-    chips: 'chips',
-    total_won: 'totalWon',
-    shop_spend: 'lifetimeShopSpend',
-  } as const;
-  const field = fieldMap[category as keyof typeof fieldMap];
-  const value = user[field];
+  // chips, total_won, shop_spend
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { chips: true, totalWon: true, lifetimeShopSpend: true },
+  });
+  if (!user) return -1;
+
+  const rankField = category === 'total_won' ? 'totalWon'
+    : category === 'shop_spend' ? 'lifetimeShopSpend'
+    : 'chips';
 
   const count = await prisma.user.count({
-    where: { [field]: { gt: value } },
+    where: { [rankField]: { gt: user[rankField] } },
   });
   return count + 1;
 }

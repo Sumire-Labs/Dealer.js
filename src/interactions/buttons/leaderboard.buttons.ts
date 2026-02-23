@@ -22,11 +22,7 @@ function formatEntryValue(entry: LeaderboardEntry, category: LeaderboardCategory
     case 'chips':
       return { userId: entry.id, value: `${formatChips(entry.chips)}（${entry.totalGames}回）` };
     case 'net_worth':
-      return {
-        userId: entry.id,
-        value: formatChips(entry.chips + entry.bankBalance),
-        subValue: `手持ち+銀行`,
-      };
+      return { userId: entry.id, value: formatChips(entry.chips + entry.bankBalance) };
     case 'total_won':
       return { userId: entry.id, value: formatChips(entry.totalWon) };
     case 'work_level':
@@ -38,7 +34,15 @@ function formatEntryValue(entry: LeaderboardEntry, category: LeaderboardCategory
   }
 }
 
-function formatRequesterValue(user: { chips: bigint; bankBalance: bigint; totalWon: bigint; workLevel: number; workXp: number; lifetimeShopSpend: bigint }, achievementCount: number, category: LeaderboardCategory): string {
+interface RequesterFields {
+  chips: bigint;
+  bankBalance: bigint;
+  totalWon: bigint;
+  workLevel: number;
+  lifetimeShopSpend: bigint;
+}
+
+function formatRequesterValue(user: RequesterFields, achievementCount: number, category: LeaderboardCategory): string {
   switch (category) {
     case 'chips': return formatChips(user.chips);
     case 'net_worth': return formatChips(user.chips + user.bankBalance);
@@ -105,11 +109,7 @@ async function handleLeaderboardButton(interaction: ButtonInteraction): Promise<
     categoryLabel: getCategoryLabel(category),
     requesterId: userId,
     requesterRank: rank,
-    requesterValue: formatRequesterValue(
-      dbUser as { chips: bigint; bankBalance: bigint; totalWon: bigint; workLevel: number; workXp: number; lifetimeShopSpend: bigint },
-      userAchCount,
-      category,
-    ),
+    requesterValue: formatRequesterValue(dbUser, userAchCount, category),
     page,
     totalPages,
   });

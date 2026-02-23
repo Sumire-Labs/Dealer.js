@@ -24,7 +24,6 @@ export const LEADERBOARD_CATEGORIES: { id: LeaderboardCategory; label: string; e
 export interface LeaderboardDisplayEntry {
   userId: string;
   value: string;
-  subValue?: string;
 }
 
 export interface LeaderboardDisplayData {
