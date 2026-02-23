@@ -131,9 +131,12 @@ async function handleGiftButton(interaction: ButtonInteraction): Promise<void> {
     }
 
     case 'cancel': {
+      const { ContainerBuilder, TextDisplayBuilder } = await import('discord.js');
+      const cancelView = new ContainerBuilder().addTextDisplayComponents(
+        new TextDisplayBuilder().setContent('❌ ギフトをキャンセルしました。'),
+      );
       await interaction.update({
-        content: 'ギフトをキャンセルしました。',
-        components: [],
+        components: [cancelView],
         flags: MessageFlags.IsComponentsV2,
       });
       break;
