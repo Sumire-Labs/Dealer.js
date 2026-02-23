@@ -292,7 +292,7 @@ export function buildMultiStepEventView(
   return container;
 }
 
-export function buildWorkResultView(result: WorkResult): ContainerBuilder {
+export function buildWorkResultView(result: WorkResult, userId: string): ContainerBuilder {
   const container = new ContainerBuilder()
     .setAccentColor(
       result.event!.type === 'accident'
@@ -386,7 +386,7 @@ export function buildWorkResultView(result: WorkResult): ContainerBuilder {
   container.addActionRowComponents(
     new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setCustomId(`work:panel:${result.jobId}`)
+        .setCustomId(`work:panel:${userId}:${result.jobId}`)
         .setLabel('💼 もう一度働く')
         .setStyle(ButtonStyle.Primary),
     ),
@@ -446,7 +446,7 @@ export function buildWeeklyChallengeView(data: WeeklyChallengeViewData): Contain
   container.addActionRowComponents(
     new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setCustomId(`work:panel:back`)
+        .setCustomId(`work:panel:${data.userId}`)
         .setLabel('💼 戻る')
         .setStyle(ButtonStyle.Secondary),
     ),

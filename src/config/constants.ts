@@ -48,16 +48,25 @@ export const LOTTERY_HOUSE_RATE = 10n;            // 10% chip sink
 
 // Heist
 export const HEIST_MIN_ENTRY = 1_000n;
-export const HEIST_MAX_ENTRY = 100_000n;
-export const HEIST_MIN_PLAYERS = 2;
-export const HEIST_MAX_PLAYERS = 6;
+export const HEIST_MIN_PLAYERS = 1;
+export const HEIST_GROUP_MIN_PLAYERS = 2;
+export const HEIST_MAX_PLAYERS = 8;
 export const HEIST_LOBBY_DURATION_MS = 60_000;
 export const HEIST_BASE_SUCCESS_RATE = 30;
 export const HEIST_PER_PLAYER_BONUS = 10;
 export const HEIST_MAX_SUCCESS_RATE = 80;
-export const HEIST_MIN_MULTIPLIER = 2.0;
-export const HEIST_MAX_MULTIPLIER = 4.0;
+export const HEIST_MIN_SUCCESS_RATE = 5;
+export const HEIST_SOLO_SUCCESS_PENALTY = 15;
+export const HEIST_SOLO_MULTIPLIER_SCALE = 0.7;
+export const HEIST_SOLO_MIN_MULTIPLIER = 1.2;
 export const HEIST_CHANNEL_COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
+
+// Prison
+export const PRISON_DURATION_MS = 5 * 60 * 1000;              // 5分
+export const PRISON_FINE_AMOUNT = 5_000n;                      // 罰金固定額
+export const PRISON_JAILBREAK_SUCCESS_RATE = 30;               // 30%
+export const PRISON_JAILBREAK_PENALTY_MS = 3 * 60 * 1000;     // 脱獄失敗+3分
+export const PRISON_JAILBREAK_COOLDOWN_MS = 60 * 1000;        // 脱獄再挑戦CD 1分
 
 // Work
 export const WORK_SHORT_COOLDOWN_MS = 1 * 60 * 60 * 1000;   // 1 hour

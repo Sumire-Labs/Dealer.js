@@ -12,16 +12,15 @@ export async function playHeistAnimation(
   message: Message,
   phaseResults: PhaseResult[],
 ): Promise<void> {
-  const { animationInterval, phases, phaseEmoji, phaseNames } = HEIST_CONFIG;
+  const { animationInterval } = HEIST_CONFIG;
   const completedPhases: PhaseResult[] = [];
 
   for (let i = 0; i < phaseResults.length; i++) {
-    // Show current phase as "in progress"
-    const currentPhaseIndex = phases.indexOf(phaseResults[i].phase as typeof phases[number]);
-    const currentPhase = currentPhaseIndex >= 0 ? {
-      emoji: phaseEmoji[currentPhaseIndex],
-      name: phaseNames[currentPhaseIndex],
-    } : undefined;
+    // Show current phase as "in progress" using data from phaseResults directly
+    const currentPhase = {
+      emoji: phaseResults[i].emoji,
+      name: phaseResults[i].name,
+    };
 
     const progressView = buildHeistPhaseView(completedPhases, currentPhase);
     await message.edit({

@@ -54,8 +54,5 @@ export const ROULETTE_CONFIG = {
 } as const;
 
 export const HEIST_CONFIG = {
-  phases: ['planning', 'infiltration', 'vault', 'escape'] as const,
-  phaseEmoji: ['📋', '🔓', '🏦', '🚗'] as const,
-  phaseNames: ['計画立案', '侵入', '金庫突破', '逃走'] as const,
   animationInterval: 1500,
 } as const;

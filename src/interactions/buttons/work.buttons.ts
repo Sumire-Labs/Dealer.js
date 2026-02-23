@@ -32,8 +32,15 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
 
   switch (action) {
     case 'panel': {
-      // "Work again" button — anyone can open their own panel
-      const userId = interaction.user.id;
+      const ownerId = parts[2];
+      if (interaction.user.id !== ownerId) {
+        await interaction.reply({
+          content: '`/work` で自分のワークパネルを開いてください。',
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+      const userId = ownerId;
       const panelData = await getWorkPanelData(userId);
 
       // Get weekly challenge summary
@@ -268,7 +275,7 @@ async function handleWorkResult(
     return;
   }
 
-  const view = buildWorkResultView(result);
+  const view = buildWorkResultView(result, interaction.user.id);
 
   await interaction.update({
     components: [view],

@@ -10,6 +10,7 @@ import {
 import { COMMAND_COOLDOWN_MS } from '../config/constants.js';
 import { formatTimeDelta } from '../utils/formatters.js';
 import { logger } from '../utils/logger.js';
+import { isJailed, getRemainingJailTime } from '../games/prison/prison.session.js';
 
 const buttonHandlers = new Map<string, (interaction: never) => Promise<void>>();
 const modalHandlers = new Map<string, (interaction: never) => Promise<void>>();
@@ -32,6 +33,23 @@ export async function handleInteraction(interaction: Interaction): Promise<void>
   try {
     // Ignore bot users
     if (interaction.user.bot) return;
+
+    // Prison check: block all interactions except /prison and prison buttons
+    if (isJailed(interaction.user.id)) {
+      const isPrisonCommand = interaction.isChatInputCommand() && interaction.commandName === 'prison';
+      const isPrisonButton = interaction.isButton() && interaction.customId.startsWith('prison:');
+
+      if (!isPrisonCommand && !isPrisonButton) {
+        const remaining = getRemainingJailTime(interaction.user.id);
+        if (interaction.isRepliable()) {
+          await interaction.reply({
+            content: `🔒 あなたは刑務所にいます！残り: **${formatTimeDelta(remaining)}**\n\`/prison\` で状況を確認できます。`,
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+        return;
+      }
+    }
 
     if (interaction.isChatInputCommand()) {
       const command = getCommand(interaction.commandName);

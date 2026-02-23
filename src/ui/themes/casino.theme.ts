@@ -30,5 +30,6 @@ export const CasinoTheme = {
     mystery: '📦 ━━━ MYSTERY BOX ━━━ 📦',
     dailyShop: '📅 ━━━ 本日の特売 ━━━ 📅',
     weeklyChallenges: '📋 ━━━ WEEKLY CHALLENGES ━━━ 📋',
+    prison: '🔒 ━━━ PRISON ━━━ 🔒',
   },
 } as const;

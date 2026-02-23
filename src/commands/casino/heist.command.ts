@@ -7,18 +7,16 @@ import {
 import { registerCommand } from '../registry.js';
 import {
   HEIST_MIN_ENTRY,
-  HEIST_MAX_ENTRY,
-  HEIST_MIN_PLAYERS,
-  HEIST_LOBBY_DURATION_MS,
+  HEIST_GROUP_MIN_PLAYERS,
   HEIST_CHANNEL_COOLDOWN_MS,
+  PRISON_FINE_AMOUNT,
 } from '../../config/constants.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { removeChips, addChips } from '../../database/services/economy.service.js';
+import { addChips } from '../../database/services/economy.service.js';
 import { incrementGameStats } from '../../database/repositories/user.repository.js';
-import { calculateHeistOutcome } from '../../games/heist/heist.engine.js';
+import { calculateHeistOutcome, type HeistCalcParams } from '../../games/heist/heist.engine.js';
 import {
   getActiveHeistSession,
-  setActiveHeistSession,
   removeActiveHeistSession,
   type HeistSessionState,
 } from '../../games/heist/heist.session.js';
@@ -26,6 +24,7 @@ import {
   buildHeistLobbyView,
   buildHeistResultView,
   buildHeistCancelledView,
+  buildHeistTargetSelectView,
 } from '../../ui/builders/heist.builder.js';
 import { playHeistAnimation } from '../../ui/animations/heist.animation.js';
 import { formatChips } from '../../utils/formatters.js';
@@ -33,6 +32,8 @@ import { isOnCooldown, setCooldown, getRemainingCooldown } from '../../utils/coo
 import { formatTimeDelta } from '../../utils/formatters.js';
 import { logger } from '../../utils/logger.js';
 import { checkAchievements, buildAchievementNotification } from '../../database/services/achievement.service.js';
+import { jailUser } from '../../games/prison/prison.session.js';
+import { HEIST_TARGET_MAP } from '../../config/heist.js';
 
 const data = new SlashCommandBuilder()
   .setName('heist')
@@ -43,7 +44,7 @@ const data = new SlashCommandBuilder()
       .setDescription('参加費')
       .setRequired(true)
       .setMinValue(Number(HEIST_MIN_ENTRY))
-      .setMaxValue(Number(HEIST_MAX_ENTRY)),
+      .setMaxValue(300_000),
   )
   .toJSON();
 
@@ -84,38 +85,15 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     return;
   }
 
-  // Deduct chips from host
-  await removeChips(userId, entryFee, 'HEIST_JOIN', 'HEIST');
-
-  // Create session
-  const session: HeistSessionState = {
-    channelId,
-    hostId: userId,
-    players: [{ userId, isHost: true }],
-    status: 'waiting',
-    lobbyDeadline: Date.now() + HEIST_LOBBY_DURATION_MS,
-    entryFee,
-  };
-
-  setActiveHeistSession(channelId, session);
-
-  // Show lobby
-  const remainingSeconds = Math.ceil(HEIST_LOBBY_DURATION_MS / 1000);
-  const lobbyView = buildHeistLobbyView(session, remainingSeconds);
-
-  const reply = await interaction.reply({
-    components: [lobbyView],
-    flags: MessageFlags.IsComponentsV2,
-    withResponse: true,
+  // Show target selection (ephemeral)
+  const view = buildHeistTargetSelectView(userId, entryFee);
+  await interaction.reply({
+    components: [view],
+    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
   });
-
-  session.messageId = reply.resource?.message?.id;
-
-  // Start lobby countdown
-  startLobbyCountdown(interaction.channel, session);
 }
 
-function startLobbyCountdown(
+export function startLobbyCountdown(
   channel: TextBasedChannel | null,
   session: HeistSessionState,
 ): void {
@@ -153,8 +131,8 @@ export async function runHeist(
 ): Promise<void> {
   if (session.lobbyTimer) clearInterval(session.lobbyTimer);
 
-  // Check minimum players
-  if (session.players.length < HEIST_MIN_PLAYERS) {
+  // Check minimum players for group mode
+  if (!session.isSolo && session.players.length < HEIST_GROUP_MIN_PLAYERS) {
     session.status = 'cancelled';
 
     // Refund all players
@@ -163,7 +141,7 @@ export async function runHeist(
     }
 
     const cancelView = buildHeistCancelledView(
-      `参加者不足（${session.players.length}/${HEIST_MIN_PLAYERS}）。全員に返金しました。`,
+      `参加者不足（${session.players.length}/${HEIST_GROUP_MIN_PLAYERS}）。全員に返金しました。`,
     );
 
     try {
@@ -183,7 +161,15 @@ export async function runHeist(
 
   // Run heist
   session.status = 'running';
-  const outcome = calculateHeistOutcome(session.players.length);
+
+  const params: HeistCalcParams = {
+    playerCount: session.players.length,
+    target: session.target,
+    riskLevel: session.riskLevel,
+    approach: session.approach,
+    isSolo: session.isSolo,
+  };
+  const outcome = calculateHeistOutcome(params);
 
   // Play animation
   try {
@@ -196,6 +182,7 @@ export async function runHeist(
   }
 
   // Process result
+  let arrested = false;
   if (outcome.success) {
     const multiplierInt = Math.round(outcome.multiplier * 1_000_000);
     const payout = (session.entryFee * BigInt(multiplierInt)) / 1_000_000n;
@@ -206,9 +193,12 @@ export async function runHeist(
       await incrementGameStats(p.userId, net > 0n ? net : 0n, 0n);
     }
   } else {
+    // Failed: arrest all players
+    arrested = true;
+    const targetDef = HEIST_TARGET_MAP.get(session.target)!;
     for (const p of session.players) {
-      // Record as HEIST_LOSS (chips already deducted at join)
       await incrementGameStats(p.userId, 0n, session.entryFee);
+      jailUser(p.userId, PRISON_FINE_AMOUNT, targetDef.name);
     }
   }
 
@@ -221,6 +211,8 @@ export async function runHeist(
     session.players,
     session.entryFee,
     outcome.multiplier,
+    session.target,
+    arrested,
   );
 
   try {

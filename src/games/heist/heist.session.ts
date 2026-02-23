@@ -1,3 +1,5 @@
+import type { HeistTarget, HeistRiskLevel, HeistApproach } from '../../config/heist.js';
+
 export interface HeistPlayer {
   userId: string;
   isHost: boolean;
@@ -14,6 +16,10 @@ export interface HeistSessionState {
   entryFee: bigint;
   messageId?: string;
   lobbyTimer?: ReturnType<typeof setInterval>;
+  target: HeistTarget;
+  riskLevel: HeistRiskLevel;
+  approach: HeistApproach;
+  isSolo: boolean;
 }
 
 const activeSessions = new Map<string, HeistSessionState>();

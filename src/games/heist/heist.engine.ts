@@ -3,10 +3,19 @@ import {
   HEIST_BASE_SUCCESS_RATE,
   HEIST_PER_PLAYER_BONUS,
   HEIST_MAX_SUCCESS_RATE,
-  HEIST_MIN_MULTIPLIER,
-  HEIST_MAX_MULTIPLIER,
+  HEIST_MIN_SUCCESS_RATE,
+  HEIST_SOLO_SUCCESS_PENALTY,
+  HEIST_SOLO_MULTIPLIER_SCALE,
+  HEIST_SOLO_MIN_MULTIPLIER,
 } from '../../config/constants.js';
-import { HEIST_CONFIG } from '../../config/games.js';
+import {
+  HEIST_TARGET_MAP,
+  HEIST_RISK_MAP,
+  HEIST_APPROACH_MAP,
+  type HeistTarget,
+  type HeistRiskLevel,
+  type HeistApproach,
+} from '../../config/heist.js';
 
 export interface HeistOutcome {
   success: boolean;
@@ -23,76 +32,111 @@ export interface PhaseResult {
   description: string;
 }
 
-export function calculateSuccessRate(playerCount: number): number {
-  const rate = HEIST_BASE_SUCCESS_RATE + (playerCount - 1) * HEIST_PER_PLAYER_BONUS;
-  return Math.min(rate, HEIST_MAX_SUCCESS_RATE);
+export interface HeistCalcParams {
+  playerCount: number;
+  target: HeistTarget;
+  riskLevel: HeistRiskLevel;
+  approach: HeistApproach;
+  isSolo: boolean;
 }
 
-export function calculateHeistOutcome(playerCount: number): HeistOutcome {
-  const successRate = calculateSuccessRate(playerCount);
+export function calculateSuccessRate(params: HeistCalcParams): number {
+  const targetDef = HEIST_TARGET_MAP.get(params.target)!;
+  const riskDef = HEIST_RISK_MAP.get(params.riskLevel)!;
+  const approachDef = HEIST_APPROACH_MAP.get(params.approach)!;
+
+  let rate = HEIST_BASE_SUCCESS_RATE
+    + (params.playerCount - 1) * HEIST_PER_PLAYER_BONUS
+    + targetDef.successRateModifier
+    + riskDef.successRateModifier
+    + approachDef.successRateModifier;
+
+  if (params.isSolo) {
+    rate -= HEIST_SOLO_SUCCESS_PENALTY;
+  }
+
+  return Math.max(HEIST_MIN_SUCCESS_RATE, Math.min(rate, HEIST_MAX_SUCCESS_RATE));
+}
+
+export function calculateMultiplierRange(params: HeistCalcParams): { min: number; max: number } {
+  const targetDef = HEIST_TARGET_MAP.get(params.target)!;
+  const riskDef = HEIST_RISK_MAP.get(params.riskLevel)!;
+  const approachDef = HEIST_APPROACH_MAP.get(params.approach)!;
+
+  let minMult = targetDef.multiplierMin * riskDef.multiplierScale * approachDef.multiplierScale;
+  let maxMult = targetDef.multiplierMax * riskDef.multiplierScale * approachDef.multiplierScale;
+
+  if (params.isSolo) {
+    minMult *= HEIST_SOLO_MULTIPLIER_SCALE;
+    maxMult *= HEIST_SOLO_MULTIPLIER_SCALE;
+  }
+
+  // Enforce minimum
+  minMult = Math.max(minMult, HEIST_SOLO_MIN_MULTIPLIER);
+  maxMult = Math.max(maxMult, minMult);
+
+  return {
+    min: Math.round(minMult * 10) / 10,
+    max: Math.round(maxMult * 10) / 10,
+  };
+}
+
+export function calculateMaxEntryFee(target: HeistTarget, riskLevel: HeistRiskLevel): bigint {
+  const targetDef = HEIST_TARGET_MAP.get(target)!;
+  const riskDef = HEIST_RISK_MAP.get(riskLevel)!;
+  return BigInt(Math.round(Number(targetDef.maxEntryFee) * riskDef.entryFeeScale));
+}
+
+export function calculateHeistOutcome(params: HeistCalcParams): HeistOutcome {
+  const successRate = calculateSuccessRate(params);
   const roll = secureRandomInt(1, 100);
   const success = roll <= successRate;
 
-  // Multiplier: random between min and max (1 decimal)
-  const multiplierRaw = HEIST_MIN_MULTIPLIER +
-    (secureRandomInt(0, 10) / 10) * (HEIST_MAX_MULTIPLIER - HEIST_MIN_MULTIPLIER);
+  const { min, max } = calculateMultiplierRange(params);
+  const multiplierRaw = min + (secureRandomInt(0, 10) / 10) * (max - min);
   const multiplier = Math.round(multiplierRaw * 10) / 10;
 
-  const phaseResults = generatePhaseResults(success);
+  const phaseResults = generatePhaseResults(success, params.target);
 
   return { success, multiplier, successRate, phaseResults };
 }
 
-const SUCCESS_DESCRIPTIONS: Record<string, string[]> = {
-  planning: ['完璧な計画を立てた！', 'チームの連携が光った！', '緻密な戦略が功を奏した！'],
-  infiltration: ['警備を突破した！', 'セキュリティを無効化した！', '誰にも気づかれなかった！'],
-  vault: ['大量のチップを発見！', '金庫を開錠した！', '宝の山を発見！'],
-  escape: ['無事に逃走！', '完璧な脱出！', '追手を振り切った！'],
-};
-
-const FAILURE_DESCRIPTIONS: Record<string, string[]> = {
-  planning: ['計画に欠陥があった...', '情報漏洩が起きた...', '内通者がいた...'],
-  infiltration: ['警報が鳴った！', 'セキュリティに捕まった！', '監視カメラに映った！'],
-  vault: ['金庫が開かない...', 'トラップに引っかかった！', '金庫が空だった...'],
-  escape: ['逃走経路が封鎖された！', '追手に捕まった！', '車が故障した...'],
-};
-
-function generatePhaseResults(success: boolean): PhaseResult[] {
-  const { phases, phaseEmoji, phaseNames } = HEIST_CONFIG;
+function generatePhaseResults(success: boolean, target: HeistTarget): PhaseResult[] {
+  const targetDef = HEIST_TARGET_MAP.get(target)!;
+  const { phases, successTexts, failureTexts } = targetDef;
   const results: PhaseResult[] = [];
 
   if (success) {
-    // All phases succeed
-    for (let i = 0; i < phases.length; i++) {
-      const descs = SUCCESS_DESCRIPTIONS[phases[i]];
+    for (const phase of phases) {
+      const descs = successTexts[phase.id];
       results.push({
-        phase: phases[i],
-        emoji: phaseEmoji[i],
-        name: phaseNames[i],
+        phase: phase.id,
+        emoji: phase.emoji,
+        name: phase.name,
         success: true,
         description: descs[secureRandomInt(0, descs.length - 1)],
       });
     }
   } else {
-    // Random failure point (at least 1 success before failure)
     const failPhase = secureRandomInt(0, phases.length - 1);
 
     for (let i = 0; i < phases.length; i++) {
+      const phase = phases[i];
       if (i < failPhase) {
-        const descs = SUCCESS_DESCRIPTIONS[phases[i]];
+        const descs = successTexts[phase.id];
         results.push({
-          phase: phases[i],
-          emoji: phaseEmoji[i],
-          name: phaseNames[i],
+          phase: phase.id,
+          emoji: phase.emoji,
+          name: phase.name,
           success: true,
           description: descs[secureRandomInt(0, descs.length - 1)],
         });
       } else if (i === failPhase) {
-        const descs = FAILURE_DESCRIPTIONS[phases[i]];
+        const descs = failureTexts[phase.id];
         results.push({
-          phase: phases[i],
-          emoji: phaseEmoji[i],
-          name: phaseNames[i],
+          phase: phase.id,
+          emoji: phase.emoji,
+          name: phase.name,
           success: false,
           description: descs[secureRandomInt(0, descs.length - 1)],
         });
