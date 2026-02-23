@@ -49,7 +49,7 @@ async function handleBalanceButton(interaction: ButtonInteraction): Promise<void
   }
 
   // Balance / Stats tabs
-  const rank = await getUserRank(targetId);
+  const rank = await getUserRank(targetId, 'chips');
 
   const container = buildBalanceView({
     userId: ownerId,

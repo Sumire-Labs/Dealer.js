@@ -24,7 +24,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   const isSelf = targetUser.id === interaction.user.id;
 
   const dbUser = await findOrCreateUser(targetUser.id);
-  const rank = await getUserRank(targetUser.id);
+  const rank = await getUserRank(targetUser.id, 'chips');
 
   const container = buildBalanceView({
     userId: interaction.user.id,

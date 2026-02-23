@@ -6,20 +6,22 @@ import {
 import { registerCommand } from '../registry.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { getTopPlayers, getUserRank, getTotalPlayerCount } from '../../database/repositories/leaderboard.repository.js';
-import { buildLeaderboardView, LEADERBOARD_PAGE_SIZE } from '../../ui/builders/leaderboard.builder.js';
+import { buildLeaderboardView, LEADERBOARD_PAGE_SIZE, LEADERBOARD_CATEGORIES } from '../../ui/builders/leaderboard.builder.js';
+import { formatChips } from '../../utils/formatters.js';
 
 const data = new SlashCommandBuilder()
   .setName('leaderboard')
-  .setDescription('チップ保有量ランキングを表示')
+  .setDescription('ランキングを表示（カテゴリ切替可能）')
   .toJSON();
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
   const userId = interaction.user.id;
+  const category = 'chips' as const;
 
   const [dbUser, topPlayers, rank, totalCount] = await Promise.all([
     findOrCreateUser(userId),
-    getTopPlayers(LEADERBOARD_PAGE_SIZE, 0),
-    getUserRank(userId),
+    getTopPlayers(category, LEADERBOARD_PAGE_SIZE, 0),
+    getUserRank(userId, category),
     getTotalPlayerCount(),
   ]);
 
@@ -27,15 +29,18 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
 
   const entries = topPlayers.map(p => ({
     userId: p.id,
-    chips: p.chips,
-    totalGames: p.totalGames,
+    value: `${formatChips(p.chips)}（${p.totalGames}回）`,
   }));
+
+  const catInfo = LEADERBOARD_CATEGORIES.find(c => c.id === category)!;
 
   const container = buildLeaderboardView({
     entries,
+    category,
+    categoryLabel: `${catInfo.emoji} ${catInfo.label}ランキング`,
     requesterId: userId,
     requesterRank: rank,
-    requesterChips: dbUser.chips,
+    requesterValue: formatChips(dbUser.chips),
     page: 0,
     totalPages,
   });
