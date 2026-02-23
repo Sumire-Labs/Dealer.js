@@ -31,17 +31,18 @@ import { setOvertimeSession } from '../../games/work/overtime.session.js';
 async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
   const action = parts[1];
+  const ownerId = parts[2];
+
+  if (interaction.user.id !== ownerId) {
+    await interaction.reply({
+      content: '`/work` で自分のワークパネルを開いてください。',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
 
   switch (action) {
     case 'panel': {
-      const ownerId = parts[2];
-      if (interaction.user.id !== ownerId) {
-        await interaction.reply({
-          content: '`/work` で自分のワークパネルを開いてください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
       const userId = ownerId;
       const panelData = await getWorkPanelData(userId);
 
@@ -81,16 +82,7 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
     }
 
     case 'job': {
-      const ownerId = parts[2];
       const jobId = parts[3];
-
-      if (interaction.user.id !== ownerId) {
-        await interaction.reply({
-          content: '`/work` で自分のワークパネルを開いてください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
 
       const job = JOB_MAP.get(jobId) ?? PROMOTED_JOB_MAP.get(jobId);
       if (!job) {
@@ -121,17 +113,8 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
     }
 
     case 'shift': {
-      const ownerId = parts[2];
       const jobId = parts[3];
       const shiftType = parts[4] as ShiftType;
-
-      if (interaction.user.id !== ownerId) {
-        await interaction.reply({
-          content: '`/work` で自分のワークパネルを開いてください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
 
       const result = await performWork(ownerId, jobId, shiftType);
       await handleWorkResult(interaction, result);
@@ -139,17 +122,8 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
     }
 
     case 'special': {
-      const ownerId = parts[2];
       const jobId = parts[3];
       const specialType = parts[4];
-
-      if (interaction.user.id !== ownerId) {
-        await interaction.reply({
-          content: '`/work` で自分のワークパネルを開いてください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
 
       // Special shifts use 'normal' shift type as base
       const specialShift = SPECIAL_SHIFTS.find(s => s.type === specialType);
@@ -169,16 +143,7 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
     }
 
     case 'choice': {
-      const ownerId = parts[2];
       const choiceId = parts[3];
-
-      if (interaction.user.id !== ownerId) {
-        await interaction.reply({
-          content: '`/work` で自分のワークパネルを開いてください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
 
       const result = await resolveMultiStepWork(ownerId, choiceId);
       await handleWorkResult(interaction, result);
@@ -192,16 +157,6 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
       break;
 
     case 'team_select': {
-      const ownerId = parts[2];
-
-      if (interaction.user.id !== ownerId) {
-        await interaction.reply({
-          content: '`/work` で自分のワークパネルを開いてください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
       const { buildTeamShiftTypeSelectView } = await import('../../ui/builders/team-shift.builder.js');
       const teamView = buildTeamShiftTypeSelectView(ownerId);
       await interaction.update({
@@ -212,16 +167,6 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
     }
 
     case 'weekly': {
-      const ownerId = parts[2];
-
-      if (interaction.user.id !== ownerId) {
-        await interaction.reply({
-          content: '`/work` で自分のワークパネルを開いてください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
       try {
         const { getWeeklyChallenges } = await import('../../database/services/weekly-challenge.service.js');
         const { WEEKLY_CHALLENGE_POOL } = await import('../../config/weekly-challenges.js');

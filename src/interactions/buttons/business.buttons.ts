@@ -27,20 +27,19 @@ import { getBusiness } from '../../database/repositories/business.repository.js'
 async function handleBusinessButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
   const action = parts[1];
-  const userId = interaction.user.id;
+  const ownerId = parts[2];
+
+  if (interaction.user.id !== ownerId) {
+    await interaction.reply({
+      content: '`/business` で自分のビジネスを管理してください。',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
 
   switch (action) {
     case 'buy': {
-      const ownerId = parts[2];
       const typeId = parts[3];
-
-      if (userId !== ownerId) {
-        await interaction.reply({
-          content: '`/business` で自分のビジネスを管理してください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
 
       const result = await buyBusiness(ownerId, typeId);
       if (!result.success) {
@@ -68,16 +67,6 @@ async function handleBusinessButton(interaction: ButtonInteraction): Promise<voi
     }
 
     case 'collect': {
-      const ownerId = parts[2];
-
-      if (userId !== ownerId) {
-        await interaction.reply({
-          content: '`/business` で自分のビジネスを管理してください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
       const result = await collectIncome(ownerId);
       if (!result.success) {
         await interaction.reply({
@@ -96,16 +85,6 @@ async function handleBusinessButton(interaction: ButtonInteraction): Promise<voi
     }
 
     case 'upgrade': {
-      const ownerId = parts[2];
-
-      if (userId !== ownerId) {
-        await interaction.reply({
-          content: '`/business` で自分のビジネスを管理してください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
       const business = await getBusiness(ownerId);
       if (!business) {
         await interaction.reply({
@@ -145,16 +124,6 @@ async function handleBusinessButton(interaction: ButtonInteraction): Promise<voi
     }
 
     case 'upgrade_confirm': {
-      const ownerId = parts[2];
-
-      if (userId !== ownerId) {
-        await interaction.reply({
-          content: '`/business` で自分のビジネスを管理してください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
       const result = await upgradeBusinessLevel(ownerId);
       if (!result.success) {
         await interaction.reply({
@@ -180,16 +149,6 @@ async function handleBusinessButton(interaction: ButtonInteraction): Promise<voi
     }
 
     case 'employees': {
-      const ownerId = parts[2];
-
-      if (userId !== ownerId) {
-        await interaction.reply({
-          content: '`/business` で自分のビジネスを管理してください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
       const business = await getBusiness(ownerId);
       if (!business) {
         await interaction.reply({
@@ -213,16 +172,6 @@ async function handleBusinessButton(interaction: ButtonInteraction): Promise<voi
     }
 
     case 'hire': {
-      const ownerId = parts[2];
-
-      if (userId !== ownerId) {
-        await interaction.reply({
-          content: '`/business` で自分のビジネスを管理してください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
       const modal = new ModalBuilder()
         .setCustomId(`biz_modal:hire:${ownerId}`)
         .setTitle('従業員を雇う');
@@ -245,16 +194,7 @@ async function handleBusinessButton(interaction: ButtonInteraction): Promise<voi
     }
 
     case 'fire': {
-      const ownerId = parts[2];
       const employeeId = parts[3];
-
-      if (userId !== ownerId) {
-        await interaction.reply({
-          content: '`/business` で自分のビジネスを管理してください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
 
       const result = await fireEmployee(ownerId, employeeId);
       if (!result.success) {
@@ -287,16 +227,6 @@ async function handleBusinessButton(interaction: ButtonInteraction): Promise<voi
     }
 
     case 'back': {
-      const ownerId = parts[2];
-
-      if (userId !== ownerId) {
-        await interaction.reply({
-          content: '`/business` で自分のビジネスを管理してください。',
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
       const dashboard = await getBusinessDashboard(ownerId);
       const view = buildBusinessDashboardView(dashboard, ownerId);
       await interaction.update({
