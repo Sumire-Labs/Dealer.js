@@ -37,6 +37,7 @@ model User {
   workMastery       WorkMastery[]
   weeklyChallenges  WorkWeeklyChallenge[]
   business          Business?
+  collections       UserCollection[]
 }
 
 model Transaction {
@@ -117,6 +118,10 @@ enum TransactionType {
   BUSINESS_COLLECT
   BUSINESS_INVEST
   BUSINESS_SALARY
+  SHOP_RECYCLE
+  SHOP_CRAFT
+  GIFT_SEND
+  GIFT_RECEIVE
 }
 
 enum GameType {
@@ -207,6 +212,7 @@ model UserInventory {
   user       User      @relation(fields: [userId], references: [id])
   itemId     String
   quantity   Int       @default(1)
+  everOwned  Boolean   @default(true)
   expiresAt  DateTime?
   acquiredAt DateTime  @default(now())
 
@@ -274,5 +280,16 @@ model BusinessEmployee {
   hiredAt    DateTime @default(now())
 
   @@unique([businessId, userId])
+  @@index([userId])
+}
+
+model UserCollection {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  collectionKey String
+  completedAt   DateTime @default(now())
+
+  @@unique([userId, collectionKey])
   @@index([userId])
 }

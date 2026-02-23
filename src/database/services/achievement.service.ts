@@ -250,6 +250,41 @@ async function isConditionMet(
       return itemCount >= 10;
     }
 
+    // Shop — Recycle, Craft, Gift, Collection, Rank
+    case 'FIRST_RECYCLE':
+      return input.context === 'shop' && input.metadata?.['action'] === 'recycle';
+
+    case 'FIRST_CRAFT':
+      return input.context === 'shop' && input.metadata?.['action'] === 'craft';
+
+    case 'FIRST_GIFT':
+      return input.context === 'shop' && input.metadata?.['action'] === 'gift_send' && (input.metadata?.['giftCount'] as number) >= 1;
+
+    case 'GIFT_GENEROUS':
+      return input.context === 'shop' && input.metadata?.['action'] === 'gift_send' && (input.metadata?.['giftCount'] as number) >= 10;
+
+    case 'COLLECTION_FIRST':
+      return input.context === 'shop' && input.metadata?.['action'] === 'collection_complete' && (input.metadata?.['completedCount'] as number) >= 1;
+
+    case 'COLLECTION_MASTER': {
+      if (input.context !== 'shop' || input.metadata?.['action'] !== 'collection_complete') return false;
+      return (input.metadata?.['completedCount'] as number) >= (input.metadata?.['totalCollections'] as number);
+    }
+
+    case 'SHOP_RANK_GOLD':
+      return (
+        input.context === 'shop' &&
+        input.metadata?.['action'] === 'buy' &&
+        (input.metadata?.['lifetimeShopSpend'] as number) >= 200_000
+      );
+
+    case 'SHOP_RANK_DIAMOND':
+      return (
+        input.context === 'shop' &&
+        input.metadata?.['action'] === 'buy' &&
+        (input.metadata?.['lifetimeShopSpend'] as number) >= 1_000_000
+      );
+
     default:
       return false;
   }

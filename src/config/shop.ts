@@ -1,3 +1,5 @@
+import type { ShopRank } from './shop-ranks.js';
+
 export type ShopCategory =
   | 'consumable'
   | 'buff'
@@ -5,7 +7,8 @@ export type ShopCategory =
   | 'cosmetic'
   | 'mystery'
   | 'insurance'
-  | 'tool';
+  | 'tool'
+  | 'craft';
 
 export type CosmeticType = 'title' | 'badge';
 
@@ -22,6 +25,8 @@ export interface ShopItem {
   buffDurationMs?: number;  // For buffs / insurance with ActiveBuff
   cosmeticType?: CosmeticType;
   dailyEligible?: boolean;  // Can appear in daily rotation
+  rankRequired?: ShopRank;  // Minimum shop rank to purchase
+  giftable?: boolean;       // Can be sent as a gift
 }
 
 export interface MysteryBoxLoot {
@@ -48,6 +53,7 @@ export const CONSUMABLES: ShopItem[] = [
     price: 3_000n,
     category: 'consumable',
     dailyEligible: true,
+    giftable: true,
   },
   {
     id: 'WORK_COOLDOWN_SKIP',
@@ -57,6 +63,7 @@ export const CONSUMABLES: ShopItem[] = [
     price: 5_000n,
     category: 'consumable',
     dailyEligible: true,
+    giftable: true,
   },
   {
     id: 'DAILY_BOOST',
@@ -66,6 +73,7 @@ export const CONSUMABLES: ShopItem[] = [
     price: 8_000n,
     category: 'consumable',
     dailyEligible: true,
+    giftable: true,
   },
   {
     id: 'LUCKY_CHARM',
@@ -75,6 +83,36 @@ export const CONSUMABLES: ShopItem[] = [
     price: 15_000n,
     category: 'consumable',
     dailyEligible: true,
+    giftable: true,
+  },
+  {
+    id: 'HEIST_INTEL',
+    name: '強盗情報',
+    emoji: '🕵️',
+    description: '次回Heist成功率+15%',
+    price: 8_000n,
+    category: 'consumable',
+    dailyEligible: true,
+    giftable: true,
+  },
+  {
+    id: 'PRISON_KEY',
+    name: '脱獄キー',
+    emoji: '🔑',
+    description: '即時脱獄（確実）',
+    price: 12_000n,
+    category: 'consumable',
+    giftable: true,
+  },
+  {
+    id: 'LUCKY_TICKET',
+    name: 'ラッキーチケット',
+    emoji: '🎟️',
+    description: '次回宝くじ当選時の配当1.5倍',
+    price: 10_000n,
+    category: 'consumable',
+    dailyEligible: true,
+    giftable: true,
   },
 ];
 
@@ -109,6 +147,26 @@ export const BUFFS: ShopItem[] = [
     emoji: '🎫',
     description: '24時間、全ゲーム報酬+5%',
     price: 50_000n,
+    category: 'buff',
+    buffDurationMs: BUFF_DURATION_MS,
+    dailyEligible: true,
+  },
+  {
+    id: 'WORK_PAY_BOOST',
+    name: 'ワークブースター',
+    emoji: '💪',
+    description: '24時間、労働報酬+25%',
+    price: 15_000n,
+    category: 'buff',
+    buffDurationMs: BUFF_DURATION_MS,
+    dailyEligible: true,
+  },
+  {
+    id: 'LOAN_DISCOUNT',
+    name: 'ローン割引券',
+    emoji: '🏷️',
+    description: '24時間、ローン利率半減',
+    price: 8_000n,
     category: 'buff',
     buffDurationMs: BUFF_DURATION_MS,
     dailyEligible: true,
@@ -163,6 +221,24 @@ export const UPGRADES: ShopItem[] = [
     category: 'upgrade',
     maxStack: 1,
   },
+  {
+    id: 'HEIST_VAULT',
+    name: '強盗の金庫',
+    emoji: '🗄️',
+    description: 'Heist報酬+10%永続',
+    price: 200_000n,
+    category: 'upgrade',
+    maxStack: 1,
+  },
+  {
+    id: 'POKER_FACE',
+    name: 'ポーカーフェイス',
+    emoji: '🃏',
+    description: 'ポーカー報酬+5%永続',
+    price: 250_000n,
+    category: 'upgrade',
+    maxStack: 1,
+  },
 ];
 
 // ── Cosmetics ──
@@ -177,6 +253,7 @@ export const COSMETICS: ShopItem[] = [
     category: 'cosmetic',
     cosmeticType: 'title',
     maxStack: 1,
+    giftable: true,
   },
   {
     id: 'TITLE_LUCKY_STAR',
@@ -187,6 +264,7 @@ export const COSMETICS: ShopItem[] = [
     category: 'cosmetic',
     cosmeticType: 'title',
     maxStack: 1,
+    giftable: true,
   },
   {
     id: 'TITLE_CASINO_KING',
@@ -197,6 +275,7 @@ export const COSMETICS: ShopItem[] = [
     category: 'cosmetic',
     cosmeticType: 'title',
     maxStack: 1,
+    giftable: true,
   },
   {
     id: 'TITLE_PHANTOM_THIEF',
@@ -207,6 +286,40 @@ export const COSMETICS: ShopItem[] = [
     category: 'cosmetic',
     cosmeticType: 'title',
     maxStack: 1,
+    giftable: true,
+  },
+  {
+    id: 'TITLE_CRAFTSMAN',
+    name: '職人',
+    emoji: '🔨',
+    description: '称号: 職人',
+    price: 40_000n,
+    category: 'cosmetic',
+    cosmeticType: 'title',
+    maxStack: 1,
+    giftable: true,
+  },
+  {
+    id: 'TITLE_GENEROUS',
+    name: '慈善家',
+    emoji: '🤝',
+    description: '称号: 慈善家',
+    price: 40_000n,
+    category: 'cosmetic',
+    cosmeticType: 'title',
+    maxStack: 1,
+    giftable: true,
+  },
+  {
+    id: 'TITLE_COLLECTOR',
+    name: 'コレクター',
+    emoji: '📚',
+    description: '称号: コレクター',
+    price: 60_000n,
+    category: 'cosmetic',
+    cosmeticType: 'title',
+    maxStack: 1,
+    giftable: true,
   },
   {
     id: 'BADGE_DIAMOND',
@@ -217,6 +330,7 @@ export const COSMETICS: ShopItem[] = [
     category: 'cosmetic',
     cosmeticType: 'badge',
     maxStack: 1,
+    giftable: true,
   },
   {
     id: 'BADGE_FLAME',
@@ -227,6 +341,7 @@ export const COSMETICS: ShopItem[] = [
     category: 'cosmetic',
     cosmeticType: 'badge',
     maxStack: 1,
+    giftable: true,
   },
   {
     id: 'BADGE_CROWN',
@@ -237,6 +352,70 @@ export const COSMETICS: ShopItem[] = [
     category: 'cosmetic',
     cosmeticType: 'badge',
     maxStack: 1,
+    giftable: true,
+  },
+  {
+    id: 'BADGE_STAR',
+    name: 'スターバッジ',
+    emoji: '⭐',
+    description: 'バッジ: スター',
+    price: 35_000n,
+    category: 'cosmetic',
+    cosmeticType: 'badge',
+    maxStack: 1,
+    giftable: true,
+  },
+  {
+    id: 'BADGE_HEART',
+    name: 'ハートバッジ',
+    emoji: '❤️',
+    description: 'バッジ: ハート',
+    price: 35_000n,
+    category: 'cosmetic',
+    cosmeticType: 'badge',
+    maxStack: 1,
+    giftable: true,
+  },
+];
+
+// ── Rank-limited Cosmetics ──
+
+export const RANK_LIMITED: ShopItem[] = [
+  {
+    id: 'TITLE_VIP_ELITE',
+    name: 'VIPエリート',
+    emoji: '🌟',
+    description: '称号: VIPエリート（Gold限定）',
+    price: 80_000n,
+    category: 'cosmetic',
+    cosmeticType: 'title',
+    maxStack: 1,
+    rankRequired: 'gold',
+    giftable: true,
+  },
+  {
+    id: 'BADGE_PLATINUM',
+    name: 'プラチナバッジ',
+    emoji: '💠',
+    description: 'バッジ: プラチナ（Platinum限定）',
+    price: 100_000n,
+    category: 'cosmetic',
+    cosmeticType: 'badge',
+    maxStack: 1,
+    rankRequired: 'platinum',
+    giftable: true,
+  },
+  {
+    id: 'TITLE_WHALE',
+    name: '大富豪',
+    emoji: '🐋',
+    description: '称号: 大富豪（Diamond限定）',
+    price: 150_000n,
+    category: 'cosmetic',
+    cosmeticType: 'title',
+    maxStack: 1,
+    rankRequired: 'diamond',
+    giftable: true,
   },
 ];
 
@@ -251,6 +430,7 @@ export const MYSTERY_BOXES: MysteryBoxDefinition[] = [
     price: 5_000n,
     category: 'mystery',
     dailyEligible: true,
+    giftable: true,
     lootTable: [
       { type: 'chips', chipsMin: 500n, chipsMax: 1_000n, rarity: 'common', weight: 50 },
       { type: 'item', itemId: 'MISSION_REROLL', rarity: 'uncommon', weight: 10 },
@@ -270,6 +450,7 @@ export const MYSTERY_BOXES: MysteryBoxDefinition[] = [
     price: 25_000n,
     category: 'mystery',
     dailyEligible: true,
+    giftable: true,
     lootTable: [
       { type: 'chips', chipsMin: 5_000n, chipsMax: 10_000n, rarity: 'common', weight: 40 },
       { type: 'item', itemId: 'XP_BOOSTER', rarity: 'uncommon', weight: 10 },
@@ -291,6 +472,7 @@ export const MYSTERY_BOXES: MysteryBoxDefinition[] = [
     description: '永続アップグレードも出る最高級ボックス',
     price: 100_000n,
     category: 'mystery',
+    giftable: true,
     lootTable: [
       { type: 'chips', chipsMin: 25_000n, chipsMax: 50_000n, rarity: 'common', weight: 30 },
       { type: 'item', itemId: 'VIP_PASS', rarity: 'uncommon', weight: 10 },
@@ -305,6 +487,32 @@ export const MYSTERY_BOXES: MysteryBoxDefinition[] = [
       { type: 'item', itemId: 'GOLDEN_DICE', rarity: 'legendary', weight: 6 },
       { type: 'item', itemId: 'CHIP_FOUNTAIN', rarity: 'legendary', weight: 5 },
       { type: 'item', itemId: 'VIP_CARD', rarity: 'legendary', weight: 5 },
+    ],
+  },
+  {
+    id: 'BOX_PLATINUM',
+    name: 'プラチナボックス',
+    emoji: '👑',
+    description: 'クラフト素材＆限定アイテム入り最高級ボックス',
+    price: 250_000n,
+    category: 'mystery',
+    giftable: true,
+    lootTable: [
+      { type: 'chips', chipsMin: 50_000n, chipsMax: 100_000n, rarity: 'common', weight: 20 },
+      { type: 'item', itemId: 'LUCKY_CHARM', rarity: 'uncommon', weight: 8 },
+      { type: 'item', itemId: 'SAFETY_NET', rarity: 'uncommon', weight: 6 },
+      { type: 'item', itemId: 'VIP_PASS', rarity: 'rare', weight: 8 },
+      { type: 'item', itemId: 'HEIST_INTEL', rarity: 'rare', weight: 6 },
+      { type: 'item', itemId: 'LUCKY_TICKET', rarity: 'rare', weight: 6 },
+      { type: 'chips', chipsMin: 100_000n, chipsMax: 150_000n, rarity: 'epic', weight: 8 },
+      { type: 'item', itemId: 'BANK_EXPANSION', rarity: 'epic', weight: 5 },
+      { type: 'item', itemId: 'HEIST_VAULT', rarity: 'epic', weight: 4 },
+      { type: 'item', itemId: 'POKER_FACE', rarity: 'legendary', weight: 5 },
+      { type: 'item', itemId: 'VIP_CARD', rarity: 'legendary', weight: 4 },
+      { type: 'chips', chipsMin: 200_000n, chipsMax: 300_000n, rarity: 'legendary', weight: 5 },
+      { type: 'item', itemId: 'CHIP_FOUNTAIN', rarity: 'legendary', weight: 5 },
+      { type: 'item', itemId: 'GOLDEN_DICE', rarity: 'legendary', weight: 5 },
+      { type: 'item', itemId: 'TITLE_COLLECTOR', rarity: 'legendary', weight: 5 },
     ],
   },
 ];
@@ -344,6 +552,46 @@ export const INSURANCE: ShopItem[] = [
   },
 ];
 
+// ── Craft-only items (not sold in shop) ──
+
+export const CRAFT_ITEMS: ShopItem[] = [
+  {
+    id: 'MEGA_XP_BOOSTER',
+    name: 'メガXPブースター',
+    emoji: '🧬',
+    description: '24時間、XP+100%',
+    price: 0n,
+    category: 'craft',
+    buffDurationMs: BUFF_DURATION_MS,
+  },
+  {
+    id: 'GOLDEN_BOX',
+    name: 'ゴールデンボックス',
+    emoji: '🏆',
+    description: '伝説確定ボックス',
+    price: 0n,
+    category: 'craft',
+  },
+  {
+    id: 'SUPER_SAFETY_NET',
+    name: 'スーパーセーフティ',
+    emoji: '🛡️',
+    description: '残高0で$10,000補填x5回',
+    price: 0n,
+    category: 'craft',
+    maxStack: 5,
+  },
+  {
+    id: 'MASTER_TOOL',
+    name: 'マスターツール',
+    emoji: '🔧',
+    description: '全ジョブ報酬+10%',
+    price: 0n,
+    category: 'craft',
+    maxStack: 1,
+  },
+];
+
 // ── Work Tools (imported) ──
 
 import { WORK_TOOLS } from './work-tools.js';
@@ -355,9 +603,11 @@ export const ALL_ITEMS: ShopItem[] = [
   ...BUFFS,
   ...UPGRADES,
   ...COSMETICS,
+  ...RANK_LIMITED,
   ...MYSTERY_BOXES,
   ...INSURANCE,
   ...WORK_TOOLS,
+  ...CRAFT_ITEMS,
 ];
 
 export const ITEM_MAP = new Map<string, ShopItem>(
@@ -368,13 +618,13 @@ export const MYSTERY_BOX_MAP = new Map<string, MysteryBoxDefinition>(
   MYSTERY_BOXES.map(box => [box.id, box]),
 );
 
-// ── Category structure for UI ──
+// ── Category structure for UI (excludes craft-only) ──
 
 export const SHOP_CATEGORIES: { key: ShopCategory; label: string; emoji: string; items: ShopItem[] }[] = [
   { key: 'consumable', label: '消耗品', emoji: '🧃', items: CONSUMABLES },
   { key: 'buff', label: 'バフ', emoji: '🧪', items: BUFFS },
   { key: 'upgrade', label: '永続UP', emoji: '⬆️', items: UPGRADES },
-  { key: 'cosmetic', label: 'コスメ', emoji: '🎨', items: COSMETICS },
+  { key: 'cosmetic', label: 'コスメ', emoji: '🎨', items: [...COSMETICS, ...RANK_LIMITED] },
   { key: 'mystery', label: 'ミステリー', emoji: '📦', items: MYSTERY_BOXES },
   { key: 'insurance', label: '保険', emoji: '🛡️', items: INSURANCE },
   { key: 'tool', label: '仕事道具', emoji: '🔧', items: WORK_TOOLS },
@@ -410,9 +660,35 @@ export const SHOP_EFFECTS = {
   VIP_BONUS_PERCENT: 5n,       // VIP_CARD & VIP_PASS: +5%
   LUCKY_CHARM_REFUND: 50n,     // 50% of bet refunded
   SAFETY_NET_AMOUNT: 2_500n,
+  SUPER_SAFETY_NET_AMOUNT: 10_000n,
   XP_BOOSTER_MULTIPLIER: 1.5,
+  MEGA_XP_BOOSTER_MULTIPLIER: 2.0,
   CHIP_FOUNTAIN_BONUS: 500n,
   BANK_EXPANSION_RATE: 1n,     // +1% per stack
   GOLDEN_DICE_PERCENT: 20n,    // +20% mission reward
   BANKRUPTCY_INSURANCE_BONUS: 5_000n,
+  HEIST_INTEL_BONUS: 15,       // +15% success rate
+  HEIST_VAULT_PERCENT: 10n,    // +10% heist reward
+  POKER_FACE_PERCENT: 5n,      // +5% poker reward
+  LUCKY_TICKET_MULTIPLIER: 1.5,
+  WORK_PAY_BOOST_PERCENT: 25,  // +25% work pay
+  LOAN_DISCOUNT_RATE: 0.5,     // 50% interest reduction
+  COLLECTION_GAMBLER_PERCENT: 3n,
+  COLLECTION_WORKER_PERCENT: 5,
+  COLLECTION_INSURANCE_BONUS: 300n,
+  COLLECTION_ROYAL_RATE: 1n,
+  RECYCLE_REFUND_RATE: 30,     // 30% refund
+  GIFT_FEE_RATE: 5,            // 5% fee on chip gifts
+  MASTER_TOOL_PERCENT: 10,     // +10% all job pay
 } as const;
+
+// ── Golden Box loot table (legendary only) ──
+
+export const GOLDEN_BOX_LOOT: MysteryBoxLoot[] = [
+  { type: 'item', itemId: 'VIP_CARD', rarity: 'legendary', weight: 15 },
+  { type: 'item', itemId: 'CHIP_FOUNTAIN', rarity: 'legendary', weight: 15 },
+  { type: 'item', itemId: 'GOLDEN_DICE', rarity: 'legendary', weight: 15 },
+  { type: 'item', itemId: 'HEIST_VAULT', rarity: 'legendary', weight: 15 },
+  { type: 'item', itemId: 'POKER_FACE', rarity: 'legendary', weight: 15 },
+  { type: 'chips', chipsMin: 200_000n, chipsMax: 500_000n, rarity: 'legendary', weight: 25 },
+];

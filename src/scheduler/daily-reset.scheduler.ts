@@ -1,13 +1,14 @@
 import { cleanupStaleSessions } from '../database/repositories/race.repository.js';
 import { applyInterestToAll } from '../database/services/bank-account.service.js';
 import { checkAndExecuteDraws } from '../database/services/lottery.service.js';
-import { checkAndRefreshRotation } from '../database/services/shop.service.js';
+import { checkAndRefreshRotation, checkAndRefreshFlashSale } from '../database/services/shop.service.js';
 import { logger } from '../utils/logger.js';
 
 const CLEANUP_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 const INTEREST_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 const LOTTERY_CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 const SHOP_ROTATION_CHECK_MS = 5 * 60 * 1000; // 5 minutes
+const FLASH_SALE_CHECK_MS = 2 * 60 * 60 * 1000; // 2 hours
 const WEEKLY_CHALLENGE_CHECK_MS = 60 * 60 * 1000; // 1 hour
 
 export function startScheduler(): void {
@@ -58,6 +59,18 @@ export function startScheduler(): void {
       logger.error('Shop rotation check failed', { error: String(err) });
     }
   }, SHOP_ROTATION_CHECK_MS);
+
+  // Periodic flash sale refresh (every 2 hours)
+  setInterval(async () => {
+    try {
+      const refreshed = await checkAndRefreshFlashSale();
+      if (refreshed) {
+        logger.info('Flash sale refreshed');
+      }
+    } catch (err) {
+      logger.error('Flash sale check failed', { error: String(err) });
+    }
+  }, FLASH_SALE_CHECK_MS);
 
   // Weekly challenge check (auto-assign on Monday)
   setInterval(async () => {

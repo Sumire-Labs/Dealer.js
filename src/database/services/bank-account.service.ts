@@ -6,7 +6,7 @@ import {
 } from '../../config/constants.js';
 import { configService } from '../../config/config.service.js';
 import { S } from '../../config/setting-defs.js';
-import { hasActiveBuff, getInventoryQuantity } from './shop.service.js';
+import { hasActiveBuff, getInventoryQuantity, hasInventoryItem } from './shop.service.js';
 import { SHOP_EFFECTS } from '../../config/shop.js';
 
 export interface BankAccountSummary {
@@ -177,6 +177,15 @@ export async function applyInterest(userId: string): Promise<bigint | null> {
       const expansionCount = await getInventoryQuantity(userId, 'BANK_EXPANSION');
       if (expansionCount > 0) {
         effectiveRate += SHOP_EFFECTS.BANK_EXPANSION_RATE * BigInt(expansionCount);
+      }
+    } catch {
+      // Never block interest
+    }
+
+    // Royal Collection bonus: +1% interest rate
+    try {
+      if (await hasInventoryItem(userId, 'COLLECTION_REWARD_ROYAL')) {
+        effectiveRate += SHOP_EFFECTS.COLLECTION_ROYAL_RATE;
       }
     } catch {
       // Never block interest

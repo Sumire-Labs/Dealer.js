@@ -7,7 +7,7 @@ import { configService } from '../../config/config.service.js';
 import { S } from '../../config/setting-defs.js';
 import { checkAchievements } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
-import { hasInventoryItem, consumeInventoryItem } from './shop.service.js';
+import { hasActiveBuff, hasInventoryItem, consumeInventoryItem } from './shop.service.js';
 import { SHOP_EFFECTS } from '../../config/shop.js';
 
 export function calculateLoanInterest(loan: { principal: bigint; createdAt: Date }): bigint {
@@ -35,6 +35,15 @@ export async function getLoanSummary(userId: string): Promise<LoanSummary> {
   for (const loan of loans) {
     totalPrincipal += loan.principal;
     totalInterest += calculateLoanInterest(loan);
+  }
+
+  // LOAN_DISCOUNT buff: halve interest
+  try {
+    if (await hasActiveBuff(userId, 'LOAN_DISCOUNT')) {
+      totalInterest = BigInt(Math.round(Number(totalInterest) * SHOP_EFFECTS.LOAN_DISCOUNT_RATE));
+    }
+  } catch {
+    // Buff check should never block loan summary
   }
 
   const totalOwed = totalPrincipal + totalInterest;
@@ -115,11 +124,23 @@ export async function repayChips(userId: string, amount: bigint): Promise<{ newB
       throw new Error('NO_LOANS');
     }
 
+    // Check LOAN_DISCOUNT buff once before the loop
+    let loanDiscountActive = false;
+    try {
+      loanDiscountActive = await hasActiveBuff(userId, 'LOAN_DISCOUNT');
+    } catch {
+      // Buff check should never block repay
+    }
+
     let remaining = amount;
     for (const loan of loans) {
       if (remaining <= 0n) break;
 
-      const interest = calculateLoanInterest(loan);
+      let interest = calculateLoanInterest(loan);
+      // LOAN_DISCOUNT buff: halve interest
+      if (loanDiscountActive) {
+        interest = BigInt(Math.round(Number(interest) * SHOP_EFFECTS.LOAN_DISCOUNT_RATE));
+      }
       const loanTotal = loan.principal + interest;
 
       if (remaining >= loanTotal) {

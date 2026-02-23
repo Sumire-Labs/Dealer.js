@@ -33,7 +33,7 @@ import {
   setCooldown,
   buildCooldownKey,
 } from '../../utils/cooldown.js';
-import { hasActiveBuff } from './shop.service.js';
+import { hasActiveBuff, hasInventoryItem } from './shop.service.js';
 import { SHOP_EFFECTS } from '../../config/shop.js';
 import { getMasteryTier, getMasteryLevelForShifts, type MasteryTier } from '../../config/work-mastery.js';
 import { getMastery, incrementShifts, updateMasteryLevel, getAllMasteries } from '../repositories/work-mastery.repository.js';
@@ -237,13 +237,43 @@ export async function performWork(
     // Apply special shift pay multiplier
     let finalPay = BigInt(Math.round(Number(totalPay) * payMultiplier)) + tipAmount;
 
+    // WORK_PAY_BOOST buff: +25% work pay
+    try {
+      if (await hasActiveBuff(userId, 'WORK_PAY_BOOST')) {
+        finalPay = BigInt(Math.round(Number(finalPay) * (1 + SHOP_EFFECTS.WORK_PAY_BOOST_PERCENT / 100)));
+      }
+    } catch {
+      // Buff check should never block work
+    }
+
+    // Worker Collection bonus: +5% work pay
+    try {
+      if (await hasInventoryItem(userId, 'COLLECTION_REWARD_WORKER')) {
+        finalPay = BigInt(Math.round(Number(finalPay) * (1 + SHOP_EFFECTS.COLLECTION_WORKER_PERCENT / 100)));
+      }
+    } catch {
+      // Collection check should never block work
+    }
+
+    // MASTER_TOOL: +10% all job pay
+    try {
+      if (await hasInventoryItem(userId, 'MASTER_TOOL')) {
+        finalPay = BigInt(Math.round(Number(finalPay) * (1 + SHOP_EFFECTS.MASTER_TOOL_PERCENT / 100)));
+      }
+    } catch {
+      // Tool check should never block work
+    }
+
     // XP always granted (even on accident)
     let xpGained = calculateXpGain(job, shift, bonuses);
     xpGained = Math.round(xpGained * xpMultiplier);
 
+    // Mega XP Booster buff: +100% XP (takes priority over XP Booster)
     // XP Booster buff: +50% XP
     try {
-      if (await hasActiveBuff(userId, 'XP_BOOSTER')) {
+      if (await hasActiveBuff(userId, 'MEGA_XP_BOOSTER')) {
+        xpGained = Math.round(xpGained * SHOP_EFFECTS.MEGA_XP_BOOSTER_MULTIPLIER);
+      } else if (await hasActiveBuff(userId, 'XP_BOOSTER')) {
         xpGained = Math.round(xpGained * SHOP_EFFECTS.XP_BOOSTER_MULTIPLIER);
       }
     } catch {
@@ -410,11 +440,36 @@ export async function resolveMultiStepWork(
 
     let finalPay = BigInt(Math.round(Number(totalPay) * payMultiplier)) + tipAmount;
 
+    // WORK_PAY_BOOST buff: +25% work pay
+    try {
+      if (await hasActiveBuff(userId, 'WORK_PAY_BOOST')) {
+        finalPay = BigInt(Math.round(Number(finalPay) * (1 + SHOP_EFFECTS.WORK_PAY_BOOST_PERCENT / 100)));
+      }
+    } catch { /* ignore */ }
+
+    // Worker Collection bonus: +5% work pay
+    try {
+      if (await hasInventoryItem(userId, 'COLLECTION_REWARD_WORKER')) {
+        finalPay = BigInt(Math.round(Number(finalPay) * (1 + SHOP_EFFECTS.COLLECTION_WORKER_PERCENT / 100)));
+      }
+    } catch { /* ignore */ }
+
+    // MASTER_TOOL: +10% all job pay
+    try {
+      if (await hasInventoryItem(userId, 'MASTER_TOOL')) {
+        finalPay = BigInt(Math.round(Number(finalPay) * (1 + SHOP_EFFECTS.MASTER_TOOL_PERCENT / 100)));
+      }
+    } catch { /* ignore */ }
+
     let xpGained = calculateXpGain(job, shift, bonuses);
     xpGained = Math.round(xpGained * xpMultiplier);
 
+    // Mega XP Booster buff: +100% XP (takes priority over XP Booster)
+    // XP Booster buff: +50% XP
     try {
-      if (await hasActiveBuff(userId, 'XP_BOOSTER')) {
+      if (await hasActiveBuff(userId, 'MEGA_XP_BOOSTER')) {
+        xpGained = Math.round(xpGained * SHOP_EFFECTS.MEGA_XP_BOOSTER_MULTIPLIER);
+      } else if (await hasActiveBuff(userId, 'XP_BOOSTER')) {
         xpGained = Math.round(xpGained * SHOP_EFFECTS.XP_BOOSTER_MULTIPLIER);
       }
     } catch { /* ignore */ }

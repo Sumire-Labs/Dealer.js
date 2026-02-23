@@ -102,18 +102,27 @@ export async function processGameResult(
 
   // VIP bonuses (permanent VIP_CARD + temporary VIP_PASS) on wins
   if (payout > betAmount) {
-    let vipBonus = 0n;
+    let bonusPercent = 0n;
     const winnings = payout - betAmount;
     try {
       if (await hasInventoryItem(userId, 'VIP_CARD')) {
-        vipBonus += (winnings * SHOP_EFFECTS.VIP_BONUS_PERCENT) / 100n;
+        bonusPercent += SHOP_EFFECTS.VIP_BONUS_PERCENT;
       }
       if (await hasActiveBuff(userId, 'VIP_PASS')) {
-        vipBonus += (winnings * SHOP_EFFECTS.VIP_BONUS_PERCENT) / 100n;
+        bonusPercent += SHOP_EFFECTS.VIP_BONUS_PERCENT;
       }
-      payout += vipBonus;
+      if (await hasInventoryItem(userId, 'COLLECTION_REWARD_GAMBLER')) {
+        bonusPercent += SHOP_EFFECTS.COLLECTION_GAMBLER_PERCENT;
+      }
+      if (game === 'POKER' && await hasInventoryItem(userId, 'POKER_FACE')) {
+        bonusPercent += SHOP_EFFECTS.POKER_FACE_PERCENT;
+      }
+      if (game === 'HEIST' && await hasInventoryItem(userId, 'HEIST_VAULT')) {
+        bonusPercent += SHOP_EFFECTS.HEIST_VAULT_PERCENT;
+      }
+      payout += (winnings * bonusPercent) / 100n;
     } catch {
-      // VIP check should never block game
+      // Bonus check should never block game
     }
   }
 
@@ -173,11 +182,15 @@ export async function processGameResult(
     return updatedUser.chips;
   });
 
-  // SAFETY_NET: if balance hit 0, auto-refill
+  // SAFETY_NET / SUPER_SAFETY_NET: if balance hit 0, auto-refill
   let safetyNetUsed = false;
   if (newBalance === 0n) {
     try {
-      if (await hasInventoryItem(userId, 'SAFETY_NET')) {
+      if (await hasInventoryItem(userId, 'SUPER_SAFETY_NET')) {
+        await consumeInventoryItem(userId, 'SUPER_SAFETY_NET');
+        newBalance = await addChips(userId, SHOP_EFFECTS.SUPER_SAFETY_NET_AMOUNT, 'SHOP_REFUND');
+        safetyNetUsed = true;
+      } else if (await hasInventoryItem(userId, 'SAFETY_NET')) {
         await consumeInventoryItem(userId, 'SAFETY_NET');
         newBalance = await addChips(userId, SHOP_EFFECTS.SAFETY_NET_AMOUNT, 'SHOP_REFUND');
         safetyNetUsed = true;

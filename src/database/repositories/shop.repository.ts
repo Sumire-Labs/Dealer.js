@@ -168,3 +168,34 @@ export async function getUserShopProfile(userId: string) {
     },
   });
 }
+
+// ── Ever-owned tracking (for collections) ──
+
+export async function markEverOwned(
+  userId: string,
+  itemId: string,
+  tx?: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+): Promise<void> {
+  const db = tx ?? prisma;
+  await db.userInventory.upsert({
+    where: { userId_itemId: { userId, itemId } },
+    update: { everOwned: true },
+    create: { userId, itemId, quantity: 0, everOwned: true },
+  });
+}
+
+export async function getEverOwnedItems(userId: string): Promise<string[]> {
+  const items = await prisma.userInventory.findMany({
+    where: { userId, everOwned: true },
+    select: { itemId: true },
+  });
+  return items.map(i => i.itemId);
+}
+
+export async function getLifetimeShopSpend(userId: string): Promise<bigint> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { lifetimeShopSpend: true },
+  });
+  return user?.lifetimeShopSpend ?? 0n;
+}

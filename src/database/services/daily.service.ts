@@ -76,6 +76,15 @@ export async function claimDaily(userId: string): Promise<DailyResult> {
       // Never block daily
     }
 
+    // Insurance Collection bonus: +$300
+    try {
+      if (await hasInventoryItem(userId, 'COLLECTION_REWARD_INSURANCE')) {
+        amount += SHOP_EFFECTS.COLLECTION_INSURANCE_BONUS;
+      }
+    } catch {
+      // Never block daily
+    }
+
     // DAILY_BOOST consumable: double amount
     try {
       if (await hasInventoryItem(userId, 'DAILY_BOOST')) {

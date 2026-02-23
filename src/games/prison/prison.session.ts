@@ -81,3 +81,9 @@ export function getJailbreakCooldownRemaining(userId: string): number {
   if (!session) return 0;
   return Math.max(0, session.jailbreakCooldownUntil - Date.now());
 }
+
+export function usePrisonKey(userId: string): boolean {
+  if (!isJailed(userId)) return false;
+  releaseUser(userId);
+  return true;
+}

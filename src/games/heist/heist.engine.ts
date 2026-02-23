@@ -35,6 +35,8 @@ export interface HeistCalcParams {
   riskLevel: HeistRiskLevel;
   approach: HeistApproach;
   isSolo: boolean;
+  hasHeistIntel?: boolean;
+  hasHeistVault?: boolean;
 }
 
 export function calculateSuccessRate(params: HeistCalcParams): number {
@@ -52,6 +54,10 @@ export function calculateSuccessRate(params: HeistCalcParams): number {
     rate -= configService.getNumber(S.heistSoloPenalty);
   }
 
+  if (params.hasHeistIntel) {
+    rate += 15;
+  }
+
   return Math.max(configService.getNumber(S.heistMinRate), Math.min(rate, configService.getNumber(S.heistMaxRate)));
 }
 
@@ -66,6 +72,11 @@ export function calculateMultiplierRange(params: HeistCalcParams): { min: number
   if (params.isSolo) {
     minMult *= HEIST_SOLO_MULTIPLIER_SCALE;
     maxMult *= HEIST_SOLO_MULTIPLIER_SCALE;
+  }
+
+  if (params.hasHeistVault) {
+    minMult *= 1.1;
+    maxMult *= 1.1;
   }
 
   // Enforce minimum

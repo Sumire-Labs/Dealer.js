@@ -18,6 +18,8 @@ import {
 import { configService } from '../../config/config.service.js';
 import { S } from '../../config/setting-defs.js';
 import { logger } from '../../utils/logger.js';
+import { hasInventoryItem, consumeInventoryItem } from './shop.service.js';
+import { SHOP_EFFECTS } from '../../config/shop.js';
 
 export async function getOrCreateCurrentRound() {
   const current = await getCurrentRound();
@@ -127,10 +129,22 @@ export async function executeDraw(roundId: string): Promise<void> {
     for (const [userId, amount] of allPayouts) {
       if (amount <= 0n) continue;
 
+      // Apply Lucky Ticket bonus if the winner has one
+      let finalAmount = amount;
+      try {
+        const hasLuckyTicket = await hasInventoryItem(userId, 'LUCKY_TICKET');
+        if (hasLuckyTicket) {
+          finalAmount = BigInt(Math.round(Number(amount) * SHOP_EFFECTS.LUCKY_TICKET_MULTIPLIER));
+          await consumeInventoryItem(userId, 'LUCKY_TICKET');
+        }
+      } catch (err) {
+        logger.error(`Failed to apply Lucky Ticket for user ${userId}`, { error: String(err) });
+      }
+
       await findOrCreateUser(userId);
       const user = await tx.user.update({
         where: { id: userId },
-        data: { chips: { increment: amount } },
+        data: { chips: { increment: finalAmount } },
       });
 
       await tx.transaction.create({
@@ -138,7 +152,7 @@ export async function executeDraw(roundId: string): Promise<void> {
           userId,
           type: 'LOTTERY_WIN',
           game: 'LOTTERY',
-          amount,
+          amount: finalAmount,
           balanceAfter: user.chips,
           metadata: {
             roundId,
