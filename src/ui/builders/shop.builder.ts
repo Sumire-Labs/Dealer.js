@@ -12,10 +12,7 @@ import { formatChips } from '../../utils/formatters.js';
 import {
   SHOP_CATEGORIES,
   ITEM_MAP,
-  RARITY_EMOJI,
-  RARITY_LABELS,
   type ShopItem,
-  type ItemRarity,
 } from '../../config/shop.js';
 import type { UserInventory, ActiveBuff } from '@prisma/client';
 
@@ -24,7 +21,7 @@ const ITEMS_PER_PAGE = 3;
 
 // ── Main tab buttons ──
 
-function buildTabRow(userId: string, activeTab: ShopTab): ActionRowBuilder<ButtonBuilder> {
+export function buildTabRow(userId: string, activeTab: ShopTab): ActionRowBuilder<ButtonBuilder> {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(`shop:tab_shop:${userId}`)
@@ -311,209 +308,6 @@ export function buildInventoryView(
 
   // Tab row
   container.addActionRowComponents(buildTabRow(userId, 'inventory'));
-
-  return container;
-}
-
-// ── Daily rotation tab ──
-
-export interface DailyRotationViewItem {
-  itemId: string;
-  originalPrice: bigint;
-  discountedPrice: bigint;
-}
-
-export function buildDailyRotationView(
-  userId: string,
-  items: DailyRotationViewItem[],
-  balance: bigint,
-  nextResetTimestamp: number,
-): ContainerBuilder {
-  const container = new ContainerBuilder()
-    .setAccentColor(CasinoTheme.colors.diamondBlue);
-
-  container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(CasinoTheme.prefixes.dailyShop),
-  );
-  container.addSeparatorComponents(
-    new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-  );
-
-  const lines: string[] = [
-    `🔥 **20% OFF!**  次の更新: <t:${nextResetTimestamp}:R>`,
-    '',
-  ];
-
-  for (const entry of items) {
-    const item = ITEM_MAP.get(entry.itemId);
-    if (!item) continue;
-    lines.push(
-      `${item.emoji} **${item.name}** — ~~${formatChips(entry.originalPrice)}~~ → ${formatChips(entry.discountedPrice)}`,
-    );
-    lines.push(`  ${item.description}`);
-  }
-
-  lines.push('');
-  lines.push(`💰 残高: ${formatChips(balance)}`);
-
-  container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(lines.join('\n')),
-  );
-  container.addSeparatorComponents(
-    new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-  );
-
-  // Buy buttons
-  if (items.length > 0) {
-    const buyRow = new ActionRowBuilder<ButtonBuilder>();
-    for (let i = 0; i < items.length; i++) {
-      const item = ITEM_MAP.get(items[i].itemId);
-      if (!item) continue;
-      buyRow.addComponents(
-        new ButtonBuilder()
-          .setCustomId(`shop:daily_buy:${userId}:${i}`)
-          .setLabel(`${item.emoji} ${formatChips(items[i].discountedPrice)}`)
-          .setStyle(ButtonStyle.Success),
-      );
-    }
-    container.addActionRowComponents(buyRow);
-  }
-
-  // Tab row
-  container.addActionRowComponents(buildTabRow(userId, 'daily'));
-
-  return container;
-}
-
-// ── Mystery box result ──
-
-export function buildMysteryBoxResultView(
-  userId: string,
-  _boxEmoji: string,
-  _resultEmoji: string,
-  resultName: string,
-  rarity: ItemRarity,
-  chipsAwarded: bigint | undefined,
-  newBalance: bigint | undefined,
-): ContainerBuilder {
-  const container = new ContainerBuilder()
-    .setAccentColor(CasinoTheme.colors.purple);
-
-  container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(CasinoTheme.prefixes.mystery),
-  );
-  container.addSeparatorComponents(
-    new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-  );
-
-  const lines: string[] = [
-    '✨ **開封結果！**',
-    `${RARITY_EMOJI[rarity]} **${resultName}** (${RARITY_LABELS[rarity]})`,
-  ];
-
-  if (chipsAwarded && chipsAwarded > 0n) {
-    lines.push(`💰 +${formatChips(chipsAwarded)}`);
-  }
-  if (newBalance !== undefined) {
-    lines.push(`💰 残高: ${formatChips(newBalance)}`);
-  }
-
-  container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(lines.join('\n')),
-  );
-  container.addSeparatorComponents(
-    new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-  );
-
-  container.addActionRowComponents(
-    new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`shop:tab_shop:${userId}`)
-        .setLabel('🛒 ショップに戻る')
-        .setStyle(ButtonStyle.Primary),
-    ),
-  );
-
-  return container;
-}
-
-// ── Profile tab for /balance ──
-
-export function buildProfileView(
-  userId: string,
-  targetId: string,
-  username: string,
-  activeTitle: string | null,
-  activeBadge: string | null,
-  activeBuffs: ActiveBuff[],
-  inventoryCount: number,
-  isSelf: boolean,
-): ContainerBuilder {
-  const container = new ContainerBuilder()
-    .setAccentColor(CasinoTheme.colors.gold);
-
-  const title = isSelf
-    ? CasinoTheme.prefixes.balance
-    : `${CasinoTheme.prefixes.balance}\n**${username}**`;
-
-  container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(title),
-  );
-  container.addSeparatorComponents(
-    new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-  );
-
-  const lines: string[] = [];
-
-  // Title
-  const titleItem = activeTitle ? ITEM_MAP.get(activeTitle) : null;
-  lines.push(`称号: ${titleItem ? `${titleItem.emoji} ${titleItem.name}` : 'なし'}`);
-
-  // Badge
-  const badgeItem = activeBadge ? ITEM_MAP.get(activeBadge) : null;
-  lines.push(`バッジ: ${badgeItem ? `${badgeItem.emoji} ${badgeItem.name}` : 'なし'}`);
-
-  // Active buffs
-  if (activeBuffs.length > 0) {
-    const buffLines = activeBuffs.map(b => {
-      const item = ITEM_MAP.get(b.buffId);
-      if (!item) return null;
-      const remaining = b.expiresAt.getTime() - Date.now();
-      const hours = Math.ceil(remaining / (60 * 60 * 1000));
-      return `${item.emoji} ${item.name} (残り${hours}h)`;
-    }).filter(Boolean);
-    lines.push(`アクティブバフ: ${buffLines.length > 0 ? buffLines.join(', ') : 'なし'}`);
-  } else {
-    lines.push('アクティブバフ: なし');
-  }
-
-  lines.push(`インベントリ: ${inventoryCount}個`);
-
-  container.addTextDisplayComponents(
-    new TextDisplayBuilder().setContent(lines.join('\n')),
-  );
-  container.addSeparatorComponents(
-    new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-  );
-
-  // Tab row
-  container.addActionRowComponents(
-    new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`bal:balance:${userId}:${targetId}`)
-        .setLabel('💰 残高')
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId(`bal:stats:${userId}:${targetId}`)
-        .setLabel('📊 統計')
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId(`bal:profile:${userId}:${targetId}`)
-        .setLabel('👤 プロフィール')
-        .setStyle(ButtonStyle.Primary)
-        .setDisabled(true),
-    ),
-  );
 
   return container;
 }

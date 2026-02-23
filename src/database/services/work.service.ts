@@ -14,7 +14,6 @@ import {
   WORK_LONG_COOLDOWN_MS,
   WORK_STREAK_WINDOW_MS,
   MULTI_STEP_EVENT_CHANCE,
-  TEAM_SHIFT_BONUS_PER_PLAYER,
 } from '../../config/constants.js';
 import {
   rollWorkEvent,
@@ -99,7 +98,7 @@ export interface WorkResult {
   overtimeAvailable?: boolean;
 }
 
-async function getToolBonuses(userId: string, jobId: string): Promise<Partial<WorkBonuses>> {
+export async function getToolBonuses(userId: string, jobId: string): Promise<Partial<WorkBonuses>> {
   try {
     const tools = await prisma.userInventory.findMany({
       where: { userId, itemId: { in: WORK_TOOL_IDS }, quantity: { gt: 0 } },
@@ -516,7 +515,7 @@ export async function resolveMultiStepWork(
   return { ...result, newlyUnlocked, missionsCompleted, overtimeAvailable };
 }
 
-async function postWorkHooks(
+export async function postWorkHooks(
   userId: string,
   result: WorkResult,
 ): Promise<{ newlyUnlocked: AchievementDefinition[]; missionsCompleted: CompletedMission[] }> {
@@ -598,171 +597,3 @@ export async function getWorkPanelData(userId: string): Promise<WorkPanelData> {
   };
 }
 
-/**
- * Perform team work for a single player within a team shift.
- * Same pipeline as performWork but with team bonus applied and no multi-step events.
- */
-export async function performTeamWork(
-  userId: string,
-  jobId: string,
-  shiftType: ShiftType,
-  teamSize: number,
-): Promise<WorkResult> {
-  const job: JobDefinition | PromotedJobDefinition | undefined =
-    JOB_MAP.get(jobId) ?? PROMOTED_JOB_MAP.get(jobId);
-  if (!job) return { success: false, error: '無効な職種です。' };
-
-  const shift = SHIFT_MAP.get(shiftType);
-  if (!shift) return { success: false, error: '無効なシフトです。' };
-
-  // Cooldown check
-  const cooldownKey = buildCooldownKey(userId, shift.cooldownKey);
-  if (isOnCooldown(cooldownKey)) {
-    return {
-      success: false,
-      remainingCooldown: getRemainingCooldown(cooldownKey),
-    };
-  }
-
-  await findOrCreateUser(userId);
-
-  const masteryData = await getMastery(userId, jobId);
-  const masteryLevel = masteryData?.masteryLevel ?? 0;
-  const masteryTier = getMasteryTier(masteryLevel);
-  const toolBonuses = await getToolBonuses(userId, jobId);
-
-  const bonuses: WorkBonuses = {
-    mastery: masteryTier,
-    toolPayBonus: toolBonuses.toolPayBonus,
-    toolGreatSuccessBonus: toolBonuses.toolGreatSuccessBonus,
-    toolRiskReduction: toolBonuses.toolRiskReduction,
-    toolXpBonus: toolBonuses.toolXpBonus,
-  };
-
-  const event = rollWorkEvent(job, bonuses);
-  const basePay = rollBasePay(job);
-  const flavorText = getEventFlavor(jobId, event.type);
-  const tipAmount = event.type === 'tip' ? rollTipAmount() : 0n;
-
-  // Team bonus: +15% per additional member
-  const teamBonusPercent = (teamSize - 1) * TEAM_SHIFT_BONUS_PER_PLAYER;
-
-  const result = await prisma.$transaction(async (tx) => {
-    const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
-
-    if (user.workLevel < job.requiredLevel) {
-      return { success: false as const, error: `この職種にはレベル${job.requiredLevel}が必要です。` };
-    }
-
-    let newStreak: number;
-    if (user.lastWorkAt && (Date.now() - user.lastWorkAt.getTime()) <= WORK_STREAK_WINDOW_MS) {
-      newStreak = user.workStreak + 1;
-    } else {
-      newStreak = 1;
-    }
-
-    const streakBonus = getStreakBonus(newStreak);
-    const { totalPay, shiftPay, bonusAmount, masteryBonus, toolBonus } =
-      calculateWorkPayout(basePay, shift, event, streakBonus, bonuses);
-
-    // Apply team bonus
-    const teamBonus = (totalPay * BigInt(teamBonusPercent)) / 100n;
-    let finalPay = totalPay + teamBonus + tipAmount;
-
-    let xpGained = calculateXpGain(job, shift, bonuses);
-    try {
-      if (await hasActiveBuff(userId, 'XP_BOOSTER')) {
-        xpGained = Math.round(xpGained * SHOP_EFFECTS.XP_BOOSTER_MULTIPLIER);
-      }
-    } catch { /* ignore */ }
-
-    const oldXp = user.workXp;
-    const newXp = oldXp + xpGained;
-    const oldLevel = user.workLevel;
-    const newLevel = getLevelForXp(newXp);
-
-    const updated = await tx.user.update({
-      where: { id: userId },
-      data: {
-        chips: { increment: finalPay },
-        workXp: newXp,
-        workLevel: newLevel,
-        lastWorkAt: new Date(),
-        workStreak: newStreak,
-      },
-    });
-
-    if (finalPay > 0n) {
-      await tx.transaction.create({
-        data: {
-          userId,
-          type: 'WORK_EARN',
-          amount: finalPay,
-          balanceAfter: updated.chips,
-          metadata: {
-            jobId,
-            shiftType,
-            event: event.type,
-            teamSize,
-            teamBonusPercent,
-          },
-        },
-      });
-    }
-
-    const updatedMastery = await incrementShifts(userId, jobId, tx);
-    const newMasteryLevel = getMasteryLevelForShifts(updatedMastery.shiftsCompleted);
-    let masteryLeveledUp = false;
-    let oldMasteryLevel = updatedMastery.masteryLevel;
-    if (newMasteryLevel > updatedMastery.masteryLevel) {
-      await updateMasteryLevel(userId, jobId, newMasteryLevel, tx);
-      masteryLeveledUp = true;
-      oldMasteryLevel = updatedMastery.masteryLevel;
-    }
-
-    const xpForNextLevel = newLevel < LEVEL_THRESHOLDS.length - 1
-      ? LEVEL_THRESHOLDS[newLevel + 1]
-      : null;
-
-    return {
-      success: true as const,
-      jobId,
-      jobName: job.name,
-      jobEmoji: job.emoji,
-      isPromoted: 'isPromoted' in job,
-      shiftType,
-      shiftLabel: shift.label,
-      event,
-      flavorText,
-      basePay,
-      shiftPay,
-      tipAmount,
-      streakBonus,
-      bonusAmount: bonusAmount + teamBonus,
-      masteryBonus,
-      toolBonus,
-      totalPay: finalPay,
-      xpGained,
-      oldLevel,
-      newLevel,
-      oldXp,
-      newXp,
-      xpForNextLevel,
-      streak: newStreak,
-      newBalance: updated.chips,
-      masteryTier: getMasteryTier(newMasteryLevel),
-      masteryShiftsCompleted: updatedMastery.shiftsCompleted,
-      masteryLeveledUp,
-      oldMasteryLevel,
-      newMasteryLevel,
-    };
-  });
-
-  if (!result.success) return result;
-
-  setCooldown(cooldownKey, COOLDOWN_MAP[shiftType]);
-
-  const { newlyUnlocked, missionsCompleted } = await postWorkHooks(userId, result);
-
-  return { ...result, newlyUnlocked, missionsCompleted };
-}

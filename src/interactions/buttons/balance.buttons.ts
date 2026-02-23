@@ -3,7 +3,7 @@ import { registerButtonHandler } from '../handler.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { getUserRank } from '../../database/repositories/leaderboard.repository.js';
 import { buildBalanceView, type BalanceTab } from '../../ui/builders/balance.builder.js';
-import { buildProfileView } from '../../ui/builders/shop.builder.js';
+import { buildProfileView } from '../../ui/builders/profile.builder.js';
 import { getActiveBuffs, getInventory } from '../../database/repositories/shop.repository.js';
 
 async function handleBalanceButton(interaction: ButtonInteraction): Promise<void> {

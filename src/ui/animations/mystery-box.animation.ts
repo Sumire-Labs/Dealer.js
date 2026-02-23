@@ -1,7 +1,7 @@
 import type { MessageComponentInteraction } from 'discord.js';
 import { MessageFlags, ContainerBuilder, TextDisplayBuilder } from 'discord.js';
 import { CasinoTheme } from '../themes/casino.theme.js';
-import { buildMysteryBoxResultView } from '../builders/shop.builder.js';
+import { buildMysteryBoxResultView } from '../builders/daily-shop.builder.js';
 import type { ItemRarity } from '../../config/shop.js';
 
 const ANIMATION_FRAMES = [

@@ -22,7 +22,8 @@ import {
   TEAM_SHIFT_MAX_PLAYERS,
   TEAM_SHIFT_BONUS_PER_PLAYER,
 } from '../../config/constants.js';
-import { performTeamWork, type WorkResult } from '../../database/services/work.service.js';
+import { performTeamWork } from '../../database/services/team-work.service.js';
+import type { WorkResult } from '../../database/services/work.service.js';
 import { JOB_MAP } from '../../config/jobs.js';
 import { TEAM_EVENTS, type TeamEvent } from '../../config/team-events.js';
 import { weightedRandom } from '../../utils/random.js';

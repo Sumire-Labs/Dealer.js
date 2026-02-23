@@ -18,9 +18,9 @@ import {
   buildShopView,
   buildPurchaseConfirmView,
   buildInventoryView,
-  buildDailyRotationView,
   buildUseItemResultView,
 } from '../../ui/builders/shop.builder.js';
+import { buildDailyRotationView } from '../../ui/builders/daily-shop.builder.js';
 import { playMysteryBoxAnimation } from '../../ui/animations/mystery-box.animation.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 import { formatChips } from '../../utils/formatters.js';
