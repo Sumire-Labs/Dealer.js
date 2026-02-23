@@ -65,6 +65,9 @@ async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promis
     return;
   }
 
+  // Deduct chips FIRST, then register bet
+  await removeChips(interaction.user.id, amount, 'LOSS', 'HORSE_RACE');
+
   const added = addBetToSession(channelId, {
     userId: interaction.user.id,
     horseIndex,
@@ -72,15 +75,15 @@ async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promis
   });
 
   if (!added) {
+    // Refund — session already had a bet from this user
+    const { addChips } = await import('../../database/services/economy.service.js');
+    await addChips(interaction.user.id, amount, 'WIN', 'HORSE_RACE');
     await interaction.reply({
       content: 'このレースには既にベット済みです！',
       flags: MessageFlags.Ephemeral,
     });
     return;
   }
-
-  // Deduct chips
-  await removeChips(interaction.user.id, amount, 'LOSS', 'HORSE_RACE');
 
   const horse = session.horses[horseIndex];
   await interaction.reply({

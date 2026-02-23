@@ -213,12 +213,10 @@ async function handleGameAction(
   const { newCurrentBet } = processAction(action, currentPlayer, session.currentBet);
   session.currentBet = newCurrentBet;
 
-  // Update ephemeral confirmation and advance game in parallel
+  // Update ephemeral confirmation, then advance game
   const confirmText = buildActionConfirmation(action, action === 'call' ? callAmount : undefined);
-  await Promise.all([
-    interaction.update({ content: confirmText, components: [] }),
-    advanceGame(interaction.channel, session),
-  ]);
+  await interaction.update({ content: confirmText, components: [] });
+  await advanceGame(interaction.channel, session);
 }
 
 async function handleRaiseModal(

@@ -175,12 +175,10 @@ async function handleRaise(
     }
   }
 
-  // Confirm to user and advance game in parallel
+  // Confirm to user, then advance game
   const confirmText = buildActionConfirmation('raise', raiseTotal);
-  await Promise.all([
-    interaction.reply({ content: confirmText, flags: MessageFlags.Ephemeral }),
-    advanceGame(interaction.channel, session),
-  ]);
+  await interaction.reply({ content: confirmText, flags: MessageFlags.Ephemeral });
+  await advanceGame(interaction.channel, session);
 }
 
 registerModalHandler('poker_modal', handlePokerModal as never);

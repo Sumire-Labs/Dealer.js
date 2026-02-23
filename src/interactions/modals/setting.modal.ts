@@ -1,6 +1,8 @@
 import {
   type ModalSubmitInteraction,
   MessageFlags,
+  ContainerBuilder,
+  TextDisplayBuilder,
 } from 'discord.js';
 import { registerModalHandler } from '../handler.js';
 import { configService } from '../../config/config.service.js';
@@ -27,10 +29,12 @@ async function handleSettingModal(interaction: ModalSubmitInteraction): Promise<
 
     await configService.setHorseNames(names);
 
+    const successMsg = new ContainerBuilder().addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(`✅ 馬名を **${names.length}頭** に更新しました。`),
+    );
     const container = buildHorseNameSettingView(names, interaction.user.id);
     await interaction.reply({
-      content: `馬名を **${names.length}頭** に更新しました。`,
-      components: [container],
+      components: [successMsg, container],
       flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
     });
     return;
