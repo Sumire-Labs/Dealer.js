@@ -178,13 +178,23 @@ export async function runRace(
     const winnerIndex = result.placements[0];
     const payouts = calculatePayouts(session.bets, winnerIndex, session.horses);
 
+    // Cache penalty multipliers to avoid duplicate DB queries per user
+    const penaltyCache = new Map<string, number>();
+    const getCachedPenalty = async (userId: string): Promise<number> => {
+      const cached = penaltyCache.get(userId);
+      if (cached !== undefined) return cached;
+      const multiplier = await getBankruptcyPenaltyMultiplier(userId);
+      penaltyCache.set(userId, multiplier);
+      return multiplier;
+    };
+
     // Process payouts with bankruptcy penalty
     for (const p of payouts) {
       let payout = p.payout;
       const bet = session.bets.find(b => b.userId === p.userId);
       const betAmount = bet ? bet.amount : 0n;
       if (payout > betAmount) {
-        const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(p.userId);
+        const penaltyMultiplier = await getCachedPenalty(p.userId);
         if (penaltyMultiplier < 1.0) {
           const winnings = payout - betAmount;
           payout = betAmount + applyPenalty(winnings, penaltyMultiplier);
@@ -199,7 +209,7 @@ export async function runRace(
       if (payoutEntry) {
         let payout = payoutEntry.payout;
         if (payout > bet.amount) {
-          const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(bet.userId);
+          const penaltyMultiplier = await getCachedPenalty(bet.userId);
           if (penaltyMultiplier < 1.0) {
             const winnings = payout - bet.amount;
             payout = bet.amount + applyPenalty(winnings, penaltyMultiplier);

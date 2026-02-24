@@ -8,3 +8,4 @@ export { openMysteryBox, type OpenBoxResult } from './shop/mystery-box.service.j
 export { getFlashSale, generateFlashSale, checkAndRefreshFlashSale, type FlashSale } from './shop/flash-sale.service.js';
 export { getDailyRotation, generateDailyRotation, checkAndRefreshRotation, type DailyRotation } from './shop/daily-rotation.service.js';
 export { hasActiveBuff, hasInventoryItem, getInventoryQuantity, consumeInventoryItem, getUserInventorySummary } from './shop/inventory-query.service.js';
+export { loadUserItemsSnapshot, snapshotHasItem, snapshotHasBuff, type InventorySnapshot } from './shop/batch-inventory.service.js';

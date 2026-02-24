@@ -331,8 +331,11 @@ export async function declareBankruptcy(userId: string): Promise<{ newBalance: b
 }
 
 export async function getBankruptcyPenaltyMultiplier(userId: string): Promise<number> {
-  const user = await findOrCreateUser(userId);
-  if (!user.bankruptAt) return 1.0;
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { bankruptAt: true },
+  });
+  if (!user?.bankruptAt) return 1.0;
 
   const elapsed = Date.now() - user.bankruptAt.getTime();
   if (elapsed >= configService.getNumber(S.bankruptcyPenaltyDuration)) return 1.0;

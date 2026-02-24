@@ -296,13 +296,23 @@ async function handleShowdown(
     const pots = calculatePots(session.players);
     const winners = determineWinners(pots, session.players, session.communityCards);
 
+    // Cache penalty multipliers to avoid duplicate DB queries per player
+    const penaltyCache = new Map<string, number>();
+    const getCachedPenalty = async (userId: string): Promise<number> => {
+      const cached = penaltyCache.get(userId);
+      if (cached !== undefined) return cached;
+      const multiplier = await getBankruptcyPenaltyMultiplier(userId);
+      penaltyCache.set(userId, multiplier);
+      return multiplier;
+    };
+
     // Pay out winners with bankruptcy penalty
     for (const w of winners) {
       const player = session.players.find(p => p.userId === w.userId);
       const totalBet = player ? player.totalBet : 0n;
       let payout = w.amount;
       if (payout > totalBet) {
-        const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(w.userId);
+        const penaltyMultiplier = await getCachedPenalty(w.userId);
         if (penaltyMultiplier < 1.0) {
           const winnings = payout - totalBet;
           payout = totalBet + applyPenalty(winnings, penaltyMultiplier);
@@ -325,7 +335,7 @@ async function handleShowdown(
         .reduce((sum, w) => sum + w.amount, 0n);
       let payout = winAmount;
       if (payout > p.totalBet) {
-        const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(p.userId);
+        const penaltyMultiplier = await getCachedPenalty(p.userId);
         if (penaltyMultiplier < 1.0) {
           const winnings = payout - p.totalBet;
           payout = p.totalBet + applyPenalty(winnings, penaltyMultiplier);

@@ -5,7 +5,8 @@ import { getBankruptcyPenaltyMultiplier, applyPenalty } from './loan.service.js'
 import { checkAchievements, type AchievementCheckInput } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
 import { updateMissionProgress, type CompletedMission } from './mission.service.js';
-import { hasActiveBuff, hasInventoryItem, consumeInventoryItem } from './shop.service.js';
+import { consumeInventoryItem } from './shop.service.js';
+import { loadUserItemsSnapshot, snapshotHasItem, snapshotHasBuff } from './shop/batch-inventory.service.js';
 import { SHOP_EFFECTS } from '../../config/shop.js';
 
 export async function getBalance(userId: string): Promise<bigint> {
@@ -100,24 +101,32 @@ export async function processGameResult(
     }
   }
 
+  // Load inventory + buffs in 2 queries (batch) instead of ~12 individual queries
+  let snapshot;
+  try {
+    snapshot = await loadUserItemsSnapshot(userId);
+  } catch {
+    snapshot = null;
+  }
+
   // VIP bonuses (permanent VIP_CARD + temporary VIP_PASS) on wins
-  if (payout > betAmount) {
+  if (payout > betAmount && snapshot) {
     let bonusPercent = 0n;
     const winnings = payout - betAmount;
     try {
-      if (await hasInventoryItem(userId, 'VIP_CARD')) {
+      if (snapshotHasItem(snapshot, 'VIP_CARD')) {
         bonusPercent += SHOP_EFFECTS.VIP_BONUS_PERCENT;
       }
-      if (await hasActiveBuff(userId, 'VIP_PASS')) {
+      if (snapshotHasBuff(snapshot, 'VIP_PASS')) {
         bonusPercent += SHOP_EFFECTS.VIP_BONUS_PERCENT;
       }
-      if (await hasInventoryItem(userId, 'COLLECTION_REWARD_GAMBLER')) {
+      if (snapshotHasItem(snapshot, 'COLLECTION_REWARD_GAMBLER')) {
         bonusPercent += SHOP_EFFECTS.COLLECTION_GAMBLER_PERCENT;
       }
-      if (game === 'POKER' && await hasInventoryItem(userId, 'POKER_FACE')) {
+      if (game === 'POKER' && snapshotHasItem(snapshot, 'POKER_FACE')) {
         bonusPercent += SHOP_EFFECTS.POKER_FACE_PERCENT;
       }
-      if (game === 'HEIST' && await hasInventoryItem(userId, 'HEIST_VAULT')) {
+      if (game === 'HEIST' && snapshotHasItem(snapshot, 'HEIST_VAULT')) {
         bonusPercent += SHOP_EFFECTS.HEIST_VAULT_PERCENT;
       }
       payout += (winnings * bonusPercent) / 100n;
@@ -129,9 +138,9 @@ export async function processGameResult(
   let net = payout - betAmount;
 
   // LUCKY_CHARM: on loss, refund 50% of bet and consume item
-  if (net < 0n) {
+  if (net < 0n && snapshot) {
     try {
-      if (await hasInventoryItem(userId, 'LUCKY_CHARM')) {
+      if (snapshotHasItem(snapshot, 'LUCKY_CHARM')) {
         const refund = (betAmount * SHOP_EFFECTS.LUCKY_CHARM_REFUND) / 100n;
         payout += refund;
         net = payout - betAmount;
@@ -184,13 +193,13 @@ export async function processGameResult(
 
   // SAFETY_NET / SUPER_SAFETY_NET: if balance hit 0, auto-refill
   let safetyNetUsed = false;
-  if (newBalance === 0n) {
+  if (newBalance === 0n && snapshot) {
     try {
-      if (await hasInventoryItem(userId, 'SUPER_SAFETY_NET')) {
+      if (snapshotHasItem(snapshot, 'SUPER_SAFETY_NET')) {
         await consumeInventoryItem(userId, 'SUPER_SAFETY_NET');
         newBalance = await addChips(userId, SHOP_EFFECTS.SUPER_SAFETY_NET_AMOUNT, 'SHOP_REFUND');
         safetyNetUsed = true;
-      } else if (await hasInventoryItem(userId, 'SAFETY_NET')) {
+      } else if (snapshotHasItem(snapshot, 'SAFETY_NET')) {
         await consumeInventoryItem(userId, 'SAFETY_NET');
         newBalance = await addChips(userId, SHOP_EFFECTS.SAFETY_NET_AMOUNT, 'SHOP_REFUND');
         safetyNetUsed = true;

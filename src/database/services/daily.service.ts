@@ -7,7 +7,8 @@ import { findOrCreateUser } from '../repositories/user.repository.js';
 import { checkAchievements } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
 import { updateMissionProgress, type CompletedMission } from './mission.service.js';
-import { hasActiveBuff, hasInventoryItem, consumeInventoryItem } from './shop.service.js';
+import { consumeInventoryItem } from './shop.service.js';
+import { loadUserItemsSnapshot, snapshotHasItem, snapshotHasBuff } from './shop/batch-inventory.service.js';
 import { SHOP_EFFECTS } from '../../config/shop.js';
 
 /** JST 05:00 を日付境界として、dateが属する「リセット日」を "YYYY-MM-DD" で返す */
@@ -67,9 +68,17 @@ export async function claimDaily(userId: string): Promise<DailyResult> {
     const isBroke = user.chips <= 0n;
     let amount = isBroke ? configService.getBigInt(S.dailyBonusBroke) : configService.getBigInt(S.dailyBonus);
 
+    // Load inventory + buffs in 2 queries (batch) instead of ~6 individual queries
+    let snapshot;
+    try {
+      snapshot = await loadUserItemsSnapshot(userId);
+    } catch {
+      snapshot = null;
+    }
+
     // CHIP_FOUNTAIN permanent upgrade: +$500
     try {
-      if (await hasInventoryItem(userId, 'CHIP_FOUNTAIN')) {
+      if (snapshot && snapshotHasItem(snapshot, 'CHIP_FOUNTAIN')) {
         amount += SHOP_EFFECTS.CHIP_FOUNTAIN_BONUS;
       }
     } catch {
@@ -78,7 +87,7 @@ export async function claimDaily(userId: string): Promise<DailyResult> {
 
     // Insurance Collection bonus: +$300
     try {
-      if (await hasInventoryItem(userId, 'COLLECTION_REWARD_INSURANCE')) {
+      if (snapshot && snapshotHasItem(snapshot, 'COLLECTION_REWARD_INSURANCE')) {
         amount += SHOP_EFFECTS.COLLECTION_INSURANCE_BONUS;
       }
     } catch {
@@ -87,7 +96,7 @@ export async function claimDaily(userId: string): Promise<DailyResult> {
 
     // DAILY_BOOST consumable: double amount
     try {
-      if (await hasInventoryItem(userId, 'DAILY_BOOST')) {
+      if (snapshot && snapshotHasItem(snapshot, 'DAILY_BOOST')) {
         amount *= 2n;
         await consumeInventoryItem(userId, 'DAILY_BOOST');
       }
@@ -105,7 +114,7 @@ export async function claimDaily(userId: string): Promise<DailyResult> {
       // STREAK_SHIELD: prevent streak reset
       let shielded = false;
       try {
-        if (user.dailyStreak > 0 && await hasActiveBuff(userId, 'STREAK_SHIELD')) {
+        if (user.dailyStreak > 0 && snapshot && snapshotHasBuff(snapshot, 'STREAK_SHIELD')) {
           shielded = true;
         }
       } catch {
