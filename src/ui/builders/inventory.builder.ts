@@ -121,7 +121,8 @@ export function buildInventoryView(
   }
 
   const totalPages = Math.max(1, Math.ceil(allEntries.length / ITEMS_PER_INV_PAGE));
-  const pageEntries = allEntries.slice(page * ITEMS_PER_INV_PAGE, (page + 1) * ITEMS_PER_INV_PAGE);
+  const safePage = Math.max(0, Math.min(page, totalPages - 1));
+  const pageEntries = allEntries.slice(safePage * ITEMS_PER_INV_PAGE, (safePage + 1) * ITEMS_PER_INV_PAGE);
 
   const container = new ContainerBuilder()
     .setAccentColor(CasinoTheme.colors.purple);
@@ -194,17 +195,17 @@ export function buildInventoryView(
         .setCustomId(`inv:prev:${userId}`)
         .setLabel('◀')
         .setStyle(ButtonStyle.Secondary)
-        .setDisabled(page === 0),
+        .setDisabled(safePage === 0),
       new ButtonBuilder()
         .setCustomId(`inv:info:${userId}`)
-        .setLabel(`${page + 1}/${totalPages}`)
+        .setLabel(`${safePage + 1}/${totalPages}`)
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(true),
       new ButtonBuilder()
         .setCustomId(`inv:next:${userId}`)
         .setLabel('▶')
         .setStyle(ButtonStyle.Secondary)
-        .setDisabled(page >= totalPages - 1),
+        .setDisabled(safePage >= totalPages - 1),
     );
   }
   if (navRow.components.length > 0) {
