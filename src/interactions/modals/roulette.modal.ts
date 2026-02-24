@@ -137,6 +137,16 @@ async function handleRouletteModal(interaction: ModalSubmitInteraction): Promise
       return;
   }
 
+  // Check max bet (defense against config change during session)
+  const maxBet = configService.getBigInt(S.maxRoulette);
+  if (maxBet > 0n && bet > maxBet) {
+    await interaction.reply({
+      content: `ベット上限は${formatChips(maxBet)}です。ベット額を下げてください。`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
   // Check balance
   const user = await findOrCreateUser(userId);
   if (user.chips < bet) {

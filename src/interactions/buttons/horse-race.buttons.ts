@@ -61,7 +61,7 @@ async function handleRaceButton(interaction: ButtonInteraction): Promise<void> {
           .setStyle(TextInputStyle.Short)
           .setRequired(true)
           .setMinLength(3)
-          .setMaxLength(6),
+          .setMaxLength(10),
       ),
     );
 

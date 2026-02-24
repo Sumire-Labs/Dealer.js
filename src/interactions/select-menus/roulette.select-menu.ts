@@ -14,6 +14,8 @@ import {
   getOutsideBetNumbers,
 } from '../../config/roulette.js';
 import { getSessionBet, executeRouletteSpin } from '../buttons/roulette.buttons.js';
+import { configService } from '../../config/config.service.js';
+import { S } from '../../config/setting-defs.js';
 import { formatChips } from '../../utils/formatters.js';
 
 const OUTSIDE_BET_ACTIONS = new Set<string>([
@@ -99,6 +101,15 @@ async function handleRouletteSelectMenu(interaction: StringSelectMenuInteraction
   if (OUTSIDE_BET_ACTIONS.has(selected)) {
     const betType = selected as OutsideBetType;
     const bet = getSessionBet(userId);
+
+    const maxBet = configService.getBigInt(S.maxRoulette);
+    if (maxBet > 0n && bet > maxBet) {
+      await interaction.reply({
+        content: `ベット上限は${formatChips(maxBet)}です。ベット額を下げてください。`,
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
 
     const user = await findOrCreateUser(userId);
     if (user.chips < bet) {
