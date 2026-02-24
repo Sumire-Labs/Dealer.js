@@ -211,6 +211,40 @@ export function buildShopView(
 
 // ── Purchase confirmation ──
 
+export function buildPurchaseResultView(
+  userId: string,
+  item: ShopItem,
+  newBalance: bigint,
+): ContainerBuilder {
+  const container = new ContainerBuilder()
+    .setAccentColor(CasinoTheme.colors.gold);
+
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(CasinoTheme.prefixes.shop),
+  );
+  container.addSeparatorComponents(
+    new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+  );
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(
+      `✅ ${item.emoji} **${item.name}** を購入しました！\n\n💰 残高: ${formatChips(newBalance)}`,
+    ),
+  );
+  container.addSeparatorComponents(
+    new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+  );
+  container.addActionRowComponents(
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`shop:tab_shop:${userId}`)
+        .setLabel('🛒 ショップに戻る')
+        .setStyle(ButtonStyle.Primary),
+    ),
+  );
+
+  return container;
+}
+
 export function buildPurchaseConfirmView(
   userId: string,
   item: ShopItem,

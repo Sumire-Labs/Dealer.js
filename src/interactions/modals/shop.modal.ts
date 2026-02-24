@@ -3,7 +3,7 @@ import { registerModalHandler } from '../handler.js';
 import { purchaseItem } from '../../database/services/shop.service.js';
 import { getBalance } from '../../database/services/economy.service.js';
 import { ITEM_MAP } from '../../config/shop.js';
-import { buildShopView } from '../../ui/builders/shop.builder.js';
+import { buildPurchaseResultView } from '../../ui/builders/shop.builder.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 
 async function handleShopModal(interaction: ModalSubmitInteraction): Promise<void> {
@@ -57,15 +57,10 @@ async function handleShopModal(interaction: ModalSubmitInteraction): Promise<voi
     }
 
     const balance = lastResult?.newBalance ?? await getBalance(userId);
-    const view = buildShopView(userId, 0, 0, balance);
+    const view = buildPurchaseResultView(userId, item, balance);
     await interaction.reply({
       components: [view],
       flags: MessageFlags.IsComponentsV2,
-    });
-
-    await interaction.followUp({
-      content: `✅ **${item.name}** x${quantity} を購入しました！`,
-      flags: MessageFlags.Ephemeral,
     });
 
     if (lastResult?.newlyUnlocked && lastResult.newlyUnlocked.length > 0) {

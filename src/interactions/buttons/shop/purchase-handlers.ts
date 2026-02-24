@@ -10,7 +10,7 @@ import {
 import { getBalance } from '../../../database/services/economy.service.js';
 import { purchaseItem, getDailyRotation, getFlashSale } from '../../../database/services/shop.service.js';
 import { ITEM_MAP } from '../../../config/shop.js';
-import { buildShopView, buildPurchaseConfirmView } from '../../../ui/builders/shop.builder.js';
+import { buildShopView, buildPurchaseConfirmView, buildPurchaseResultView } from '../../../ui/builders/shop.builder.js';
 import { buildAchievementNotification } from '../../../database/services/achievement.service.js';
 import { getState, getRankInfo } from './state.js';
 
@@ -36,7 +36,6 @@ export async function handleDailyBuy(interaction: ButtonInteraction, userId: str
 }
 
 export async function handleFlashBuy(interaction: ButtonInteraction, userId: string, parts: string[]): Promise<void> {
-  const state = getState(userId);
   const flashItemId = parts[3];
   const flashSale = await getFlashSale();
   if (!flashSale || flashSale.itemId !== flashItemId) {
@@ -48,19 +47,15 @@ export async function handleFlashBuy(interaction: ButtonInteraction, userId: str
     await interaction.reply({ content: result.error ?? '購入に失敗しました。', flags: MessageFlags.Ephemeral });
     return;
   }
-  const balance = result.newBalance!;
-  const [rankInfo, updatedFlashSale] = await Promise.all([getRankInfo(userId), getFlashSale()]);
-  const view = buildShopView(userId, state.category, state.page, balance, rankInfo, updatedFlashSale);
+  const item = ITEM_MAP.get(flashItemId);
+  const view = buildPurchaseResultView(userId, item!, result.newBalance!);
   await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
-  const flashItem = ITEM_MAP.get(flashItemId);
-  await interaction.followUp({ content: `⚡ **${flashItem?.name ?? flashItemId}** をフラッシュセール価格で購入しました！`, flags: MessageFlags.Ephemeral });
   if (result.newlyUnlocked && result.newlyUnlocked.length > 0) {
     await interaction.followUp({ content: buildAchievementNotification(result.newlyUnlocked), flags: MessageFlags.Ephemeral });
   }
 }
 
 export async function handleConfirmBuy(interaction: ButtonInteraction, userId: string, parts: string[]): Promise<void> {
-  const state = getState(userId);
   const itemId = parts[3];
   let price: bigint | undefined;
 
@@ -78,13 +73,9 @@ export async function handleConfirmBuy(interaction: ButtonInteraction, userId: s
     return;
   }
 
-  const balance = result.newBalance!;
-  const [rankInfo, flashSale] = await Promise.all([getRankInfo(userId), getFlashSale()]);
-  const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale);
-  await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
-
   const item = ITEM_MAP.get(itemId);
-  await interaction.followUp({ content: `✅ **${item?.name ?? itemId}** を購入しました！`, flags: MessageFlags.Ephemeral });
+  const view = buildPurchaseResultView(userId, item!, result.newBalance!);
+  await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
 
   if (result.newlyUnlocked && result.newlyUnlocked.length > 0) {
     await interaction.followUp({ content: buildAchievementNotification(result.newlyUnlocked), flags: MessageFlags.Ephemeral });
