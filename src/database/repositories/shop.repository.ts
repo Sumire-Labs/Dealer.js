@@ -70,13 +70,17 @@ export async function decrementInventoryItem(
 
 export async function getActiveBuffs(userId: string): Promise<ActiveBuff[]> {
   const now = new Date();
-  // Clean expired and return active
-  await prisma.activeBuff.deleteMany({
-    where: { userId, expiresAt: { lte: now } },
-  });
   return prisma.activeBuff.findMany({
     where: { userId, expiresAt: { gt: now } },
   });
+}
+
+/** Bulk-delete all expired buffs across all users. Called by scheduler. */
+export async function cleanupExpiredBuffs(): Promise<number> {
+  const result = await prisma.activeBuff.deleteMany({
+    where: { expiresAt: { lte: new Date() } },
+  });
+  return result.count;
 }
 
 export async function getActiveBuff(

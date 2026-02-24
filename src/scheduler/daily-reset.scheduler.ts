@@ -1,8 +1,10 @@
 import { cleanupStaleSessions } from '../database/repositories/race.repository.js';
+import { cleanupExpiredBuffs } from '../database/repositories/shop.repository.js';
 import { applyInterestToAll } from '../database/services/bank-account.service.js';
 import { checkAndExecuteDraws } from '../database/services/lottery.service.js';
 import { checkAndRefreshRotation, checkAndRefreshFlashSale } from '../database/services/shop.service.js';
 import { processMatureDeposits } from '../database/services/fixed-deposit.service.js';
+import { startCooldownCleanup } from '../utils/cooldown.js';
 import { logger } from '../utils/logger.js';
 
 const CLEANUP_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
@@ -12,6 +14,7 @@ const SHOP_ROTATION_CHECK_MS = 5 * 60 * 1000; // 5 minutes
 const FLASH_SALE_CHECK_MS = 2 * 60 * 60 * 1000; // 2 hours
 const WEEKLY_CHALLENGE_CHECK_MS = 60 * 60 * 1000; // 1 hour
 const FIXED_DEPOSIT_CHECK_MS = 60 * 60 * 1000; // 1 hour
+const BUFF_CLEANUP_MS = 15 * 60 * 1000; // 15 minutes
 
 export function startScheduler(): void {
   // Periodic cleanup of stale race sessions
@@ -97,6 +100,21 @@ export function startScheduler(): void {
       logger.error('Fixed deposit maturity check failed', { error: String(err) });
     }
   }, FIXED_DEPOSIT_CHECK_MS);
+
+  // Periodic expired buff cleanup (replaces per-query deletion)
+  setInterval(async () => {
+    try {
+      const count = await cleanupExpiredBuffs();
+      if (count > 0) {
+        logger.info(`Cleaned up ${count} expired buffs`);
+      }
+    } catch (err) {
+      logger.error('Buff cleanup failed', { error: String(err) });
+    }
+  }, BUFF_CLEANUP_MS);
+
+  // Start cooldown map periodic cleanup
+  startCooldownCleanup();
 
   logger.info('Scheduler started');
 }

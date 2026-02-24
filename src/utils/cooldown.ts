@@ -40,3 +40,17 @@ export function deleteCooldownsForUser(userId: string, prefix: string): void {
 export function buildCooldownKey(userId: string, command: string): string {
   return `${userId}:${command}`;
 }
+
+const CLEANUP_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+
+/** Start periodic cleanup of expired cooldown entries. */
+export function startCooldownCleanup(): void {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, expiresAt] of cooldowns) {
+      if (expiresAt <= now) {
+        cooldowns.delete(key);
+      }
+    }
+  }, CLEANUP_INTERVAL_MS);
+}
