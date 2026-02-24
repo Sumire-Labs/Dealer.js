@@ -76,12 +76,14 @@ async function loadModules(): Promise<void> {
   await import('./interactions/modals/business.modal.js');
 
   // Admin commands
-  await import('./commands/admin/give.command.js');
-  await import('./commands/admin/reset.command.js');
+  await import('./commands/admin/debug.command.js');
   await import('./commands/admin/setting.command.js');
 
-  // Admin button handlers
+  // Admin button/modal/select handlers
+  await import('./interactions/buttons/debug.buttons.js');
   await import('./interactions/buttons/setting.buttons.js');
+  await import('./interactions/modals/debug.modal.js');
+  await import('./interactions/select-menus/debug.select-menu.js');
 }
 
 async function main(): Promise<void> {
