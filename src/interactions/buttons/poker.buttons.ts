@@ -94,6 +94,12 @@ async function handleJoin(
     return;
   }
 
+  const pokerMinBuyin = configService.getBigInt(S.pokerMinBuyin);
+  const pokerMaxBuyin = configService.getBigInt(S.pokerMaxBuyin);
+  const rangeLabel = pokerMaxBuyin > 0n
+    ? `バイイン額（${formatChips(pokerMinBuyin)}〜${formatChips(pokerMaxBuyin)}）`
+    : `バイイン額（${formatChips(pokerMinBuyin)}〜）`;
+
   const modal = new ModalBuilder()
     .setCustomId(`poker_modal:buyin:${channelId}`)
     .setTitle('テキサスホールデム — バイイン')
@@ -101,12 +107,12 @@ async function handleJoin(
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
           .setCustomId('buyin_amount')
-          .setLabel('バイイン額 ($2,000〜$100,000)')
+          .setLabel(rangeLabel)
           .setPlaceholder('例: 10000')
           .setStyle(TextInputStyle.Short)
           .setRequired(true)
-          .setMinLength(4)
-          .setMaxLength(6),
+          .setMinLength(3)
+          .setMaxLength(10),
       ),
     );
 
@@ -260,7 +266,7 @@ async function handleRaiseModal(
           .setStyle(TextInputStyle.Short)
           .setRequired(true)
           .setMinLength(3)
-          .setMaxLength(6),
+          .setMaxLength(10),
       ),
     );
 

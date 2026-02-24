@@ -28,6 +28,15 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   const betInput = interaction.options.getInteger('bet');
   const bet = betInput ? BigInt(betInput) : configService.getBigInt(S.minBet);
 
+  const maxBet = configService.getBigInt(S.maxRoulette);
+  if (maxBet > 0n && bet > maxBet) {
+    await interaction.reply({
+      content: `ベット上限は${formatChips(maxBet)}です。`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
   const user = await findOrCreateUser(userId);
   if (user.chips < bet) {
     await interaction.reply({

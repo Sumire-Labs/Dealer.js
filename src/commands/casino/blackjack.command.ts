@@ -4,6 +4,7 @@ import {
   MessageFlags,
 } from 'discord.js';
 import { registerCommand } from '../registry.js';
+import { configService } from '../../config/config.service.js';
 import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser, incrementGameStats } from '../../database/repositories/user.repository.js';
 import { removeChips, addChips } from '../../database/services/economy.service.js';
@@ -31,6 +32,15 @@ const data = new SlashCommandBuilder()
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
   const userId = interaction.user.id;
   const bet = BigInt(interaction.options.getInteger('bet', true));
+
+  const maxBet = configService.getBigInt(S.maxBlackjack);
+  if (maxBet > 0n && bet > maxBet) {
+    await interaction.reply({
+      content: `ベット上限は${formatChips(maxBet)}です。`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
 
   // Check for existing session
   if (bjSessionManager.has(userId)) {

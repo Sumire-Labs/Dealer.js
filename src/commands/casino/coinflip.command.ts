@@ -4,6 +4,7 @@ import {
   MessageFlags,
 } from 'discord.js';
 import { registerCommand } from '../registry.js';
+import { configService } from '../../config/config.service.js';
 import { S } from '../../config/setting-defs.js';
 import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { buildCoinflipChoiceView } from '../../ui/builders/coinflip.builder.js';
@@ -25,6 +26,15 @@ const data = new SlashCommandBuilder()
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
   const userId = interaction.user.id;
   const bet = BigInt(interaction.options.getInteger('bet', true));
+
+  const maxBet = configService.getBigInt(S.maxCoinflip);
+  if (maxBet > 0n && bet > maxBet) {
+    await interaction.reply({
+      content: `ベット上限は${formatChips(maxBet)}です。`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
 
   const user = await findOrCreateUser(userId);
   if (user.chips < bet) {
