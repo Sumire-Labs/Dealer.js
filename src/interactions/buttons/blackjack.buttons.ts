@@ -1,4 +1,9 @@
-import { type ButtonInteraction, MessageFlags } from 'discord.js';
+import {
+  type ButtonInteraction,
+  ContainerBuilder,
+  TextDisplayBuilder,
+  MessageFlags,
+} from 'discord.js';
 import { registerButtonHandler } from '../handler.js';
 import {
   type BlackjackState,
@@ -8,16 +13,26 @@ import {
   split,
   takeInsurance,
   calculateTotalResult,
+  createGame,
 } from '../../games/blackjack/blackjack.engine.js';
 import {
   buildBlackjackPlayingView,
   buildBlackjackResultView,
 } from '../../ui/builders/blackjack.builder.js';
+import { buildBjTableLobbyView } from '../../ui/builders/blackjack-table.builder.js';
 import { findOrCreateUser, incrementGameStats } from '../../database/repositories/user.repository.js';
 import { removeChips, addChips } from '../../database/services/economy.service.js';
 import { getBankruptcyPenaltyMultiplier, applyPenalty } from '../../database/services/loan.service.js';
 import { formatChips } from '../../utils/formatters.js';
 import { updateMissionProgress, buildMissionNotification } from '../../database/services/mission.service.js';
+import {
+  getActiveTableSession,
+  setActiveTableSession,
+  type BlackjackTableSession,
+} from '../../games/blackjack/blackjack-table.session.js';
+import { Shoe } from '../../games/blackjack/blackjack.deck.js';
+import { BJ_TABLE_LOBBY_DURATION_MS } from '../../config/constants.js';
+import { startBjTableLobbyCountdown } from './blackjack-table.buttons.js';
 
 // In-memory session storage: userId -> game state
 export const bjSessionManager = new Map<string, BlackjackState>();
@@ -25,6 +40,17 @@ export const bjSessionManager = new Map<string, BlackjackState>();
 async function handleBlackjackButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');
   const action = parts[1];
+
+  switch (action) {
+    case 'solo':
+      await handleSolo(interaction, parts);
+      return;
+    case 'table':
+      await handleTable(interaction, parts);
+      return;
+  }
+
+  // Existing game action handling (hit/stand/double/split/insurance)
   const ownerId = parts[2];
 
   if (interaction.user.id !== ownerId) {
@@ -189,6 +215,175 @@ async function handleBlackjackButton(interaction: ButtonInteraction): Promise<vo
     components: [playingView],
     flags: MessageFlags.IsComponentsV2,
   });
+}
+
+// ─── Solo mode handler ─────────────────────────────────
+
+async function handleSolo(interaction: ButtonInteraction, parts: string[]): Promise<void> {
+  const ownerId = parts[2];
+  const bet = BigInt(parts[3]);
+  const userId = interaction.user.id;
+
+  if (userId !== ownerId) {
+    await interaction.reply({
+      content: '他のプレイヤーの操作はできません。',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  if (bjSessionManager.has(userId)) {
+    await interaction.reply({
+      content: '進行中のブラックジャックがあります！',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const user = await findOrCreateUser(userId);
+  if (user.chips < bet) {
+    await interaction.reply({
+      content: `チップが不足しています！ 残高: ${formatChips(user.chips)}`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  // Deduct initial bet
+  await removeChips(userId, bet, 'LOSS', 'BLACKJACK');
+
+  // Create game
+  const state = createGame(bet);
+
+  // If resolved immediately (natural blackjack), show result
+  if (state.phase === 'resolved') {
+    const result = calculateTotalResult(state);
+    let { totalPayout, net } = result;
+
+    if (totalPayout > 0n) {
+      const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(userId);
+      if (penaltyMultiplier < 1.0) {
+        totalPayout = applyPenalty(totalPayout, penaltyMultiplier);
+        net = totalPayout - result.totalBet;
+      }
+    }
+
+    let newBalance = (await findOrCreateUser(userId)).chips;
+    if (totalPayout > 0n) {
+      newBalance = await addChips(userId, totalPayout, 'WIN', 'BLACKJACK');
+    }
+
+    const won = net > 0n ? net : 0n;
+    const lost = net < 0n ? -net : 0n;
+    await incrementGameStats(userId, won, lost);
+
+    const resultView = buildBlackjackResultView(state, result.totalBet, totalPayout, net, newBalance);
+
+    await interaction.update({
+      components: [resultView],
+      flags: MessageFlags.IsComponentsV2,
+    });
+    return;
+  }
+
+  // Store session and show playing view
+  bjSessionManager.set(userId, state);
+  const updatedUser = await findOrCreateUser(userId);
+  const playingView = buildBlackjackPlayingView(state, userId, updatedUser.chips);
+
+  await interaction.update({
+    components: [playingView],
+    flags: MessageFlags.IsComponentsV2,
+  });
+}
+
+// ─── Table mode handler ────────────────────────────────
+
+async function handleTable(interaction: ButtonInteraction, parts: string[]): Promise<void> {
+  const ownerId = parts[2];
+  const bet = BigInt(parts[3]);
+  const userId = interaction.user.id;
+
+  if (userId !== ownerId) {
+    await interaction.reply({
+      content: '他のプレイヤーの操作はできません。',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  const channelId = interaction.channelId;
+
+  // Check for existing table session
+  const existing = getActiveTableSession(channelId);
+  if (existing && existing.phase !== 'resolved' && existing.phase !== 'cancelled') {
+    await interaction.reply({
+      content: 'このチャンネルではすでにブラックジャックテーブルが進行中です！',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  // Check balance
+  const user = await findOrCreateUser(userId);
+  if (user.chips < bet) {
+    await interaction.reply({
+      content: `チップが不足しています！ 残高: ${formatChips(user.chips)}`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  // Deduct bet
+  await removeChips(userId, bet, 'LOSS', 'BLACKJACK');
+
+  const displayName = interaction.user.displayName;
+
+  // Create table session
+  const session: BlackjackTableSession = {
+    channelId,
+    hostId: userId,
+    bet,
+    phase: 'waiting',
+    lobbyDeadline: Date.now() + BJ_TABLE_LOBBY_DURATION_MS,
+    shoe: new Shoe(),
+    players: [{
+      userId,
+      displayName,
+      bet,
+      isHost: true,
+      hands: [],
+      activeHandIndex: 0,
+      outcomes: [],
+      multipliers: [],
+      insuranceBet: 0n,
+      insurancePaid: false,
+      done: false,
+    }],
+    currentPlayerIndex: 0,
+    dealerCards: [],
+    turnDeadline: 0,
+  };
+
+  setActiveTableSession(channelId, session);
+
+  // Dismiss ephemeral mode select
+  await interaction.update({
+    components: [new ContainerBuilder().addTextDisplayComponents(new TextDisplayBuilder().setContent('✅ テーブルを作成しました！'))],
+    flags: MessageFlags.IsComponentsV2,
+  });
+
+  // Send public lobby message
+  if (interaction.channel && 'send' in interaction.channel) {
+    const remainingSeconds = Math.ceil(BJ_TABLE_LOBBY_DURATION_MS / 1000);
+    const lobbyView = buildBjTableLobbyView(session, remainingSeconds);
+    const msg = await interaction.channel.send({
+      components: [lobbyView],
+      flags: MessageFlags.IsComponentsV2,
+    });
+    session.messageId = msg.id;
+    startBjTableLobbyCountdown(interaction.channel, session);
+  }
 }
 
 registerButtonHandler('bj', handleBlackjackButton as never);

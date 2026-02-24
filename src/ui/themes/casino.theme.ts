@@ -34,6 +34,7 @@ export const CasinoTheme = {
     business: '🏢 ━━━ BUSINESS ━━━ 🏢',
     teamShift: '👥 ━━━ TEAM SHIFT ━━━ 👥',
     overtime: '⏰ ━━━ OVERTIME ━━━ ⏰',
+    blackjackTable: '🃏 ━━━ BLACKJACK TABLE ━━━ 🃏',
     help: '📖 ━━━ HELP ━━━ 📖',
   },
 } as const;

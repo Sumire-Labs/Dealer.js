@@ -6,15 +6,10 @@ import {
 import { registerCommand } from '../registry.js';
 import { configService } from '../../config/config.service.js';
 import { S } from '../../config/setting-defs.js';
-import { findOrCreateUser, incrementGameStats } from '../../database/repositories/user.repository.js';
-import { removeChips, addChips } from '../../database/services/economy.service.js';
-import { getBankruptcyPenaltyMultiplier, applyPenalty } from '../../database/services/loan.service.js';
-import { createGame, calculateTotalResult } from '../../games/blackjack/blackjack.engine.js';
-import {
-  buildBlackjackPlayingView,
-  buildBlackjackResultView,
-} from '../../ui/builders/blackjack.builder.js';
+import { findOrCreateUser } from '../../database/repositories/user.repository.js';
 import { bjSessionManager } from '../../interactions/buttons/blackjack.buttons.js';
+import { getActiveTableSession } from '../../games/blackjack/blackjack-table.session.js';
+import { buildModeSelectView } from '../../ui/builders/blackjack-table.builder.js';
 import { formatChips } from '../../utils/formatters.js';
 
 const data = new SlashCommandBuilder()
@@ -42,10 +37,20 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     return;
   }
 
-  // Check for existing session
+  // Check for existing solo session
   if (bjSessionManager.has(userId)) {
     await interaction.reply({
       content: '進行中のブラックジャックがあります！ 先にそちらを終わらせてください。',
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+
+  // Check for existing table session in this channel
+  const existingTable = getActiveTableSession(interaction.channelId);
+  if (existingTable && existingTable.phase !== 'resolved' && existingTable.phase !== 'cancelled') {
+    await interaction.reply({
+      content: 'このチャンネルではすでにブラックジャックテーブルが進行中です！',
       flags: MessageFlags.Ephemeral,
     });
     return;
@@ -60,61 +65,11 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     return;
   }
 
-  // Deduct initial bet
-  await removeChips(userId, bet, 'LOSS', 'BLACKJACK');
-
-  // Create game
-  const state = createGame(bet);
-
-  // If resolved immediately (natural blackjack), show result
-  if (state.phase === 'resolved') {
-    const result = calculateTotalResult(state);
-    let { totalPayout, net } = result;
-
-    // Apply bankruptcy penalty to winnings
-    if (totalPayout > 0n) {
-      const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(userId);
-      if (penaltyMultiplier < 1.0) {
-        totalPayout = applyPenalty(totalPayout, penaltyMultiplier);
-        net = totalPayout - result.totalBet;
-      }
-    }
-
-    let newBalance = (await findOrCreateUser(userId)).chips;
-
-    if (totalPayout > 0n) {
-      newBalance = await addChips(userId, totalPayout, 'WIN', 'BLACKJACK');
-    }
-
-    // Update game stats for natural blackjack
-    const won = net > 0n ? net : 0n;
-    const lost = net < 0n ? -net : 0n;
-    await incrementGameStats(userId, won, lost);
-
-    const resultView = buildBlackjackResultView(
-      state,
-      result.totalBet,
-      totalPayout,
-      net,
-      newBalance,
-    );
-
-    await interaction.reply({
-      components: [resultView],
-      flags: MessageFlags.IsComponentsV2,
-    });
-    return;
-  }
-
-  // Store session and show playing view
-  bjSessionManager.set(userId, state);
-
-  const updatedUser = await findOrCreateUser(userId);
-  const playingView = buildBlackjackPlayingView(state, userId, updatedUser.chips);
-
+  // Show mode selection (ephemeral)
+  const modeView = buildModeSelectView(userId, bet);
   await interaction.reply({
-    components: [playingView],
-    flags: MessageFlags.IsComponentsV2,
+    components: [modeView],
+    flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2,
   });
 }
 

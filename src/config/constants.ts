@@ -55,4 +55,10 @@ export const TEAM_SHIFT_LOBBY_DURATION_MS = 60_000;
 // Business
 export const BUSINESS_MAX_ACCUMULATION_MS = 24 * 60 * 60 * 1000; // 24h
 
+// Blackjack Table (Multiplayer)
+export const BJ_TABLE_MIN_PLAYERS = 2;
+export const BJ_TABLE_MAX_PLAYERS = 6;
+export const BJ_TABLE_LOBBY_DURATION_MS = 60_000;
+export const BJ_TABLE_TURN_TIMEOUT_MS = 30_000;
+
 export const COMMAND_COOLDOWN_MS = 3_000; // 3 seconds default cooldown

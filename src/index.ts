@@ -32,6 +32,7 @@ async function loadModules(): Promise<void> {
   await import('./interactions/buttons/slots.buttons.js');
   await import('./interactions/buttons/coinflip.buttons.js');
   await import('./interactions/buttons/blackjack.buttons.js');
+  await import('./interactions/buttons/blackjack-table.buttons.js');
   await import('./interactions/buttons/horse-race.buttons.js');
   await import('./interactions/buttons/poker.buttons.js');
   await import('./interactions/buttons/bank.buttons.js');
