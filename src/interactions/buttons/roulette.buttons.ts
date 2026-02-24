@@ -20,8 +20,9 @@ import {
 import { playRouletteAnimation } from '../../ui/animations/roulette.animation.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 import { buildMissionNotification } from '../../database/services/mission.service.js';
+import { getEffectiveMax } from '../../utils/bet.js';
 
-const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n, 100_000n];
+const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n, 100_000n, 500_000n, 1_000_000n];
 
 export const rouletteSessionManager = new Map<string, bigint>();
 
@@ -62,19 +63,20 @@ async function handleRouletteButton(interaction: ButtonInteraction): Promise<voi
   }
 
   if (action === 'bet_up') {
-    const higher = BET_STEPS.find(s => s > currentBet) ?? configService.getBigInt(S.maxRoulette);
-    currentBet = higher;
-    setSessionBet(userId, currentBet);
     const user = await findOrCreateUser(userId);
+    const effectiveMax = getEffectiveMax(configService.getBigInt(S.maxRoulette), user.chips);
+    const higher = BET_STEPS.find(s => s > currentBet) ?? effectiveMax;
+    currentBet = higher > effectiveMax ? effectiveMax : higher;
+    setSessionBet(userId, currentBet);
     const view = buildRouletteIdleView(currentBet, user.chips, userId);
     await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
     return;
   }
 
   if (action === 'bet_max') {
-    currentBet = configService.getBigInt(S.maxRoulette);
-    setSessionBet(userId, currentBet);
     const user = await findOrCreateUser(userId);
+    currentBet = getEffectiveMax(configService.getBigInt(S.maxRoulette), user.chips);
+    setSessionBet(userId, currentBet);
     const view = buildRouletteIdleView(currentBet, user.chips, userId);
     await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
     return;

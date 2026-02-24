@@ -49,9 +49,18 @@ async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promis
   }
 
   const amount = BigInt(parsed);
-  if (amount < configService.getBigInt(S.minBet) || amount > configService.getBigInt(S.maxHorseRace)) {
+  const minBet = configService.getBigInt(S.minBet);
+  const maxBet = configService.getBigInt(S.maxHorseRace);
+  if (amount < minBet) {
     await interaction.reply({
-      content: `ベット額は${formatChips(configService.getBigInt(S.minBet))}〜${formatChips(configService.getBigInt(S.maxHorseRace))}の範囲で指定してください。`,
+      content: `最低ベットは${formatChips(minBet)}です。`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+  if (maxBet > 0n && amount > maxBet) {
+    await interaction.reply({
+      content: `ベット上限は${formatChips(maxBet)}です。`,
       flags: MessageFlags.Ephemeral,
     });
     return;

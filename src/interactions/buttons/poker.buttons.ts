@@ -246,7 +246,7 @@ async function handleRaiseModal(
   const minRaise = session.currentBet + session.minRaise;
   const maxRaise = currentPlayer.currentBet + currentPlayer.stack;
   const pokerMaxBuyin = configService.getBigInt(S.pokerMaxBuyin);
-  const maxDisplay = maxRaise < pokerMaxBuyin ? maxRaise : pokerMaxBuyin;
+  const maxDisplay = pokerMaxBuyin > 0n && maxRaise > pokerMaxBuyin ? pokerMaxBuyin : maxRaise;
 
   const modal = new ModalBuilder()
     .setCustomId(`poker_modal:raise:${channelId}`)

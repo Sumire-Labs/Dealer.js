@@ -19,8 +19,7 @@ const data = new SlashCommandBuilder()
       .setName('bet')
       .setDescription('ベット額')
       .setRequired(false)
-      .setMinValue(Number(S.minBet.defaultValue))
-      .setMaxValue(Number(S.maxRoulette.defaultValue)),
+      .setMinValue(Number(S.minBet.defaultValue)),
   )
   .toJSON();
 

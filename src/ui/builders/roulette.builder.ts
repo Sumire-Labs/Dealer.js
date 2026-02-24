@@ -13,6 +13,7 @@ import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
 import { configService } from '../../config/config.service.js';
 import { S } from '../../config/setting-defs.js';
+import { getEffectiveMax } from '../../utils/bet.js';
 import { getNumberEmoji, getNumberColor } from '../../config/roulette.js';
 import type { TodayStats } from '../../database/repositories/user.repository.js';
 
@@ -21,7 +22,8 @@ function formatTodayStats(stats: TodayStats): string {
   return `📊 今日: ${stats.wins}勝${stats.losses}敗（${sign}${formatChips(stats.netAmount)}）`;
 }
 
-function buildBetRow(bet: bigint, userId: string): ActionRowBuilder<ButtonBuilder> {
+function buildBetRow(bet: bigint, balance: bigint, userId: string): ActionRowBuilder<ButtonBuilder> {
+  const effectiveMax = getEffectiveMax(configService.getBigInt(S.maxRoulette), balance);
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(`roulette:bet_down:${userId}`)
@@ -32,12 +34,12 @@ function buildBetRow(bet: bigint, userId: string): ActionRowBuilder<ButtonBuilde
       .setCustomId(`roulette:bet_up:${userId}`)
       .setLabel('BET ▶')
       .setStyle(ButtonStyle.Secondary)
-      .setDisabled(bet >= configService.getBigInt(S.maxRoulette)),
+      .setDisabled(bet >= effectiveMax),
     new ButtonBuilder()
       .setCustomId(`roulette:bet_max:${userId}`)
       .setLabel('MAX BET')
       .setStyle(ButtonStyle.Secondary)
-      .setDisabled(bet >= configService.getBigInt(S.maxRoulette)),
+      .setDisabled(bet >= effectiveMax),
   );
 }
 
@@ -88,7 +90,7 @@ export function buildRouletteIdleView(
     .addSeparatorComponents(
       new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     )
-    .addActionRowComponents(buildBetRow(bet, userId))
+    .addActionRowComponents(buildBetRow(bet, balance, userId))
     .addActionRowComponents(buildBetSelectMenu(userId));
 }
 
@@ -158,6 +160,6 @@ export function buildRouletteResultView(
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(balanceLine),
     )
-    .addActionRowComponents(buildBetRow(bet, userId))
+    .addActionRowComponents(buildBetRow(bet, newBalance, userId))
     .addActionRowComponents(buildBetSelectMenu(userId));
 }

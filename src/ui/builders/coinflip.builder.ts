@@ -11,6 +11,7 @@ import { CasinoTheme } from '../themes/casino.theme.js';
 import { formatChips } from '../../utils/formatters.js';
 import { configService } from '../../config/config.service.js';
 import { S } from '../../config/setting-defs.js';
+import { getEffectiveMax } from '../../utils/bet.js';
 import type { CoinSide } from '../../games/coinflip/coinflip.engine.js';
 import type { TodayStats } from '../../database/repositories/user.repository.js';
 
@@ -19,7 +20,8 @@ const SIDE_DISPLAY: Record<CoinSide, { emoji: string; label: string }> = {
   tails: { emoji: '🦅', label: 'ウラ' },
 };
 
-function buildCoinflipButtons(bet: bigint, userId: string): ActionRowBuilder<ButtonBuilder> {
+function buildCoinflipButtons(bet: bigint, balance: bigint, userId: string): ActionRowBuilder<ButtonBuilder> {
+  const effectiveMax = getEffectiveMax(configService.getBigInt(S.maxCoinflip), balance);
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(`coinflip:bet_down:${userId}`)
@@ -38,7 +40,7 @@ function buildCoinflipButtons(bet: bigint, userId: string): ActionRowBuilder<But
       .setCustomId(`coinflip:bet_up:${userId}`)
       .setLabel('BET ▶')
       .setStyle(ButtonStyle.Secondary)
-      .setDisabled(bet >= configService.getBigInt(S.maxCoinflip)),
+      .setDisabled(bet >= effectiveMax),
   );
 }
 
@@ -65,7 +67,7 @@ export function buildCoinflipIdleView(
         `BET: **${formatChips(bet)}** | 残高: ${formatChips(balance)}\n\n面を選んでください:`,
       ),
     )
-    .addActionRowComponents(buildCoinflipButtons(bet, userId));
+    .addActionRowComponents(buildCoinflipButtons(bet, balance, userId));
 }
 
 export function buildCoinflipChoiceView(
@@ -86,7 +88,7 @@ export function buildCoinflipChoiceView(
         `BET: **${formatChips(bet)}** | 残高: ${formatChips(balance)}\n\n面を選んでください:`,
       ),
     )
-    .addActionRowComponents(buildCoinflipButtons(bet, userId));
+    .addActionRowComponents(buildCoinflipButtons(bet, balance, userId));
 }
 
 export function buildCoinflipFlippingView(): ContainerBuilder {
@@ -155,5 +157,5 @@ export function buildCoinflipResultView(
     .addTextDisplayComponents(
       new TextDisplayBuilder().setContent(balanceLine),
     )
-    .addActionRowComponents(buildCoinflipButtons(bet, userId));
+    .addActionRowComponents(buildCoinflipButtons(bet, newBalance, userId));
 }

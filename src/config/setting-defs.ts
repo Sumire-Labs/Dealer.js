@@ -86,11 +86,11 @@ export const S = {
 
   // ── Bets (6) ───────────────────────────────────────────────────────
   minBet:       chips('bet.min_bet', 'bet', 100n, 1, 1_000_000, '最低ベット'),
-  maxSlots:     chips('bet.max_slots', 'bet', 50_000n, 1_000, 1_000_000_000, 'スロット上限'),
-  maxBlackjack: chips('bet.max_blackjack', 'bet', 100_000n, 1_000, 1_000_000_000, 'BJ上限'),
-  maxHorseRace: chips('bet.max_horse_race', 'bet', 100_000n, 1_000, 1_000_000_000, '競馬上限'),
-  maxCoinflip:  chips('bet.max_coinflip', 'bet', 500_000n, 1_000, 1_000_000_000, 'コイン上限'),
-  maxRoulette:  chips('bet.max_roulette', 'bet', 100_000n, 1_000, 1_000_000_000, 'ルーレット上限'),
+  maxSlots:     chips('bet.max_slots', 'bet', 0n, 0, 1_000_000_000, 'スロット上限(0=無制限)'),
+  maxBlackjack: chips('bet.max_blackjack', 'bet', 0n, 0, 1_000_000_000, 'BJ上限(0=無制限)'),
+  maxHorseRace: chips('bet.max_horse_race', 'bet', 0n, 0, 1_000_000_000, '競馬上限(0=無制限)'),
+  maxCoinflip:  chips('bet.max_coinflip', 'bet', 0n, 0, 1_000_000_000, 'コイン上限(0=無制限)'),
+  maxRoulette:  chips('bet.max_roulette', 'bet', 0n, 0, 1_000_000_000, 'ルーレット上限(0=無制限)'),
 
   // ── Loans (4) ──────────────────────────────────────────────────────
   loanMaxTotal:     chips('loan.max_total', 'loan', 100_000n, 1_000, 1_000_000_000, '借入上限(合計)'),
@@ -137,7 +137,7 @@ export const S = {
 
   // ── Poker (3) ──────────────────────────────────────────────────────
   pokerMinBuyin:      chips('poker.min_buyin', 'poker', 2_000n, 100, 10_000_000, '最低バイイン'),
-  pokerMaxBuyin:      chips('poker.max_buyin', 'poker', 100_000n, 1_000, 1_000_000_000, '最大バイイン'),
+  pokerMaxBuyin:      chips('poker.max_buyin', 'poker', 0n, 0, 1_000_000_000, '最大バイイン(0=無制限)'),
   pokerActionTimeout: seconds('poker.action_timeout_ms', 'poker', 45_000, 10, 300, 'アクション制限時間'),
 
   // ── Business (5) ───────────────────────────────────────────────────

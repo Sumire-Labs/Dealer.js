@@ -18,8 +18,7 @@ const data = new SlashCommandBuilder()
       .setName('bet')
       .setDescription('ベット額')
       .setRequired(true)
-      .setMinValue(Number(S.minBet.defaultValue))
-      .setMaxValue(Number(S.maxCoinflip.defaultValue)),
+      .setMinValue(Number(S.minBet.defaultValue)),
   )
   .toJSON();
 

@@ -23,8 +23,7 @@ const data = new SlashCommandBuilder()
       .setName('bet')
       .setDescription('ベット額')
       .setRequired(false)
-      .setMinValue(Number(S.minBet.defaultValue))
-      .setMaxValue(Number(S.maxSlots.defaultValue)),
+      .setMinValue(Number(S.minBet.defaultValue)),
   )
   .toJSON();
 
@@ -33,9 +32,18 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   const betInput = interaction.options.getInteger('bet');
   const bet = betInput ? BigInt(betInput) : configService.getBigInt(S.minBet);
 
-  if (bet < configService.getBigInt(S.minBet) || bet > configService.getBigInt(S.maxSlots)) {
+  const minBet = configService.getBigInt(S.minBet);
+  const maxBet = configService.getBigInt(S.maxSlots);
+  if (bet < minBet) {
     await interaction.reply({
-      content: `ベット額は${formatChips(configService.getBigInt(S.minBet))}〜${formatChips(configService.getBigInt(S.maxSlots))}の範囲で指定してください。`,
+      content: `最低ベットは${formatChips(minBet)}です。`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+  if (maxBet > 0n && bet > maxBet) {
+    await interaction.reply({
+      content: `ベット上限は${formatChips(maxBet)}です。`,
       flags: MessageFlags.Ephemeral,
     });
     return;

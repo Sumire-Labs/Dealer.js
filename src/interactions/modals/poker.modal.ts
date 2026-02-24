@@ -58,9 +58,16 @@ async function handleBuyIn(
   const amount = BigInt(parsed);
   const pokerMinBuyin = configService.getBigInt(S.pokerMinBuyin);
   const pokerMaxBuyin = configService.getBigInt(S.pokerMaxBuyin);
-  if (amount < pokerMinBuyin || amount > pokerMaxBuyin) {
+  if (amount < pokerMinBuyin) {
     await interaction.reply({
-      content: `バイイン額は${formatChips(pokerMinBuyin)}〜${formatChips(pokerMaxBuyin)}の範囲で指定してください。`,
+      content: `最低バイインは${formatChips(pokerMinBuyin)}です。`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+  if (pokerMaxBuyin > 0n && amount > pokerMaxBuyin) {
+    await interaction.reply({
+      content: `バイイン上限は${formatChips(pokerMaxBuyin)}です。`,
       flags: MessageFlags.Ephemeral,
     });
     return;

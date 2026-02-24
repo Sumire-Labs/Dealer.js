@@ -11,10 +11,11 @@ import { spin } from '../../games/slots/slots.engine.js';
 import { buildSlotsSpinningView } from '../../ui/builders/slots.builder.js';
 import { playSlotsAnimation } from '../../ui/animations/slots.animation.js';
 import { formatChips } from '../../utils/formatters.js';
+import { getEffectiveMax } from '../../utils/bet.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 import { buildMissionNotification } from '../../database/services/mission.service.js';
 
-const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n];
+const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n, 100_000n, 500_000n, 1_000_000n];
 
 // Session bet storage: userId -> current bet
 export const slotsSessionManager = new Map<string, bigint>();
@@ -60,11 +61,12 @@ async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> 
   }
 
   if (action === 'bet_up') {
-    const higher = BET_STEPS.find(s => s > currentBet) ?? configService.getBigInt(S.maxSlots);
-    currentBet = higher;
+    const user = await findOrCreateUser(userId);
+    const effectiveMax = getEffectiveMax(configService.getBigInt(S.maxSlots), user.chips);
+    const higher = BET_STEPS.find(s => s > currentBet) ?? effectiveMax;
+    currentBet = higher > effectiveMax ? effectiveMax : higher;
     setSessionBet(userId, currentBet);
 
-    const user = await findOrCreateUser(userId);
     await interaction.update({
       components: [buildSlotsIdleViewWithButtons(currentBet, user.chips, userId)],
       flags: MessageFlags.IsComponentsV2,
@@ -73,10 +75,10 @@ async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> 
   }
 
   if (action === 'bet_max') {
-    currentBet = configService.getBigInt(S.maxSlots);
+    const user = await findOrCreateUser(userId);
+    currentBet = getEffectiveMax(configService.getBigInt(S.maxSlots), user.chips);
     setSessionBet(userId, currentBet);
 
-    const user = await findOrCreateUser(userId);
     await interaction.update({
       components: [buildSlotsIdleViewWithButtons(currentBet, user.chips, userId)],
       flags: MessageFlags.IsComponentsV2,
@@ -194,12 +196,12 @@ function buildSlotsIdleViewWithButtons(
           .setCustomId(`slots:bet_up:${userId}`)
           .setLabel('BET ▶')
           .setStyle(ButtonStyle.Secondary)
-          .setDisabled(bet >= configService.getBigInt(S.maxSlots)),
+          .setDisabled(bet >= getEffectiveMax(configService.getBigInt(S.maxSlots), balance)),
         new ButtonBuilder()
           .setCustomId(`slots:bet_max:${userId}`)
           .setLabel('MAX BET')
           .setStyle(ButtonStyle.Danger)
-          .setDisabled(bet >= configService.getBigInt(S.maxSlots)),
+          .setDisabled(bet >= getEffectiveMax(configService.getBigInt(S.maxSlots), balance)),
       ),
     );
 }
