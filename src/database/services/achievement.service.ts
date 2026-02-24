@@ -18,6 +18,10 @@ export interface AchievementCheckInput {
   newBalance?: bigint;
   dailyStreak?: number;
   metadata?: Record<string, unknown>;
+  /** Pre-fetched unlocked IDs to avoid re-querying across multiple checkAchievements calls */
+  _prefetchedUnlockedIds?: Set<string>;
+  /** Shared query cache across isConditionMet calls (e.g. totalGames) */
+  _cache?: Map<string, unknown>;
 }
 
 export async function checkAchievements(
@@ -27,14 +31,15 @@ export async function checkAchievements(
     const candidates = ACHIEVEMENTS_BY_CONTEXT.get(input.context) ?? [];
     if (candidates.length === 0) return [];
 
-    const unlockedIds = await getUnlockedIds(input.userId);
+    const unlockedIds = input._prefetchedUnlockedIds ?? await getUnlockedIds(input.userId);
     const toCheck = candidates.filter(a => !unlockedIds.has(a.id));
     if (toCheck.length === 0) return [];
 
     const newlyUnlocked: AchievementDefinition[] = [];
+    const cache = input._cache ?? new Map<string, unknown>();
 
     for (const achievement of toCheck) {
-      const met = await isConditionMet(achievement.id, input);
+      const met = await isConditionMet(achievement.id, input, cache);
       if (met) {
         const unlocked = await unlockAchievement(input.userId, achievement.id);
         if (unlocked) {
@@ -53,6 +58,7 @@ export async function checkAchievements(
 async function isConditionMet(
   achievementId: string,
   input: AchievementCheckInput,
+  cache: Map<string, unknown>,
 ): Promise<boolean> {
   switch (achievementId) {
     case 'FIRST_WIN':
@@ -73,28 +79,20 @@ async function isConditionMet(
       return recent.length === 5 && recent.every(t => t.type === 'WIN');
     }
 
-    case 'GAMES_10': {
-      const user = await prisma.user.findUnique({
-        where: { id: input.userId },
-        select: { totalGames: true },
-      });
-      return (user?.totalGames ?? 0) >= 10;
-    }
-
-    case 'GAMES_100': {
-      const user = await prisma.user.findUnique({
-        where: { id: input.userId },
-        select: { totalGames: true },
-      });
-      return (user?.totalGames ?? 0) >= 100;
-    }
-
+    case 'GAMES_10':
+    case 'GAMES_100':
     case 'GAMES_1000': {
-      const user = await prisma.user.findUnique({
-        where: { id: input.userId },
-        select: { totalGames: true },
-      });
-      return (user?.totalGames ?? 0) >= 1000;
+      let totalGames = cache.get('totalGames') as number | undefined;
+      if (totalGames === undefined) {
+        const user = await prisma.user.findUnique({
+          where: { id: input.userId },
+          select: { totalGames: true },
+        });
+        totalGames = user?.totalGames ?? 0;
+        cache.set('totalGames', totalGames);
+      }
+      const threshold = achievementId === 'GAMES_10' ? 10 : achievementId === 'GAMES_100' ? 100 : 1000;
+      return totalGames >= threshold;
     }
 
     case 'SLOTS_JACKPOT':

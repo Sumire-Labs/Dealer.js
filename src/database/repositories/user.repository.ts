@@ -53,26 +53,28 @@ export async function getTodayStats(userId: string): Promise<TodayStats> {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
-  const transactions = await prisma.transaction.findMany({
+  const groups = await prisma.transaction.groupBy({
+    by: ['type'],
     where: {
       userId,
       createdAt: { gte: startOfDay },
       type: { in: ['WIN', 'LOSS'] },
     },
-    select: { type: true, amount: true },
+    _count: true,
+    _sum: { amount: true },
   });
 
   let wins = 0;
   let losses = 0;
   let netAmount = 0n;
 
-  for (const tx of transactions) {
-    if (tx.type === 'WIN') {
-      wins++;
+  for (const g of groups) {
+    if (g.type === 'WIN') {
+      wins = g._count;
     } else {
-      losses++;
+      losses = g._count;
     }
-    netAmount += tx.amount;
+    netAmount += g._sum.amount ?? 0n;
   }
 
   return { wins, losses, netAmount };

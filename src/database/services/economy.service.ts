@@ -3,6 +3,7 @@ import { prisma } from '../client.js';
 import { findOrCreateUser } from '../repositories/user.repository.js';
 import { getBankruptcyPenaltyMultiplier, applyPenalty } from './loan.service.js';
 import { checkAchievements, type AchievementCheckInput } from './achievement.service.js';
+import { getUnlockedIds } from '../repositories/achievement.repository.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
 import { updateMissionProgress, type CompletedMission } from './mission.service.js';
 import { consumeInventoryItem } from './shop.service.js';
@@ -209,10 +210,13 @@ export async function processGameResult(
     }
   }
 
-  // Achievement checks
+  // Achievement checks — share unlockedIds and cache across both calls
   const isWin = net > 0n;
   let newlyUnlocked: AchievementDefinition[] = [];
   try {
+    const unlockedIds = await getUnlockedIds(userId);
+    const achievementCache = new Map<string, unknown>();
+
     const gameCheck: AchievementCheckInput = {
       userId,
       context: 'game_result',
@@ -221,13 +225,20 @@ export async function processGameResult(
       netAmount: net,
       newBalance,
       metadata,
+      _prefetchedUnlockedIds: unlockedIds,
+      _cache: achievementCache,
     };
     const gameAchievements = await checkAchievements(gameCheck);
+
+    // Update unlockedIds with newly unlocked achievements
+    for (const a of gameAchievements) unlockedIds.add(a.id);
 
     const economyCheck: AchievementCheckInput = {
       userId,
       context: 'economy_change',
       newBalance,
+      _prefetchedUnlockedIds: unlockedIds,
+      _cache: achievementCache,
     };
     const economyAchievements = await checkAchievements(economyCheck);
 

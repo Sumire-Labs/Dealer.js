@@ -132,10 +132,10 @@ export async function updateMissionProgress(
     }
   }
 
-  // Check if all missions completed → bonus
+  // Check if all missions completed → bonus (use local state instead of re-querying)
   if (completed.length > 0) {
-    const allMissions = await getMissionsForDate(userId, date);
-    const allCompleted = allMissions.every(m => m.completed);
+    const newlyCompletedKeys = new Set(completed.map(c => c.missionKey));
+    const allCompleted = missions.every(m => m.completed || newlyCompletedKeys.has(m.missionKey));
 
     if (allCompleted) {
       const missionCompleteBonus = configService.getBigInt(S.missionCompleteBonus);

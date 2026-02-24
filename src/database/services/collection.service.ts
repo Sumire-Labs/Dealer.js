@@ -1,6 +1,6 @@
 import { COLLECTION_SETS, type CollectionSet } from '../../config/collections.js';
 import { getEverOwnedItems } from '../repositories/shop.repository.js';
-import { getUserCollections, hasCollection, completeCollection } from '../repositories/collection.repository.js';
+import { getUserCollections, completeCollection } from '../repositories/collection.repository.js';
 import { upsertInventoryItem } from '../repositories/shop.repository.js';
 import { checkAchievements } from './achievement.service.js';
 import type { AchievementDefinition } from '../../config/achievements.js';
@@ -35,38 +35,43 @@ export async function getCollectionProgress(userId: string): Promise<CollectionP
 export async function checkAndCompleteCollections(
   userId: string,
 ): Promise<{ completed: CollectionSet[]; newlyUnlocked: AchievementDefinition[] }> {
-  const everOwned = await getEverOwnedItems(userId);
+  // Load both in parallel instead of sequential queries
+  const [everOwned, existingCollections] = await Promise.all([
+    getEverOwnedItems(userId),
+    getUserCollections(userId),
+  ]);
   const ownedSet = new Set(everOwned);
+  const completedKeys = new Set(existingCollections.map(c => c.collectionKey));
   const newlyCompleted: CollectionSet[] = [];
 
   for (const collection of COLLECTION_SETS) {
     const allOwned = collection.requiredItems.every(id => ownedSet.has(id));
     if (!allOwned) continue;
 
-    const alreadyCompleted = await hasCollection(userId, collection.key);
-    if (alreadyCompleted) continue;
+    // Use Set lookup instead of DB query per collection
+    if (completedKeys.has(collection.key)) continue;
 
     try {
       await completeCollection(userId, collection.key);
       // Grant reward item as a permanent flag
       await upsertInventoryItem(userId, collection.rewardItemId, 1);
       newlyCompleted.push(collection);
+      completedKeys.add(collection.key);
     } catch (err) {
       logger.error('Failed to complete collection', { userId, key: collection.key, error: String(err) });
     }
   }
 
-  // Check achievements
+  // Check achievements — use local count instead of re-querying
   let newlyUnlocked: AchievementDefinition[] = [];
   if (newlyCompleted.length > 0) {
     try {
-      const allCompleted = await getUserCollections(userId);
       newlyUnlocked = await checkAchievements({
         userId,
         context: 'shop',
         metadata: {
           action: 'collection_complete',
-          completedCount: allCompleted.length,
+          completedCount: completedKeys.size,
           totalCollections: COLLECTION_SETS.length,
         },
       });
