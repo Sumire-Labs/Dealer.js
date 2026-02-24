@@ -18,14 +18,42 @@ import {
 import { playMysteryBoxAnimation } from '../../ui/animations/mystery-box.animation.js';
 import { buildAchievementNotification } from '../../database/services/achievement.service.js';
 import { formatChips } from '../../utils/formatters.js';
+import type { UserInventory, ActiveBuff } from '@prisma/client';
+
+const ITEMS_PER_INV_PAGE = 5;
+
+/** Count how many entries appear on a given page (mirrors builder logic). */
+function getPageItemCount(
+  inventory: UserInventory[],
+  activeBuffs: ActiveBuff[],
+  page: number,
+  filter: string,
+): number {
+  let total = 0;
+  if (filter === 'all' || filter === 'buff') {
+    total += activeBuffs.filter(b => ITEM_MAP.has(b.buffId)).length;
+  }
+  for (const inv of inventory) {
+    if (inv.quantity <= 0) continue;
+    const item = ITEM_MAP.get(inv.itemId);
+    if (!item) continue;
+    if (inv.itemId.startsWith('COLLECTION_REWARD_')) continue;
+    if (filter !== 'all' && item.category !== filter) continue;
+    total++;
+  }
+  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_INV_PAGE));
+  const safePage = Math.max(0, Math.min(page, totalPages - 1));
+  const start = safePage * ITEMS_PER_INV_PAGE;
+  return Math.min(ITEMS_PER_INV_PAGE, total - start);
+}
 
 // Session state per user
-const invState = new Map<string, { page: number; filter: string }>();
+const invState = new Map<string, { page: number; filter: string; selected: number }>();
 
 export function getInvState(userId: string) {
   if (!invState.has(userId)) {
     if (invState.size > 10_000) invState.clear();
-    invState.set(userId, { page: 0, filter: 'all' });
+    invState.set(userId, { page: 0, filter: 'all', selected: 0 });
   }
   return invState.get(userId)!;
 }
@@ -49,10 +77,11 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
   switch (action) {
     // ── Back to inventory ──
     case 'back': {
+      state.selected = 0;
       const summary = await getUserInventorySummary(userId);
       const view = buildInventoryView(
         userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.page, state.filter,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter, state.selected,
       );
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
@@ -61,10 +90,11 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
     // ── Pagination ──
     case 'prev': {
       state.page = Math.max(0, state.page - 1);
+      state.selected = 0;
       const summary = await getUserInventorySummary(userId);
       const view = buildInventoryView(
         userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.page, state.filter,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter, state.selected,
       );
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
@@ -72,10 +102,40 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
 
     case 'next': {
       state.page += 1;
+      state.selected = 0;
       const summary = await getUserInventorySummary(userId);
       const view = buildInventoryView(
         userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.page, state.filter,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter, state.selected,
+      );
+      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
+      break;
+    }
+
+    // ── Cursor navigation ──
+    case 'sel_up': {
+      const summary = await getUserInventorySummary(userId);
+      const count = getPageItemCount(summary.inventory, summary.activeBuffs, state.page, state.filter);
+      if (count > 0) {
+        state.selected = (state.selected - 1 + count) % count;
+      }
+      const view = buildInventoryView(
+        userId, summary.inventory, summary.activeBuffs,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter, state.selected,
+      );
+      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
+      break;
+    }
+
+    case 'sel_down': {
+      const summary = await getUserInventorySummary(userId);
+      const count = getPageItemCount(summary.inventory, summary.activeBuffs, state.page, state.filter);
+      if (count > 0) {
+        state.selected = (state.selected + 1) % count;
+      }
+      const view = buildInventoryView(
+        userId, summary.inventory, summary.activeBuffs,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter, state.selected,
       );
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
@@ -117,7 +177,7 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
       const summary = await getUserInventorySummary(userId);
       const view = buildInventoryView(
         userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.page, state.filter,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter, state.selected,
       );
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
@@ -134,7 +194,7 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
       const summary = await getUserInventorySummary(userId);
       const view = buildInventoryView(
         userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.page, state.filter,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter, state.selected,
       );
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
@@ -218,7 +278,7 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
       const summary = await getUserInventorySummary(userId);
       const view = buildInventoryView(
         userId, summary.inventory, summary.activeBuffs,
-        summary.activeTitle, summary.activeBadge, state.page, state.filter,
+        summary.activeTitle, summary.activeBadge, state.page, state.filter, state.selected,
       );
       await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
 

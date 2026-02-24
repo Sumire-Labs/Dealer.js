@@ -24,11 +24,12 @@ async function handleInventorySelectMenu(interaction: StringSelectMenuInteractio
 
   state.filter = interaction.values[0];
   state.page = 0;
+  state.selected = 0;
 
   const summary = await getUserInventorySummary(userId);
   const view = buildInventoryView(
     userId, summary.inventory, summary.activeBuffs,
-    summary.activeTitle, summary.activeBadge, state.page, state.filter,
+    summary.activeTitle, summary.activeBadge, state.page, state.filter, state.selected,
   );
   await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
 }

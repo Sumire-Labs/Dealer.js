@@ -60,6 +60,7 @@ export function buildInventoryView(
   activeBadge: string | null,
   page: number,
   filter: string = 'all',
+  selectedIndex: number = 0,
 ): ContainerBuilder {
   const allEntries: { label: string; actionId?: string; actionLabel?: string; recycleId?: string }[] = [];
 
@@ -134,6 +135,9 @@ export function buildInventoryView(
     new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
   );
 
+  // Clamp selectedIndex to valid range
+  const safeSelected = pageEntries.length > 0 ? Math.min(selectedIndex, pageEntries.length - 1) : 0;
+
   if (allEntries.length === 0) {
     const filterLabel = filter === 'all' ? '' : ` (${FILTER_OPTIONS.find(f => f.value === filter)?.label ?? filter})`;
     container.addTextDisplayComponents(
@@ -142,7 +146,7 @@ export function buildInventoryView(
   } else {
     container.addTextDisplayComponents(
       new TextDisplayBuilder().setContent(
-        pageEntries.map(e => e.label).join('\n'),
+        pageEntries.map((e, i) => `${i === safeSelected ? '▶' : '　'} ${e.label}`).join('\n'),
       ),
     );
   }
@@ -151,37 +155,44 @@ export function buildInventoryView(
     new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
   );
 
-  // Action buttons for page items (use/equip/open)
-  const actionEntries = pageEntries.filter(e => e.actionId);
-  if (actionEntries.length > 0) {
-    const actionRow = new ActionRowBuilder<ButtonBuilder>();
-    for (const entry of actionEntries.slice(0, 5)) {
-      actionRow.addComponents(
+  // Navigation + selected item action row
+  if (pageEntries.length > 0) {
+    const navActionRow = new ActionRowBuilder<ButtonBuilder>();
+
+    navActionRow.addComponents(
+      new ButtonBuilder()
+        .setCustomId(`inv:sel_up:${userId}`)
+        .setLabel('▲')
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId(`inv:sel_down:${userId}`)
+        .setLabel('▼')
+        .setStyle(ButtonStyle.Secondary),
+    );
+
+    const selected = pageEntries[safeSelected];
+    if (selected?.actionId) {
+      navActionRow.addComponents(
         new ButtonBuilder()
-          .setCustomId(entry.actionId!)
-          .setLabel(entry.actionLabel!)
+          .setCustomId(selected.actionId)
+          .setLabel(selected.actionLabel!)
           .setStyle(ButtonStyle.Primary),
       );
     }
-    container.addActionRowComponents(actionRow);
-  }
 
-  // Recycle buttons
-  const recycleEntries = pageEntries.filter(e => e.recycleId);
-  if (recycleEntries.length > 0) {
-    const recycleRow = new ActionRowBuilder<ButtonBuilder>();
-    for (const entry of recycleEntries.slice(0, 5)) {
-      const itemId = entry.recycleId!.split(':')[3];
+    if (selected?.recycleId) {
+      const itemId = selected.recycleId.split(':')[3];
       const item = ITEM_MAP.get(itemId);
       const refund = item ? (item.price * BigInt(SHOP_EFFECTS.RECYCLE_REFUND_RATE)) / 100n : 0n;
-      recycleRow.addComponents(
+      navActionRow.addComponents(
         new ButtonBuilder()
-          .setCustomId(entry.recycleId!)
+          .setCustomId(selected.recycleId)
           .setLabel(`♻️ ${formatChips(refund)}`)
           .setStyle(ButtonStyle.Secondary),
       );
     }
-    container.addActionRowComponents(recycleRow);
+
+    container.addActionRowComponents(navActionRow);
   }
 
   // Filter select menu
