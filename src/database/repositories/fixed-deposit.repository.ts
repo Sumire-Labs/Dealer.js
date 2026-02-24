@@ -7,8 +7,12 @@ export async function getActiveDeposits(userId: string) {
   });
 }
 
-export async function getActiveDepositCount(userId: string) {
-  return prisma.fixedDeposit.count({
+export async function getActiveDepositCount(
+  userId: string,
+  tx?: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+) {
+  const db = tx ?? prisma;
+  return db.fixedDeposit.count({
     where: { userId, withdrawnAt: null },
   });
 }

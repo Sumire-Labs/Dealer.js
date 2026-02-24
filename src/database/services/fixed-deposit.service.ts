@@ -59,12 +59,6 @@ export async function createFixedDeposit(
     throw new Error('BELOW_MINIMUM');
   }
 
-  const maxSlots = configService.getNumber(S.fixedDepositMaxSlots);
-  const activeCount = await getActiveDepositCount(userId);
-  if (activeCount >= maxSlots) {
-    throw new Error('MAX_SLOTS_REACHED');
-  }
-
   const termOption = getTermOptions().find((t) => t.termDays === termDays);
   if (!termOption) {
     throw new Error('INVALID_TERM');
@@ -74,6 +68,13 @@ export async function createFixedDeposit(
   const maturesAt = new Date(Date.now() + termDays * 24 * 60 * 60 * 1000);
 
   return prisma.$transaction(async (tx) => {
+    // Slot check inside tx to prevent race condition
+    const maxSlots = configService.getNumber(S.fixedDepositMaxSlots);
+    const activeCount = await getActiveDepositCount(userId, tx);
+    if (activeCount >= maxSlots) {
+      throw new Error('MAX_SLOTS_REACHED');
+    }
+
     const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
 
     if (user.bankBalance < amount) {
