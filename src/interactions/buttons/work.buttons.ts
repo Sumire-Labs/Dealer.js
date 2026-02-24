@@ -23,7 +23,6 @@ import { buildAchievementNotification } from '../../database/services/achievemen
 import { buildMissionNotification } from '../../database/services/mission.service.js';
 import { configService } from '../../config/config.service.js';
 import { S } from '../../config/setting-defs.js';
-import { setCooldown, buildCooldownKey } from '../../utils/cooldown.js';
 import { SPECIAL_SHIFTS } from '../../config/special-shifts.js';
 import { setOvertimeSession } from '../../games/work/overtime.session.js';
 
@@ -98,11 +97,6 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
       if (!specialShift) {
         await interaction.reply({ content: '無効な特別シフトです。', flags: MessageFlags.Ephemeral });
         return;
-      }
-
-      // Set training cooldown if applicable
-      if (specialShift.cooldownKey && specialShift.cooldownMs) {
-        setCooldown(buildCooldownKey(ownerId, specialShift.cooldownKey), specialShift.cooldownMs);
       }
 
       const result = await performWork(ownerId, jobId, 'normal', specialType);

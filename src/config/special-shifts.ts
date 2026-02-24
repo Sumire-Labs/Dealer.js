@@ -23,6 +23,7 @@ export const SPECIAL_SHIFTS: SpecialShiftDefinition[] = [
     xpMultiplier: 1,
     riskModifier: 10,
     chance: 10,
+    cooldownKey: 'work_emergency',
   },
   {
     type: 'vip_event',

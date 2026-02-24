@@ -103,10 +103,11 @@ export const S = {
   bankruptcyPenaltyRate:     percent('bankruptcy.penalty_rate', 'bankruptcy', 10, 0, 100, '破産ペナルティ率'),
   bankruptcyPenaltyDuration: minutes('bankruptcy.penalty_duration_ms', 'bankruptcy', 60 * 60 * 1000, 1, 1440, '破産ペナルティ時間'),
 
-  // ── Work (7) ───────────────────────────────────────────────────────
+  // ── Work (8) ───────────────────────────────────────────────────────
   workShortCD:     hours('work.short_cd_ms', 'work', 1 * 60 * 60 * 1000, 1, 72, '短期CD'),
   workNormalCD:    hours('work.normal_cd_ms', 'work', 4 * 60 * 60 * 1000, 1, 72, '通常CD'),
   workLongCD:      hours('work.long_cd_ms', 'work', 8 * 60 * 60 * 1000, 1, 168, '長期CD'),
+  workEmergencyCD: hours('work.emergency_cd_ms', 'work', 2 * 60 * 60 * 1000, 1, 72, '緊急シフトCD'),
   tipMin:          chips('work.tip_min', 'work', 200n, 1, 1_000_000, 'チップ最小'),
   tipMax:          chips('work.tip_max', 'work', 500n, 1, 10_000_000, 'チップ最大'),
   streakMaxBonus:  percent('work.streak_max_bonus', 'work', 20, 0, 100, '連勤ボーナス上限'),
@@ -175,7 +176,7 @@ export const SETTING_CATEGORIES: readonly CategoryMeta[] = [
   { id: 'bet',        emoji: '\u{1F3B2}', label: 'ベット',     settings: [S.minBet, S.maxSlots, S.maxBlackjack, S.maxHorseRace, S.maxCoinflip, S.maxRoulette] },
   { id: 'loan',       emoji: '\u{1F3E6}', label: 'ローン',     settings: [S.loanMaxTotal, S.loanMinAmount, S.loanMaxAmount, S.loanInterestRate] },
   { id: 'bankruptcy', emoji: '\u{1F480}', label: '破産',       settings: [S.bankruptcyChips, S.bankruptcyPenaltyRate, S.bankruptcyPenaltyDuration] },
-  { id: 'work',       emoji: '\u{1F4BC}', label: '労働',       settings: [S.workShortCD, S.workNormalCD, S.workLongCD, S.tipMin, S.tipMax, S.streakMaxBonus, S.multiStepChance] },
+  { id: 'work',       emoji: '\u{1F4BC}', label: '労働',       settings: [S.workShortCD, S.workNormalCD, S.workLongCD, S.workEmergencyCD, S.tipMin, S.tipMax, S.streakMaxBonus, S.multiStepChance] },
   { id: 'heist',      emoji: '\u{1F52B}', label: '強盗',       settings: [S.heistMinEntry, S.heistBaseRate, S.heistPerPlayerBonus, S.heistMaxRate, S.heistMinRate, S.heistSoloPenalty, S.heistChannelCD] },
   { id: 'prison',     emoji: '\u{1F46E}', label: '刑務所',     settings: [S.prisonDuration, S.prisonFine, S.prisonJailbreakRate, S.prisonJailbreakPenalty] },
   { id: 'lottery',    emoji: '\u{1F3AB}', label: '宝くじ',     settings: [S.lotteryTicketPrice, S.lotteryMaxTickets, S.lotteryJackpotRate, S.lotterySecondRate, S.lotteryHouseRate] },

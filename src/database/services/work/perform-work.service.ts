@@ -53,6 +53,19 @@ function getCooldownMs(type: ShiftType): number {
   return map[type]();
 }
 
+const SPECIAL_SHIFT_CD_MAP: Record<string, () => number> = {
+  work_emergency: () => configService.getNumber(S.workEmergencyCD),
+};
+
+function getEffectiveCooldownMs(shiftType: ShiftType, specialShift?: SpecialShiftDefinition): number {
+  if (specialShift?.cooldownKey) {
+    const resolver = SPECIAL_SHIFT_CD_MAP[specialShift.cooldownKey];
+    if (resolver) return resolver();
+    if (specialShift.cooldownMs) return specialShift.cooldownMs;
+  }
+  return getCooldownMs(shiftType);
+}
+
 export interface WorkResult {
   success: boolean;
   error?: string;
@@ -125,15 +138,6 @@ export async function performWork(
   const shift = SHIFT_MAP.get(shiftType);
   if (!shift) return { success: false, error: '無効なシフトです。' };
 
-  // Check cooldown for this shift type
-  const cooldownKey = buildCooldownKey(userId, shift.cooldownKey);
-  if (isOnCooldown(cooldownKey)) {
-    return {
-      success: false,
-      remainingCooldown: getRemainingCooldown(cooldownKey),
-    };
-  }
-
   // Special shift validation
   let specialShift: SpecialShiftDefinition | undefined;
   if (specialShiftType) {
@@ -142,6 +146,17 @@ export async function performWork(
     if (specialShift.type === 'vip_event' && isVipEventUsedToday(userId)) {
       return { success: false, error: 'VIPイベントは1日1回のみです。' };
     }
+  }
+
+  // Determine effective cooldown key — special shifts with own cooldownKey are independent
+  const cooldownKey = specialShift?.cooldownKey
+    ? buildCooldownKey(userId, specialShift.cooldownKey)
+    : buildCooldownKey(userId, shift.cooldownKey);
+  if (isOnCooldown(cooldownKey)) {
+    return {
+      success: false,
+      remainingCooldown: getRemainingCooldown(cooldownKey),
+    };
   }
 
   await findOrCreateUser(userId);
@@ -189,7 +204,7 @@ export async function performWork(
         createdAt: Date.now(),
       };
       setWorkSession(userId, session);
-      setCooldown(cooldownKey, getCooldownMs(shiftType));
+      setCooldown(cooldownKey, getEffectiveCooldownMs(shiftType, specialShift));
 
       return {
         success: true,
@@ -371,7 +386,7 @@ export async function performWork(
   if (!result.success) return result;
 
   // Set cooldown after successful work
-  setCooldown(cooldownKey, getCooldownMs(shiftType));
+  setCooldown(cooldownKey, getEffectiveCooldownMs(shiftType, specialShift));
 
   // Mark VIP event used
   if (specialShift?.type === 'vip_event') {
