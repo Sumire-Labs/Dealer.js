@@ -83,7 +83,7 @@ export const WORK_TOOLS: WorkToolDefinition[] = [
     description: '全ジョブの報酬+5%',
     price: 100_000n,
     category: 'tool' as ShopCategory,
-    maxStack: 1,
+    maxStack: 3,
     targetJobId: 'all',
     toolPayBonus: 5,
     sourceHint: '/shop 仕事道具で購入',
