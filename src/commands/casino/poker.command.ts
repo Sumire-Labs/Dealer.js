@@ -423,11 +423,16 @@ function startTurnTimer(
   session.turnDeadline = Date.now() + actionTimeout;
 
   session.turnTimer = setTimeout(async () => {
-    // Auto-fold on timeout
-    const player = session.players[session.currentPlayerIndex];
-    if (player && !player.folded && !player.allIn) {
-      processAction('fold', player, session.currentBet);
-      await advanceGame(channel, session);
+    try {
+      // Auto-fold on timeout
+      const player = session.players[session.currentPlayerIndex];
+      if (player && !player.folded && !player.allIn) {
+        processAction('fold', player, session.currentBet);
+        await advanceGame(channel, session);
+      }
+    } catch (err) {
+      logger.error('Poker turn timer failed', { error: String(err) });
+      removeActiveSession(session.channelId);
     }
   }, actionTimeout);
 }

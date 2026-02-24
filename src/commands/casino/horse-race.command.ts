@@ -109,16 +109,13 @@ function startBettingCountdown(
 
     // Update betting view with remaining time
     try {
-      if (session.messageId) {
-        if (channel && 'messages' in channel) {
-          const message = await channel.messages.fetch(session.messageId);
-          const remainingSec = Math.ceil(remaining / 1000);
-          const view = buildBettingView(session.id, session.horses, session.bets, remainingSec, session.ownerId);
-          await message.edit({
-            components: [view],
-            flags: MessageFlags.IsComponentsV2,
-          });
-        }
+      if (session.messageId && channel && 'messages' in channel) {
+        const remainingSec = Math.ceil(remaining / 1000);
+        const view = buildBettingView(session.id, session.horses, session.bets, remainingSec, session.ownerId);
+        await channel.messages.edit(session.messageId, {
+          components: [view],
+          flags: MessageFlags.IsComponentsV2,
+        });
       }
     } catch (err) {
       logger.error('Failed to update betting view', { error: String(err) });
@@ -132,41 +129,39 @@ export async function runRace(
 ): Promise<void> {
   const channelId = session.channelId;
 
-  // Check minimum players
-  if (session.bets.length < RACE_MIN_PLAYERS) {
-    session.status = 'cancelled';
-    await updateRaceStatus(session.id, 'CANCELLED');
-
-    // Refund all bets
-    for (const bet of session.bets) {
-      await addChips(bet.userId, bet.amount, 'WIN', 'HORSE_RACE');
-    }
-
-    const cancelView = buildRaceCancelledView(
-      `参加者不足（${session.bets.length}/${RACE_MIN_PLAYERS}）。全ベットを返金しました。`,
-    );
-
-    try {
-      if (session.messageId && channel && 'messages' in channel) {
-        const message = await channel.messages.fetch(session.messageId);
-        await message.edit({
-          components: [cancelView],
-          flags: MessageFlags.IsComponentsV2,
-        });
-      }
-    } catch {
-      // If edit fails, try to follow up
-    }
-
-    removeActiveSession(channelId);
-    return;
-  }
-
-  // Start race
-  session.status = 'running';
-  await updateRaceStatus(session.id, 'RUNNING');
-
   try {
+    // Check minimum players
+    if (session.bets.length < RACE_MIN_PLAYERS) {
+      session.status = 'cancelled';
+      await updateRaceStatus(session.id, 'CANCELLED');
+
+      // Refund all bets
+      for (const bet of session.bets) {
+        await addChips(bet.userId, bet.amount, 'WIN', 'HORSE_RACE');
+      }
+
+      const cancelView = buildRaceCancelledView(
+        `参加者不足（${session.bets.length}/${RACE_MIN_PLAYERS}）。全ベットを返金しました。`,
+      );
+
+      try {
+        if (session.messageId && channel && 'messages' in channel) {
+          await channel.messages.edit(session.messageId, {
+            components: [cancelView],
+            flags: MessageFlags.IsComponentsV2,
+          });
+        }
+      } catch {
+        // If edit fails, ignore
+      }
+
+      return;
+    }
+
+    // Start race
+    session.status = 'running';
+    await updateRaceStatus(session.id, 'RUNNING');
+
     const result = simulateRace(session.horses);
 
     // Play animation
@@ -239,8 +234,7 @@ export async function runRace(
 
     try {
       if (session.messageId && channel && 'messages' in channel) {
-        const message = await channel.messages.fetch(session.messageId);
-        await message.edit({
+        await channel.messages.edit(session.messageId, {
           components: [resultView],
           flags: MessageFlags.IsComponentsV2,
         });
