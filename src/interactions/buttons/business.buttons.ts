@@ -13,14 +13,17 @@ import {
   upgradeBusinessLevel,
   collectIncome,
   fireEmployee,
+  sellBusiness,
 } from '../../database/services/business.service.js';
 import {
   buildBusinessDashboardView,
   buildBusinessCollectView,
   buildBusinessUpgradeConfirmView,
+  buildBusinessSellConfirmView,
   buildBusinessEmployeeView,
 } from '../../ui/builders/business.builder.js';
 import { BUSINESS_TYPE_MAP, getBusinessLevel } from '../../config/business.js';
+import { formatChips } from '../../utils/formatters.js';
 import { getBusiness } from '../../database/repositories/business.repository.js';
 
 async function handleBusinessButton(interaction: ButtonInteraction): Promise<void> {
@@ -194,6 +197,51 @@ async function handleBusinessButton(interaction: ButtonInteraction): Promise<voi
           flags: MessageFlags.IsComponentsV2,
         });
       }
+      break;
+    }
+
+    case 'sell': {
+      const business = await getBusiness(ownerId);
+      if (!business) {
+        await interaction.reply({ content: 'ビジネスを所持していません。', flags: MessageFlags.Ephemeral });
+        return;
+      }
+      const typeDef = BUSINESS_TYPE_MAP.get(business.type);
+      if (!typeDef) return;
+
+      // 総投資額を計算
+      let totalInvested = typeDef.purchaseCost;
+      for (let i = 2; i <= business.level; i++) {
+        const lvl = getBusinessLevel(business.type, i);
+        if (lvl) totalInvested += lvl.upgradeCost;
+      }
+      const refundAmount = totalInvested * 30n / 100n;
+
+      const view = buildBusinessSellConfirmView(
+        ownerId, typeDef.name, typeDef.emoji,
+        business.level, totalInvested, refundAmount,
+        business.employees.length,
+      );
+      await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
+      break;
+    }
+
+    case 'sell_confirm': {
+      const result = await sellBusiness(ownerId);
+      if (!result.success) {
+        await interaction.reply({ content: result.error!, flags: MessageFlags.Ephemeral });
+        return;
+      }
+
+      await interaction.reply({
+        content: `🏢 **${result.businessName}** を売却しました。💸 **${formatChips(result.refundAmount!)}** が返金されました。`,
+        flags: MessageFlags.Ephemeral,
+      });
+
+      // ダッシュボードをリフレッシュ（未所有状態の画面に戻る）
+      const dashboard = await getBusinessDashboard(ownerId);
+      const view = buildBusinessDashboardView(dashboard, ownerId);
+      await interaction.message.edit({ components: [view], flags: MessageFlags.IsComponentsV2 });
       break;
     }
 

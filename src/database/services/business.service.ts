@@ -8,6 +8,7 @@ import {
   addEmployee,
   removeEmployee,
   getEmploymentInfo,
+  deleteBusiness,
 } from '../repositories/business.repository.js';
 import {
   BUSINESS_TYPE_MAP,
@@ -317,4 +318,37 @@ export async function fireEmployee(
 
   await removeEmployee(business.id, employeeId);
   return { success: true };
+}
+
+export async function sellBusiness(
+  userId: string,
+): Promise<{ success: boolean; refundAmount?: bigint; businessName?: string; error?: string }> {
+  const business = await getBusiness(userId);
+  if (!business) {
+    return { success: false, error: 'ビジネスを所持していません。' };
+  }
+
+  const typeDef = BUSINESS_TYPE_MAP.get(business.type);
+  if (!typeDef) {
+    return { success: false, error: '無効なビジネスタイプです。' };
+  }
+
+  // 総投資額を計算 (購入費 + アップグレード費の合計)
+  let totalInvested = typeDef.purchaseCost;
+  for (let i = 2; i <= business.level; i++) {
+    const lvl = getBusinessLevel(business.type, i);
+    if (lvl) totalInvested += lvl.upgradeCost;
+  }
+
+  // 30% 返金
+  const refundAmount = totalInvested * 30n / 100n;
+
+  // 従業員を全解雇 → ビジネス削除 → 返金
+  await deleteBusiness(userId);
+
+  if (refundAmount > 0n) {
+    await addChips(userId, refundAmount, 'BUSINESS_SELL');
+  }
+
+  return { success: true, refundAmount, businessName: typeDef.name };
 }

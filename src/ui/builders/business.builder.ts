@@ -146,6 +146,10 @@ export function buildBusinessDashboardView(data: BusinessDashboardData, userId: 
       .setCustomId(`biz:employees:${userId}`)
       .setLabel(`👥 従業員管理 (${biz.employees.length}/${configService.getNumber(S.businessEmployeeMax)})`)
       .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(`biz:sell:${userId}`)
+      .setLabel('売却')
+      .setStyle(ButtonStyle.Danger),
   );
 
   container.addActionRowComponents(row1);
@@ -241,6 +245,52 @@ export function buildBusinessUpgradeConfirmView(
         .setCustomId(`biz:upgrade_confirm:${userId}`)
         .setLabel('⬆️ レベルアップする')
         .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId(`biz:back:${userId}`)
+        .setLabel('キャンセル')
+        .setStyle(ButtonStyle.Secondary),
+    ),
+  );
+
+  return container;
+}
+
+export function buildBusinessSellConfirmView(
+  userId: string,
+  businessName: string,
+  businessEmoji: string,
+  currentLevel: number,
+  totalInvested: bigint,
+  refundAmount: bigint,
+  employeeCount: number,
+): ContainerBuilder {
+  const container = new ContainerBuilder()
+    .setAccentColor(CasinoTheme.colors.red)
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(BIZ_PREFIX),
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    )
+    .addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(
+        `⚠️ **${businessEmoji} ${businessName} Lv.${currentLevel} を売却しますか？**\n\n`
+        + `💰 総投資額: **${formatChips(totalInvested)}**\n`
+        + `💸 返金額 (30%): **${formatChips(refundAmount)}**`
+        + (employeeCount > 0 ? `\n👥 従業員 ${employeeCount}人 → **全員解雇**` : '')
+        + `\n\n⚠️ この操作は取り消せません。`,
+      ),
+    )
+    .addSeparatorComponents(
+      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    );
+
+  container.addActionRowComponents(
+    new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`biz:sell_confirm:${userId}`)
+        .setLabel('売却する')
+        .setStyle(ButtonStyle.Danger),
       new ButtonBuilder()
         .setCustomId(`biz:back:${userId}`)
         .setLabel('キャンセル')
