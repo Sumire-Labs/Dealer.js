@@ -10,6 +10,8 @@ import {
 import { getBalance } from '../../../database/services/economy.service.js';
 import { purchaseItem, getDailyRotation, getFlashSale } from '../../../database/services/shop.service.js';
 import { ITEM_MAP } from '../../../config/shop.js';
+import { getRankDiscount } from '../../../config/shop-ranks.js';
+import { getLifetimeShopSpend } from '../../../database/repositories/shop.repository.js';
 import { buildShopView, buildPurchaseConfirmView, buildPurchaseResultView } from '../../../ui/builders/shop.builder.js';
 import { buildAchievementNotification } from '../../../database/services/achievement.service.js';
 import { getState, getRankInfo } from './state.js';
@@ -18,8 +20,13 @@ export async function handleBuy(interaction: ButtonInteraction, userId: string, 
   const itemId = parts[3];
   const item = ITEM_MAP.get(itemId);
   if (!item) return;
-  const balance = await getBalance(userId);
-  const view = buildPurchaseConfirmView(userId, item, balance);
+  const [balance, spend] = await Promise.all([getBalance(userId), getLifetimeShopSpend(userId)]);
+  const discount = getRankDiscount(spend);
+  let discountedPrice: bigint | undefined;
+  if (discount > 0 && item.price > 0n) {
+    discountedPrice = item.price - (item.price * BigInt(discount)) / 100n;
+  }
+  const view = buildPurchaseConfirmView(userId, item, balance, discountedPrice);
   await interaction.update({ components: [view], flags: MessageFlags.IsComponentsV2 });
 }
 
