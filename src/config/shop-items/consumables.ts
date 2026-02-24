@@ -1,0 +1,170 @@
+import type { ShopItem } from './types.js';
+
+// ── Consumables ──
+
+export const CONSUMABLES: ShopItem[] = [
+  {
+    id: 'MISSION_REROLL',
+    name: 'ミッション再抽選',
+    emoji: '🎲',
+    description: 'ミッションをリセットして再抽選する',
+    price: 2_000n,
+    category: 'consumable',
+    dailyEligible: true,
+    giftable: true,
+  },
+  {
+    id: 'WORK_COOLDOWN_SKIP',
+    name: 'クールダウンスキップ',
+    emoji: '⚡',
+    description: 'シフトのクールダウンを即時リセット',
+    price: 3_500n,
+    category: 'consumable',
+    dailyEligible: true,
+    giftable: true,
+  },
+  {
+    id: 'DAILY_BOOST',
+    name: 'デイリーブースト',
+    emoji: '📦',
+    description: '次回デイリー受取額を2倍にする',
+    price: 5_000n,
+    category: 'consumable',
+    dailyEligible: true,
+    giftable: true,
+  },
+  {
+    id: 'LUCKY_CHARM',
+    name: 'ラッキーチャーム',
+    emoji: '🍀',
+    description: '次の敗北時に賭け金50%返金',
+    price: 10_000n,
+    category: 'consumable',
+    dailyEligible: true,
+    giftable: true,
+    sourceHint: '/shop で購入',
+  },
+  {
+    id: 'HEIST_INTEL',
+    name: '強盗情報',
+    emoji: '🕵️',
+    description: '次回Heist成功率+15%',
+    price: 6_000n,
+    category: 'consumable',
+    dailyEligible: true,
+    giftable: true,
+  },
+  {
+    id: 'PRISON_KEY',
+    name: '脱獄キー',
+    emoji: '🔑',
+    description: '即時脱獄（確実）',
+    price: 8_000n,
+    category: 'consumable',
+    giftable: true,
+  },
+  {
+    id: 'LUCKY_TICKET',
+    name: 'ラッキーチケット',
+    emoji: '🎟️',
+    description: '次回宝くじ当選時の配当2倍',
+    price: 5_000n,
+    category: 'consumable',
+    dailyEligible: true,
+    giftable: true,
+  },
+];
+
+// ── Buffs (24h ActiveBuff) ──
+
+const BUFF_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+export const BUFFS: ShopItem[] = [
+  {
+    id: 'XP_BOOSTER',
+    name: 'XPブースター',
+    emoji: '🧪',
+    description: '24時間、労働XP獲得量+50%',
+    price: 7_000n,
+    category: 'buff',
+    buffDurationMs: BUFF_DURATION_MS,
+    dailyEligible: true,
+    sourceHint: '/shop で購入',
+  },
+  {
+    id: 'INTEREST_BOOSTER',
+    name: '利息ブースター',
+    emoji: '📈',
+    description: '24時間、銀行利息2倍',
+    price: 8_000n,
+    category: 'buff',
+    buffDurationMs: BUFF_DURATION_MS,
+    dailyEligible: true,
+  },
+  {
+    id: 'VIP_PASS',
+    name: 'VIPパス',
+    emoji: '🎫',
+    description: '24時間、全ゲーム報酬+5%',
+    price: 30_000n,
+    category: 'buff',
+    buffDurationMs: BUFF_DURATION_MS,
+    dailyEligible: true,
+  },
+  {
+    id: 'WORK_PAY_BOOST',
+    name: 'ワークブースター',
+    emoji: '💪',
+    description: '24時間、労働報酬+25%',
+    price: 10_000n,
+    category: 'buff',
+    buffDurationMs: BUFF_DURATION_MS,
+    dailyEligible: true,
+  },
+  {
+    id: 'LOAN_DISCOUNT',
+    name: 'ローン割引券',
+    emoji: '🏷️',
+    description: '24時間、ローン利率半減',
+    price: 5_000n,
+    category: 'buff',
+    buffDurationMs: BUFF_DURATION_MS,
+    dailyEligible: true,
+  },
+];
+
+// ── Insurance ──
+
+export const INSURANCE: ShopItem[] = [
+  {
+    id: 'STREAK_SHIELD',
+    name: 'ストリークシールド',
+    emoji: '🛡️',
+    description: '24時間、デイリーストリーク切れ防止',
+    price: 5_000n,
+    category: 'insurance',
+    buffDurationMs: BUFF_DURATION_MS,
+    dailyEligible: true,
+  },
+  {
+    id: 'BANKRUPTCY_INSURANCE',
+    name: '破産保険',
+    emoji: '🏥',
+    description: '次回破産時に+$10,000',
+    price: 15_000n,
+    category: 'insurance',
+    maxStack: 1,
+    dailyEligible: true,
+  },
+  {
+    id: 'SAFETY_NET',
+    name: 'セーフティネット',
+    emoji: '🪢',
+    description: '残高0到達時に+$5,000自動補填（3回分）',
+    price: 25_000n,
+    category: 'insurance',
+    maxStack: 3,
+    dailyEligible: true,
+    sourceHint: '/shop で購入',
+  },
+];
