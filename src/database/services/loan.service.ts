@@ -189,17 +189,23 @@ export async function repayChips(userId: string, amount: bigint): Promise<{ newB
       } else {
         // Partial payment: interest first, then principal
         if (remaining <= interest) {
-          // Can only cover part of interest — reduce principal to reflect
-          // Since we can't store partial interest, we reduce the principal
-          // so that the loan's total value decreases by the payment amount.
-          // New principal = (loanTotal - remaining) - recalculated_interest
-          // Simpler approach: reduce principal by (payment - interest_covered)
-          // Since interest is dynamic, we reduce principal proportionally
-          const newPrincipal = loan.principal - (remaining > interest ? remaining - interest : 0n);
-          await tx.loan.update({
-            where: { id: loan.id },
-            data: { principal: newPrincipal > 0n ? newPrincipal : 0n },
-          });
+          // Payment covers only part of (or exactly) the interest.
+          // Since interest is dynamically calculated and can't be stored,
+          // set new principal = loanTotal - remaining and reset createdAt
+          // so accrued interest resets to 0. This ensures the loan's real
+          // value (principal + interest) decreases by exactly `remaining`.
+          const newPrincipal = loanTotal - remaining;
+          if (newPrincipal <= 0n) {
+            await tx.loan.update({
+              where: { id: loan.id },
+              data: { paidAt: new Date() },
+            });
+          } else {
+            await tx.loan.update({
+              where: { id: loan.id },
+              data: { principal: newPrincipal, createdAt: new Date() },
+            });
+          }
         } else {
           // Covers all interest + part of principal
           const principalPayment = remaining - interest;
