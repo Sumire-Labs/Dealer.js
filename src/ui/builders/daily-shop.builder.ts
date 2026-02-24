@@ -126,8 +126,8 @@ export function buildMysteryBoxResultView(
   container.addActionRowComponents(
     new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setCustomId(`shop:tab_shop:${userId}`)
-        .setLabel('🛒 ショップに戻る')
+        .setCustomId(`inv:back:${userId}`)
+        .setLabel('🎒 インベントリに戻る')
         .setStyle(ButtonStyle.Primary),
     ),
   );
