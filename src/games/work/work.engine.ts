@@ -180,23 +180,13 @@ export function getXpForNextLevel(currentLevel: number): number | null {
  */
 export function getAvailableJobs(
   level: number,
-  masteries?: Map<string, number>,
   promotedJobs?: PromotedJobDefinition[],
 ): (JobDefinition | PromotedJobDefinition)[] {
   const baseJobs = JOBS.filter(j => j.requiredLevel <= level);
 
-  if (!promotedJobs || !masteries || level < 5) return baseJobs;
+  if (!promotedJobs || level < 5) return baseJobs;
 
-  const available: (JobDefinition | PromotedJobDefinition)[] = [...baseJobs];
-
-  for (const pj of promotedJobs) {
-    const masteryLevel = masteries.get(pj.baseJobId) ?? 0;
-    if (level >= 5 && masteryLevel >= 5) {
-      available.push(pj);
-    }
-  }
-
-  return available;
+  return [...baseJobs, ...promotedJobs];
 }
 
 /**

@@ -50,11 +50,7 @@ function buildXpBar(currentXp: number, nextLevelXp: number | null, currentLevel:
 export function buildWorkPanelView(data: WorkPanelViewData): ContainerBuilder {
   const { userId, workLevel, workXp, workStreak, xpForNextLevel, masteries } = data;
 
-  const masteryMap = masteries ? new Map(
-    Array.from(masteries.entries()).map(([k, v]) => [k, v.level]),
-  ) : undefined;
-
-  const availableJobs = getAvailableJobs(workLevel, masteryMap, PROMOTED_JOBS);
+  const availableJobs = getAvailableJobs(workLevel, PROMOTED_JOBS);
 
   // Current job title (highest unlocked)
   const currentJob = availableJobs[availableJobs.length - 1];
