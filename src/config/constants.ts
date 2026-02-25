@@ -61,4 +61,10 @@ export const BJ_TABLE_MAX_PLAYERS = 6;
 export const BJ_TABLE_LOBBY_DURATION_MS = 60_000;
 export const BJ_TABLE_TURN_TIMEOUT_MS = 30_000;
 
+// Chinchiro Table (Multiplayer)
+export const CHINCHIRO_MIN_PLAYERS = 2;
+export const CHINCHIRO_MAX_PLAYERS = 6;
+export const CHINCHIRO_LOBBY_DURATION_MS = 60_000;
+export const CHINCHIRO_TURN_TIMEOUT_MS = 15_000;
+
 export const COMMAND_COOLDOWN_MS = 3_000; // 3 seconds default cooldown

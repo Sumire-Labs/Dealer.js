@@ -1,0 +1,39 @@
+import {
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
+} from 'discord.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import {formatChips} from '../../../utils/formatters.js';
+
+export function buildChinchiroModeSelectView(userId: string, bet: bigint): ContainerBuilder {
+    return new ContainerBuilder()
+        .setAccentColor(CasinoTheme.colors.darkGreen)
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(CasinoTheme.prefixes.chinchiro),
+        )
+        .addSeparatorComponents(
+            new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(
+                `💰 BET: ${formatChips(bet)}\nモードを選択してください:`,
+            ),
+        )
+        .addActionRowComponents(
+            new ActionRowBuilder<ButtonBuilder>().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`chinchiro:solo:${userId}:${bet}`)
+                    .setLabel('🎲 ソロ')
+                    .setStyle(ButtonStyle.Primary),
+                new ButtonBuilder()
+                    .setCustomId(`chinchiro:table:${userId}:${bet}`)
+                    .setLabel('🎪 テーブル（マルチ）')
+                    .setStyle(ButtonStyle.Success),
+            ),
+        );
+}

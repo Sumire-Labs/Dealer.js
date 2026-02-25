@@ -56,3 +56,11 @@ export const ROULETTE_CONFIG = {
 export const HEIST_CONFIG = {
     animationInterval: 1500,
 } as const;
+
+export const CHINCHIRO_CONFIG = {
+    animationSpinFrames: 3,
+    animationSpinInterval: 500,
+    diceStopInterval: 700,
+    maxRerolls: 2,
+    payouts: { pinzoro: 5, trips: 3, shigoro: 2, point: 1, menashi: 0, hifumi: -1 },
+} as const;

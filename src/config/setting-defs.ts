@@ -121,6 +121,7 @@ export const S = {
     maxHorseRace: chips('bet.max_horse_race', 'bet', 0n, 0, 1_000_000_000, '競馬上限(0=無制限)'),
     maxCoinflip: chips('bet.max_coinflip', 'bet', 0n, 0, 1_000_000_000, 'コイン上限(0=無制限)'),
     maxRoulette: chips('bet.max_roulette', 'bet', 0n, 0, 1_000_000_000, 'ルーレット上限(0=無制限)'),
+    maxChinchiro: chips('bet.max_chinchiro', 'bet', 0n, 0, 1_000_000_000, 'チンチロ上限(0=無制限)'),
 
     // ── Loans (4) ──────────────────────────────────────────────────────
     loanMaxTotal: chips('loan.max_total', 'loan', 100_000n, 1_000, 1_000_000_000, '借入上限(合計)'),
@@ -212,7 +213,7 @@ export const SETTING_CATEGORIES: readonly CategoryMeta[] = [
         id: 'bet',
         emoji: '\u{1F3B2}',
         label: 'ベット',
-        settings: [S.minBet, S.maxSlots, S.maxBlackjack, S.maxHorseRace, S.maxCoinflip, S.maxRoulette]
+        settings: [S.minBet, S.maxSlots, S.maxBlackjack, S.maxHorseRace, S.maxCoinflip, S.maxRoulette, S.maxChinchiro]
     },
     {
         id: 'loan',

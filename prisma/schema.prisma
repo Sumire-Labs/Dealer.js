@@ -138,6 +138,7 @@ enum GameType {
   LOTTERY
   HEIST
   ROULETTE
+  CHINCHIRO
 }
 
 model BotSetting {
