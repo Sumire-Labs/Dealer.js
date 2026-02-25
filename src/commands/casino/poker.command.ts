@@ -6,455 +6,455 @@ import {S} from '../../config/setting-defs.js';
 import {POKER_CONFIG} from '../../config/games.js';
 import {createDeck} from '../../games/poker/poker.deck.js';
 import {
-    calculatePots,
-    determineWinners,
-    getActionablePlayers,
-    getActivePlayers,
-    getFirstToAct,
-    getNextActivePlayer,
-    isBettingRoundComplete,
-    type PokerPhase,
-    postBlinds,
-    processAction,
-    resetBettingRound,
+  calculatePots,
+  determineWinners,
+  getActionablePlayers,
+  getActivePlayers,
+  getFirstToAct,
+  getNextActivePlayer,
+  isBettingRoundComplete,
+  type PokerPhase,
+  postBlinds,
+  processAction,
+  resetBettingRound,
 } from '../../games/poker/poker.engine.js';
 import {
-    getActiveSession,
-    type PokerSessionState,
-    removeActiveSession,
-    setActiveSession,
+  getActiveSession,
+  type PokerSessionState,
+  removeActiveSession,
+  setActiveSession,
 } from '../../games/poker/poker.session.js';
 import {addChips} from '../../database/services/economy.service.js';
 import {applyPenalty, getBankruptcyPenaltyMultiplier} from '../../database/services/loan.service.js';
 import {incrementGameStats} from '../../database/repositories/user.repository.js';
 import {
-    buildPokerCancelledView,
-    buildPokerFoldWinView,
-    buildPokerLobbyView,
-    buildPokerResultView,
-    buildPokerTableView,
+  buildPokerCancelledView,
+  buildPokerFoldWinView,
+  buildPokerLobbyView,
+  buildPokerResultView,
+  buildPokerTableView,
 } from '../../ui/builders/poker.builder.js';
 import {logger} from '../../utils/logger.js';
 import {secureRandomInt} from '../../utils/random.js';
 
 const data = new SlashCommandBuilder()
-  .setName('poker')
-  .setDescription('テキサスホールデム・ポーカーを開始する')
-  .toJSON();
+    .setName('poker')
+    .setDescription('テキサスホールデム・ポーカーを開始する')
+    .toJSON();
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
-  const channelId = interaction.channelId;
+    const channelId = interaction.channelId;
 
-  const existing = getActiveSession(channelId);
-  if (existing) {
-    await interaction.reply({
-      content: 'このチャンネルではすでにポーカーが進行中です！',
-      flags: MessageFlags.Ephemeral,
+    const existing = getActiveSession(channelId);
+    if (existing) {
+        await interaction.reply({
+            content: 'このチャンネルではすでにポーカーが進行中です！',
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    const sessionId = `poker_${Date.now()}_${secureRandomInt(1000, 9999)}`;
+    const session: PokerSessionState = {
+        id: sessionId,
+        channelId,
+        ownerId: interaction.user.id,
+        status: 'waiting',
+        lobbyDeadline: Date.now() + POKER_LOBBY_DURATION_MS,
+        players: [],
+        deck: [],
+        communityCards: [],
+        dealerIndex: 0,
+        phase: 'preflop',
+        currentBet: 0n,
+        minRaise: POKER_CONFIG.bigBlind,
+        currentPlayerIndex: 0,
+        lastRaiserIndex: -1,
+        turnDeadline: 0,
+    };
+
+    setActiveSession(channelId, session);
+
+    const remainingSeconds = Math.ceil(POKER_LOBBY_DURATION_MS / 1000);
+    const lobbyView = buildPokerLobbyView(session, remainingSeconds);
+
+    const reply = await interaction.reply({
+        components: [lobbyView],
+        flags: MessageFlags.IsComponentsV2,
+        withResponse: true,
     });
-    return;
-  }
 
-  const sessionId = `poker_${Date.now()}_${secureRandomInt(1000, 9999)}`;
-  const session: PokerSessionState = {
-    id: sessionId,
-    channelId,
-    ownerId: interaction.user.id,
-    status: 'waiting',
-    lobbyDeadline: Date.now() + POKER_LOBBY_DURATION_MS,
-    players: [],
-    deck: [],
-    communityCards: [],
-    dealerIndex: 0,
-    phase: 'preflop',
-    currentBet: 0n,
-    minRaise: POKER_CONFIG.bigBlind,
-    currentPlayerIndex: 0,
-    lastRaiserIndex: -1,
-    turnDeadline: 0,
-  };
+    session.messageId = reply.resource?.message?.id;
 
-  setActiveSession(channelId, session);
-
-  const remainingSeconds = Math.ceil(POKER_LOBBY_DURATION_MS / 1000);
-  const lobbyView = buildPokerLobbyView(session, remainingSeconds);
-
-  const reply = await interaction.reply({
-    components: [lobbyView],
-    flags: MessageFlags.IsComponentsV2,
-    withResponse: true,
-  });
-
-  session.messageId = reply.resource?.message?.id;
-
-  startLobbyCountdown(interaction.channel, session);
+    startLobbyCountdown(interaction.channel, session);
 }
 
 function startLobbyCountdown(
-  channel: TextBasedChannel | null,
-  session: PokerSessionState,
+    channel: TextBasedChannel | null,
+    session: PokerSessionState,
 ): void {
-  const updateInterval = 15_000;
+    const updateInterval = 15_000;
 
-  session.lobbyTimer = setInterval(async () => {
-    const now = Date.now();
-    const remaining = session.lobbyDeadline - now;
+    session.lobbyTimer = setInterval(async () => {
+        const now = Date.now();
+        const remaining = session.lobbyDeadline - now;
 
-    if (remaining <= 0 || session.status !== 'waiting') {
-      if (session.lobbyTimer) clearInterval(session.lobbyTimer);
-      if (session.status === 'waiting') {
-        await tryStartGame(channel, session);
-      }
-      return;
-    }
+        if (remaining <= 0 || session.status !== 'waiting') {
+            if (session.lobbyTimer) clearInterval(session.lobbyTimer);
+            if (session.status === 'waiting') {
+                await tryStartGame(channel, session);
+            }
+            return;
+        }
 
-    try {
-      if (session.messageId && channel && 'messages' in channel) {
-        const remainingSec = Math.ceil(remaining / 1000);
-        const view = buildPokerLobbyView(session, remainingSec);
-        await channel.messages.edit(session.messageId, {
-          components: [view],
-          flags: MessageFlags.IsComponentsV2,
-        });
-      }
-    } catch (err) {
-      logger.error('Failed to update poker lobby', { error: String(err) });
-    }
-  }, updateInterval);
+        try {
+            if (session.messageId && channel && 'messages' in channel) {
+                const remainingSec = Math.ceil(remaining / 1000);
+                const view = buildPokerLobbyView(session, remainingSec);
+                await channel.messages.edit(session.messageId, {
+                    components: [view],
+                    flags: MessageFlags.IsComponentsV2,
+                });
+            }
+        } catch (err) {
+            logger.error('Failed to update poker lobby', {error: String(err)});
+        }
+    }, updateInterval);
 }
 
 export async function tryStartGame(
-  channel: TextBasedChannel | null,
-  session: PokerSessionState,
+    channel: TextBasedChannel | null,
+    session: PokerSessionState,
 ): Promise<void> {
-  if (session.lobbyTimer) clearInterval(session.lobbyTimer);
+    if (session.lobbyTimer) clearInterval(session.lobbyTimer);
 
-  if (session.players.length < POKER_MIN_PLAYERS) {
-    session.status = 'cancelled';
+    if (session.players.length < POKER_MIN_PLAYERS) {
+        session.status = 'cancelled';
 
-    // Refund all buy-ins
-    for (const p of session.players) {
-      await addChips(p.userId, p.stack, 'WIN', 'POKER');
+        // Refund all buy-ins
+        for (const p of session.players) {
+            await addChips(p.userId, p.stack, 'WIN', 'POKER');
+        }
+
+        const cancelView = buildPokerCancelledView(
+            `参加者不足（${session.players.length}/${POKER_MIN_PLAYERS}）。全バイインを返金しました。`,
+        );
+
+        try {
+            if (session.messageId && channel && 'messages' in channel) {
+                await channel.messages.edit(session.messageId, {
+                    components: [cancelView],
+                    flags: MessageFlags.IsComponentsV2,
+                });
+            }
+        } catch {
+            // ignore
+        }
+
+        removeActiveSession(session.channelId);
+        return;
     }
 
-    const cancelView = buildPokerCancelledView(
-      `参加者不足（${session.players.length}/${POKER_MIN_PLAYERS}）。全バイインを返金しました。`,
-    );
+    // Start the game
+    session.status = 'playing';
+    session.deck = createDeck();
+    session.dealerIndex = secureRandomInt(0, session.players.length - 1);
 
-    try {
-      if (session.messageId && channel && 'messages' in channel) {
-        await channel.messages.edit(session.messageId, {
-          components: [cancelView],
-          flags: MessageFlags.IsComponentsV2,
-        });
-      }
-    } catch {
-      // ignore
+    // Post blinds
+    postBlinds(session.players, session.dealerIndex, POKER_CONFIG.smallBlind, POKER_CONFIG.bigBlind);
+    session.currentBet = POKER_CONFIG.bigBlind;
+    session.minRaise = POKER_CONFIG.bigBlind;
+
+    // Deal hole cards
+    for (const player of session.players) {
+        player.holeCards = [session.deck.pop()!, session.deck.pop()!];
     }
 
-    removeActiveSession(session.channelId);
-    return;
-  }
+    // Set first to act
+    session.phase = 'preflop';
+    session.currentPlayerIndex = getFirstToAct(session.players, session.dealerIndex, 'preflop');
 
-  // Start the game
-  session.status = 'playing';
-  session.deck = createDeck();
-  session.dealerIndex = secureRandomInt(0, session.players.length - 1);
+    // If no one can act (all-in from blinds), go straight through phases
+    if (session.currentPlayerIndex === -1 || getActionablePlayers(session.players).length <= 1) {
+        await runRemainingPhases(channel, session);
+        return;
+    }
 
-  // Post blinds
-  postBlinds(session.players, session.dealerIndex, POKER_CONFIG.smallBlind, POKER_CONFIG.bigBlind);
-  session.currentBet = POKER_CONFIG.bigBlind;
-  session.minRaise = POKER_CONFIG.bigBlind;
-
-  // Deal hole cards
-  for (const player of session.players) {
-    player.holeCards = [session.deck.pop()!, session.deck.pop()!];
-  }
-
-  // Set first to act
-  session.phase = 'preflop';
-  session.currentPlayerIndex = getFirstToAct(session.players, session.dealerIndex, 'preflop');
-
-  // If no one can act (all-in from blinds), go straight through phases
-  if (session.currentPlayerIndex === -1 || getActionablePlayers(session.players).length <= 1) {
-    await runRemainingPhases(channel, session);
-    return;
-  }
-
-  // Set turn timer and update UI
-  startTurnTimer(channel, session);
-  await updateTableMessage(channel, session);
+    // Set turn timer and update UI
+    startTurnTimer(channel, session);
+    await updateTableMessage(channel, session);
 }
 
 export async function advanceGame(
-  channel: TextBasedChannel | null,
-  session: PokerSessionState,
+    channel: TextBasedChannel | null,
+    session: PokerSessionState,
 ): Promise<void> {
-  // Check if only 1 player remaining (all others folded)
-  const active = getActivePlayers(session.players);
-  if (active.length === 1) {
-    await handleFoldWin(channel, session, active[0].userId);
-    return;
-  }
-
-  // Check if betting round is complete
-  if (!isBettingRoundComplete(session.players, session.currentBet)) {
-    // Move to next player
-    const next = getNextActivePlayer(session.players, session.currentPlayerIndex);
-    if (next !== -1 && next !== session.currentPlayerIndex) {
-      session.currentPlayerIndex = next;
-      startTurnTimer(channel, session);
-      await updateTableMessage(channel, session);
-      return;
+    // Check if only 1 player remaining (all others folded)
+    const active = getActivePlayers(session.players);
+    if (active.length === 1) {
+        await handleFoldWin(channel, session, active[0].userId);
+        return;
     }
-  }
 
-  // Betting round complete — advance to next phase
-  resetBettingRound(session.players);
-  session.currentBet = 0n;
-  session.minRaise = POKER_CONFIG.bigBlind;
-  session.lastRaiserIndex = -1;
+    // Check if betting round is complete
+    if (!isBettingRoundComplete(session.players, session.currentBet)) {
+        // Move to next player
+        const next = getNextActivePlayer(session.players, session.currentPlayerIndex);
+        if (next !== -1 && next !== session.currentPlayerIndex) {
+            session.currentPlayerIndex = next;
+            startTurnTimer(channel, session);
+            await updateTableMessage(channel, session);
+            return;
+        }
+    }
 
-  const nextPhase = getNextPhase(session.phase);
-  session.phase = nextPhase;
+    // Betting round complete — advance to next phase
+    resetBettingRound(session.players);
+    session.currentBet = 0n;
+    session.minRaise = POKER_CONFIG.bigBlind;
+    session.lastRaiserIndex = -1;
 
-  if (nextPhase === 'showdown') {
-    await handleShowdown(channel, session);
-    return;
-  }
+    const nextPhase = getNextPhase(session.phase);
+    session.phase = nextPhase;
 
-  // Deal community cards
-  dealCommunityCards(session);
+    if (nextPhase === 'showdown') {
+        await handleShowdown(channel, session);
+        return;
+    }
 
-  // Check if anyone can actually act
-  const actionable = getActionablePlayers(session.players);
-  if (actionable.length <= 1) {
-    // No one to bet — run remaining phases
-    await runRemainingPhases(channel, session);
-    return;
-  }
+    // Deal community cards
+    dealCommunityCards(session);
 
-  session.currentPlayerIndex = getFirstToAct(session.players, session.dealerIndex, nextPhase);
-  if (session.currentPlayerIndex === -1) {
-    await runRemainingPhases(channel, session);
-    return;
-  }
+    // Check if anyone can actually act
+    const actionable = getActionablePlayers(session.players);
+    if (actionable.length <= 1) {
+        // No one to bet — run remaining phases
+        await runRemainingPhases(channel, session);
+        return;
+    }
 
-  startTurnTimer(channel, session);
-  await updateTableMessage(channel, session);
+    session.currentPlayerIndex = getFirstToAct(session.players, session.dealerIndex, nextPhase);
+    if (session.currentPlayerIndex === -1) {
+        await runRemainingPhases(channel, session);
+        return;
+    }
+
+    startTurnTimer(channel, session);
+    await updateTableMessage(channel, session);
 }
 
 function getNextPhase(current: PokerPhase): PokerPhase {
-  const order: PokerPhase[] = ['preflop', 'flop', 'turn', 'river', 'showdown'];
-  const idx = order.indexOf(current);
-  return order[idx + 1] ?? 'showdown';
+    const order: PokerPhase[] = ['preflop', 'flop', 'turn', 'river', 'showdown'];
+    const idx = order.indexOf(current);
+    return order[idx + 1] ?? 'showdown';
 }
 
 function dealCommunityCards(session: PokerSessionState): void {
-  if (session.phase === 'flop') {
-    session.deck.pop(); // burn
-    session.communityCards.push(session.deck.pop()!, session.deck.pop()!, session.deck.pop()!);
-  } else if (session.phase === 'turn' || session.phase === 'river') {
-    session.deck.pop(); // burn
-    session.communityCards.push(session.deck.pop()!);
-  }
+    if (session.phase === 'flop') {
+        session.deck.pop(); // burn
+        session.communityCards.push(session.deck.pop()!, session.deck.pop()!, session.deck.pop()!);
+    } else if (session.phase === 'turn' || session.phase === 'river') {
+        session.deck.pop(); // burn
+        session.communityCards.push(session.deck.pop()!);
+    }
 }
 
 async function runRemainingPhases(
-  channel: TextBasedChannel | null,
-  session: PokerSessionState,
+    channel: TextBasedChannel | null,
+    session: PokerSessionState,
 ): Promise<void> {
-  // Deal out remaining community cards
-  while (session.communityCards.length < 5) {
-    if (session.communityCards.length === 0) {
-      session.deck.pop(); // burn
-      session.communityCards.push(session.deck.pop()!, session.deck.pop()!, session.deck.pop()!);
-    } else {
-      session.deck.pop(); // burn
-      session.communityCards.push(session.deck.pop()!);
+    // Deal out remaining community cards
+    while (session.communityCards.length < 5) {
+        if (session.communityCards.length === 0) {
+            session.deck.pop(); // burn
+            session.communityCards.push(session.deck.pop()!, session.deck.pop()!, session.deck.pop()!);
+        } else {
+            session.deck.pop(); // burn
+            session.communityCards.push(session.deck.pop()!);
+        }
     }
-  }
 
-  session.phase = 'showdown';
-  await handleShowdown(channel, session);
+    session.phase = 'showdown';
+    await handleShowdown(channel, session);
 }
 
 async function handleShowdown(
-  channel: TextBasedChannel | null,
-  session: PokerSessionState,
+    channel: TextBasedChannel | null,
+    session: PokerSessionState,
 ): Promise<void> {
-  if (session.turnTimer) clearTimeout(session.turnTimer);
-
-  try {
-    const pots = calculatePots(session.players);
-    const winners = determineWinners(pots, session.players, session.communityCards);
-
-    // Cache penalty multipliers to avoid duplicate DB queries per player
-    const penaltyCache = new Map<string, number>();
-    const getCachedPenalty = async (userId: string): Promise<number> => {
-      const cached = penaltyCache.get(userId);
-      if (cached !== undefined) return cached;
-      const multiplier = await getBankruptcyPenaltyMultiplier(userId);
-      penaltyCache.set(userId, multiplier);
-      return multiplier;
-    };
-
-    // Pay out winners with bankruptcy penalty
-    for (const w of winners) {
-      const player = session.players.find(p => p.userId === w.userId);
-      const totalBet = player ? player.totalBet : 0n;
-      let payout = w.amount;
-      if (payout > totalBet) {
-        const penaltyMultiplier = await getCachedPenalty(w.userId);
-        if (penaltyMultiplier < 1.0) {
-          const winnings = payout - totalBet;
-          payout = totalBet + applyPenalty(winnings, penaltyMultiplier);
-        }
-      }
-      await addChips(w.userId, payout, 'WIN', 'POKER');
-    }
-
-    // Return remaining stacks (unbet chips) to all players
-    for (const p of session.players) {
-      if (p.stack > 0n) {
-        await addChips(p.userId, p.stack, 'WIN', 'POKER');
-      }
-    }
-
-    // Update game stats for all players
-    for (const p of session.players) {
-      const winAmount = winners
-        .filter(w => w.userId === p.userId)
-        .reduce((sum, w) => sum + w.amount, 0n);
-      let payout = winAmount;
-      if (payout > p.totalBet) {
-        const penaltyMultiplier = await getCachedPenalty(p.userId);
-        if (penaltyMultiplier < 1.0) {
-          const winnings = payout - p.totalBet;
-          payout = p.totalBet + applyPenalty(winnings, penaltyMultiplier);
-        }
-      }
-      const net = payout - p.totalBet;
-      const won = net > 0n ? net : 0n;
-      const lost = net < 0n ? -net : 0n;
-      await incrementGameStats(p.userId, won, lost);
-    }
-
-    session.status = 'finished';
-
-    const resultView = buildPokerResultView(session, winners, pots);
+    if (session.turnTimer) clearTimeout(session.turnTimer);
 
     try {
-      if (session.messageId && channel && 'messages' in channel) {
-        await channel.messages.edit(session.messageId, {
-          components: [resultView],
-          flags: MessageFlags.IsComponentsV2,
-        });
-      }
-    } catch (err) {
-      logger.error('Failed to show poker result', { error: String(err) });
+        const pots = calculatePots(session.players);
+        const winners = determineWinners(pots, session.players, session.communityCards);
+
+        // Cache penalty multipliers to avoid duplicate DB queries per player
+        const penaltyCache = new Map<string, number>();
+        const getCachedPenalty = async (userId: string): Promise<number> => {
+            const cached = penaltyCache.get(userId);
+            if (cached !== undefined) return cached;
+            const multiplier = await getBankruptcyPenaltyMultiplier(userId);
+            penaltyCache.set(userId, multiplier);
+            return multiplier;
+        };
+
+        // Pay out winners with bankruptcy penalty
+        for (const w of winners) {
+            const player = session.players.find(p => p.userId === w.userId);
+            const totalBet = player ? player.totalBet : 0n;
+            let payout = w.amount;
+            if (payout > totalBet) {
+                const penaltyMultiplier = await getCachedPenalty(w.userId);
+                if (penaltyMultiplier < 1.0) {
+                    const winnings = payout - totalBet;
+                    payout = totalBet + applyPenalty(winnings, penaltyMultiplier);
+                }
+            }
+            await addChips(w.userId, payout, 'WIN', 'POKER');
+        }
+
+        // Return remaining stacks (unbet chips) to all players
+        for (const p of session.players) {
+            if (p.stack > 0n) {
+                await addChips(p.userId, p.stack, 'WIN', 'POKER');
+            }
+        }
+
+        // Update game stats for all players
+        for (const p of session.players) {
+            const winAmount = winners
+                .filter(w => w.userId === p.userId)
+                .reduce((sum, w) => sum + w.amount, 0n);
+            let payout = winAmount;
+            if (payout > p.totalBet) {
+                const penaltyMultiplier = await getCachedPenalty(p.userId);
+                if (penaltyMultiplier < 1.0) {
+                    const winnings = payout - p.totalBet;
+                    payout = p.totalBet + applyPenalty(winnings, penaltyMultiplier);
+                }
+            }
+            const net = payout - p.totalBet;
+            const won = net > 0n ? net : 0n;
+            const lost = net < 0n ? -net : 0n;
+            await incrementGameStats(p.userId, won, lost);
+        }
+
+        session.status = 'finished';
+
+        const resultView = buildPokerResultView(session, winners, pots);
+
+        try {
+            if (session.messageId && channel && 'messages' in channel) {
+                await channel.messages.edit(session.messageId, {
+                    components: [resultView],
+                    flags: MessageFlags.IsComponentsV2,
+                });
+            }
+        } catch (err) {
+            logger.error('Failed to show poker result', {error: String(err)});
+        }
+    } finally {
+        removeActiveSession(session.channelId);
     }
-  } finally {
-    removeActiveSession(session.channelId);
-  }
 }
 
 async function handleFoldWin(
-  channel: TextBasedChannel | null,
-  session: PokerSessionState,
-  winnerUserId: string,
+    channel: TextBasedChannel | null,
+    session: PokerSessionState,
+    winnerUserId: string,
 ): Promise<void> {
-  if (session.turnTimer) clearTimeout(session.turnTimer);
-
-  try {
-    const totalPot = session.players.reduce((sum, p) => sum + p.totalBet, 0n);
-    const winner = session.players.find(p => p.userId === winnerUserId);
-    const winnerTotalBet = winner ? winner.totalBet : 0n;
-    let foldPayout = totalPot;
-    if (foldPayout > winnerTotalBet) {
-      const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(winnerUserId);
-      if (penaltyMultiplier < 1.0) {
-        const winnings = foldPayout - winnerTotalBet;
-        foldPayout = winnerTotalBet + applyPenalty(winnings, penaltyMultiplier);
-      }
-    }
-    await addChips(winnerUserId, foldPayout, 'WIN', 'POKER');
-
-    // Return remaining stacks (unbet chips) to all players
-    for (const p of session.players) {
-      if (p.stack > 0n) {
-        await addChips(p.userId, p.stack, 'WIN', 'POKER');
-      }
-    }
-
-    // Update game stats for all players
-    for (const p of session.players) {
-      if (p.userId === winnerUserId) {
-        const net = foldPayout - p.totalBet;
-        await incrementGameStats(p.userId, net > 0n ? net : 0n, 0n);
-      } else {
-        await incrementGameStats(p.userId, 0n, p.totalBet);
-      }
-    }
-
-    session.status = 'finished';
-
-    const foldView = buildPokerFoldWinView(session, winnerUserId);
+    if (session.turnTimer) clearTimeout(session.turnTimer);
 
     try {
-      if (session.messageId && channel && 'messages' in channel) {
-        await channel.messages.edit(session.messageId, {
-          components: [foldView],
-          flags: MessageFlags.IsComponentsV2,
-        });
-      }
-    } catch (err) {
-      logger.error('Failed to show poker fold win', { error: String(err) });
+        const totalPot = session.players.reduce((sum, p) => sum + p.totalBet, 0n);
+        const winner = session.players.find(p => p.userId === winnerUserId);
+        const winnerTotalBet = winner ? winner.totalBet : 0n;
+        let foldPayout = totalPot;
+        if (foldPayout > winnerTotalBet) {
+            const penaltyMultiplier = await getBankruptcyPenaltyMultiplier(winnerUserId);
+            if (penaltyMultiplier < 1.0) {
+                const winnings = foldPayout - winnerTotalBet;
+                foldPayout = winnerTotalBet + applyPenalty(winnings, penaltyMultiplier);
+            }
+        }
+        await addChips(winnerUserId, foldPayout, 'WIN', 'POKER');
+
+        // Return remaining stacks (unbet chips) to all players
+        for (const p of session.players) {
+            if (p.stack > 0n) {
+                await addChips(p.userId, p.stack, 'WIN', 'POKER');
+            }
+        }
+
+        // Update game stats for all players
+        for (const p of session.players) {
+            if (p.userId === winnerUserId) {
+                const net = foldPayout - p.totalBet;
+                await incrementGameStats(p.userId, net > 0n ? net : 0n, 0n);
+            } else {
+                await incrementGameStats(p.userId, 0n, p.totalBet);
+            }
+        }
+
+        session.status = 'finished';
+
+        const foldView = buildPokerFoldWinView(session, winnerUserId);
+
+        try {
+            if (session.messageId && channel && 'messages' in channel) {
+                await channel.messages.edit(session.messageId, {
+                    components: [foldView],
+                    flags: MessageFlags.IsComponentsV2,
+                });
+            }
+        } catch (err) {
+            logger.error('Failed to show poker fold win', {error: String(err)});
+        }
+    } finally {
+        removeActiveSession(session.channelId);
     }
-  } finally {
-    removeActiveSession(session.channelId);
-  }
 }
 
 function startTurnTimer(
-  channel: TextBasedChannel | null,
-  session: PokerSessionState,
+    channel: TextBasedChannel | null,
+    session: PokerSessionState,
 ): void {
-  if (session.turnTimer) clearTimeout(session.turnTimer);
+    if (session.turnTimer) clearTimeout(session.turnTimer);
 
-  const actionTimeout = configService.getNumber(S.pokerActionTimeout);
-  session.turnDeadline = Date.now() + actionTimeout;
+    const actionTimeout = configService.getNumber(S.pokerActionTimeout);
+    session.turnDeadline = Date.now() + actionTimeout;
 
-  session.turnTimer = setTimeout(async () => {
-    try {
-      // Auto-fold on timeout
-      const player = session.players[session.currentPlayerIndex];
-      if (player && !player.folded && !player.allIn) {
-        processAction('fold', player, session.currentBet);
-        await advanceGame(channel, session);
-      }
-    } catch (err) {
-      logger.error('Poker turn timer failed', { error: String(err) });
-      removeActiveSession(session.channelId);
-    }
-  }, actionTimeout);
+    session.turnTimer = setTimeout(async () => {
+        try {
+            // Auto-fold on timeout
+            const player = session.players[session.currentPlayerIndex];
+            if (player && !player.folded && !player.allIn) {
+                processAction('fold', player, session.currentBet);
+                await advanceGame(channel, session);
+            }
+        } catch (err) {
+            logger.error('Poker turn timer failed', {error: String(err)});
+            removeActiveSession(session.channelId);
+        }
+    }, actionTimeout);
 }
 
 export async function updateTableMessage(
-  channel: TextBasedChannel | null,
-  session: PokerSessionState,
+    channel: TextBasedChannel | null,
+    session: PokerSessionState,
 ): Promise<void> {
-  try {
-    if (session.messageId && channel && 'messages' in channel) {
-      const view = buildPokerTableView(session);
-      // Use channel.messages.edit directly — avoids an extra fetch API call
-      await channel.messages.edit(session.messageId, {
-        components: [view],
-        flags: MessageFlags.IsComponentsV2,
-      });
+    try {
+        if (session.messageId && channel && 'messages' in channel) {
+            const view = buildPokerTableView(session);
+            // Use channel.messages.edit directly — avoids an extra fetch API call
+            await channel.messages.edit(session.messageId, {
+                components: [view],
+                flags: MessageFlags.IsComponentsV2,
+            });
+        }
+    } catch (err) {
+        logger.error('Failed to update poker table', {error: String(err)});
     }
-  } catch (err) {
-    logger.error('Failed to update poker table', { error: String(err) });
-  }
 }
 
-registerCommand({ data, execute: execute as never });
+registerCommand({data, execute: execute as never});

@@ -8,30 +8,30 @@ datasource db {
 }
 
 model User {
-  id             String        @id // Discord User ID
-  chips          BigInt        @default(10000)
-  bankBalance    BigInt        @default(0)
-  totalWon       BigInt        @default(0)
-  totalLost      BigInt        @default(0)
-  totalGames     Int           @default(0)
-  dailyStreak    Int           @default(0)
-  lastDaily      DateTime?
-  lastInterestAt DateTime?
-  bankruptAt     DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  transactions   Transaction[]
-  bets           RaceBet[]
-  loans          Loan[]
-  workLevel      Int           @default(0)
-  workXp         Int           @default(0)
-  lastWorkAt     DateTime?
-  workStreak     Int           @default(0)
-  lotteryTickets LotteryTicket[]
-  achievements   UserAchievement[]
+  id                String                @id // Discord User ID
+  chips             BigInt                @default(10000)
+  bankBalance       BigInt                @default(0)
+  totalWon          BigInt                @default(0)
+  totalLost         BigInt                @default(0)
+  totalGames        Int                   @default(0)
+  dailyStreak       Int                   @default(0)
+  lastDaily         DateTime?
+  lastInterestAt    DateTime?
+  bankruptAt        DateTime?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  transactions      Transaction[]
+  bets              RaceBet[]
+  loans             Loan[]
+  workLevel         Int                   @default(0)
+  workXp            Int                   @default(0)
+  lastWorkAt        DateTime?
+  workStreak        Int                   @default(0)
+  lotteryTickets    LotteryTicket[]
+  achievements      UserAchievement[]
   activeTitle       String?
   activeBadge       String?
-  lifetimeShopSpend BigInt        @default(0)
+  lifetimeShopSpend BigInt                @default(0)
   inventory         UserInventory[]
   activeBuffs       ActiveBuff[]
   workMastery       WorkMastery[]
@@ -160,14 +160,14 @@ enum LotteryStatus {
 }
 
 model LotteryRound {
-  id             String        @id @default(cuid())
-  roundNumber    Int           @unique @default(autoincrement())
-  status         LotteryStatus @default(OPEN)
-  jackpot        BigInt        @default(0)
+  id             String          @id @default(cuid())
+  roundNumber    Int             @unique @default(autoincrement())
+  status         LotteryStatus   @default(OPEN)
+  jackpot        BigInt          @default(0)
   winningNumbers Int[]
   drawAt         DateTime
   drawnAt        DateTime?
-  createdAt      DateTime      @default(now())
+  createdAt      DateTime        @default(now())
   tickets        LotteryTicket[]
 
   @@index([status])
@@ -193,7 +193,7 @@ model DailyMission {
   target     Int
   reward     BigInt
   completed  Boolean  @default(false)
-  date       String   // "2026-02-21"
+  date       String // "2026-02-21"
   createdAt  DateTime @default(now())
 
   @@unique([userId, missionKey, date])
@@ -253,7 +253,7 @@ model WorkWeeklyChallenge {
   id           String   @id @default(cuid())
   userId       String
   user         User     @relation(fields: [userId], references: [id])
-  weekStart    String   // "2026-W08"
+  weekStart    String // "2026-W08"
   challengeKey String
   target       Int
   progress     Int      @default(0)
@@ -293,8 +293,8 @@ model FixedDeposit {
   userId       String
   user         User      @relation(fields: [userId], references: [id])
   amount       BigInt
-  termDays     Int       // 7 or 30
-  interestRate BigInt    // 預入時の適用利率(計算済み)
+  termDays     Int // 7 or 30
+  interestRate BigInt // 預入時の適用利率(計算済み)
   depositedAt  DateTime  @default(now())
   maturesAt    DateTime
   withdrawnAt  DateTime?

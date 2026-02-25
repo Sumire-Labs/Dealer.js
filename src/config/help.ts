@@ -1,8 +1,8 @@
 export interface HelpCategory {
-  id: string;
-  label: string;
-  emoji: string;
-  content: string;
+    id: string;
+    label: string;
+    emoji: string;
+    content: string;
 }
 
 export const HELP_TOP_CONTENT = `\
@@ -27,11 +27,11 @@ export const HELP_TOP_CONTENT = `\
 下のボタンから詳しい情報を確認できます。`;
 
 export const HELP_CATEGORIES: HelpCategory[] = [
-  {
-    id: 'casino',
-    label: 'ゲーム',
-    emoji: '🎰',
-    content: `\
+    {
+        id: 'casino',
+        label: 'ゲーム',
+        emoji: '🎰',
+        content: `\
 🎰 **カジノゲーム**
 
 🎰 **スロット** (\`/slots\`)
@@ -56,12 +56,12 @@ export const HELP_CATEGORIES: HelpCategory[] = [
 　インサイド: ストレート(36倍), スプリット(18倍),
 　　ストリート(12倍), コーナー(9倍), シックスライン(6倍)
 　アウトサイド: 赤黒・偶奇・高低(2倍), ダズン(3倍)`,
-  },
-  {
-    id: 'multi',
-    label: 'マルチ',
-    emoji: '🎲',
-    content: `\
+    },
+    {
+        id: 'multi',
+        label: 'マルチ',
+        emoji: '🎲',
+        content: `\
 🎲 **マルチプレイヤーゲーム**
 
 🏇 **競馬** (\`/horse-race\`)
@@ -91,12 +91,12 @@ export const HELP_CATEGORIES: HelpCategory[] = [
 　チケット: $1,000/枚（最大10枚/ラウンド）
 　抽選: 24時間ごと
 　賞金: 3一致=賞金プール70%, 2一致=20%, ハズレ=10%没収`,
-  },
-  {
-    id: 'economy',
-    label: '経済',
-    emoji: '💰',
-    content: `\
+    },
+    {
+        id: 'economy',
+        label: '経済',
+        emoji: '💰',
+        content: `\
 💰 **経済システム**
 
 🎁 **デイリーボーナス** (\`/daily\`)
@@ -125,12 +125,12 @@ export const HELP_CATEGORIES: HelpCategory[] = [
 　刑期: 5分
 　罰金: $5,000 で即時釈放
 　脱獄: 成功率30%（失敗で+3分追加）`,
-  },
-  {
-    id: 'work',
-    label: '仕事',
-    emoji: '💼',
-    content: `\
+    },
+    {
+        id: 'work',
+        label: '仕事',
+        emoji: '💼',
+        content: `\
 💼 **仕事システム** (\`/work\`)
 
 📋 **6つのジョブ**（レベルで解放）
@@ -158,12 +158,12 @@ export const HELP_CATEGORIES: HelpCategory[] = [
 　🥉→🥈→🥇→💠→💎→👑
 　報酬ボーナス: +0%〜+25%
 　大成功率UP / リスク軽減`,
-  },
-  {
-    id: 'business',
-    label: 'ビジネス',
-    emoji: '🏢',
-    content: `\
+    },
+    {
+        id: 'business',
+        label: 'ビジネス',
+        emoji: '🏢',
+        content: `\
 🏢 **ビジネス** (\`/business\`)
 
 仕事Lv3で解放。ビジネスを購入して不労所得を得よう！
@@ -188,12 +188,12 @@ export const HELP_CATEGORIES: HelpCategory[] = [
 🎲 **イベント**: 収集時にランダムイベント発生
 　　大繁盛(2倍), SNSバズり(3倍), 客足減少(0.5倍) 等
 ⏱️ **蓄積上限**: 最大24時間分`,
-  },
-  {
-    id: 'shop',
-    label: 'ショップ',
-    emoji: '🛒',
-    content: `\
+    },
+    {
+        id: 'shop',
+        label: 'ショップ',
+        emoji: '🛒',
+        content: `\
 🛒 **ショップ** (\`/shop\`)
 
 🧃 **消耗品**
@@ -218,12 +218,12 @@ export const HELP_CATEGORIES: HelpCategory[] = [
 📦 **ミステリーボックス**: ブロンズ$5k / シルバー$25k / ゴールド$100k
 🛡️ **保険**: ストリークシールド / 破産保険 / セーフティネット
 🔧 **仕事道具**: ジョブ別専用ツール7種`,
-  },
-  {
-    id: 'missions',
-    label: 'ミッション',
-    emoji: '🎯',
-    content: `\
+    },
+    {
+        id: 'missions',
+        label: 'ミッション',
+        emoji: '🎯',
+        content: `\
 🎯 **デイリーミッション** (\`/daily\` → ミッションタブ)
 
 毎朝 JST 05:00 にリセット。ミッションを達成して報酬を獲得！
@@ -246,12 +246,12 @@ export const HELP_CATEGORIES: HelpCategory[] = [
 💡 **ヒント**
 　🎲 ミッション再抽選アイテムで難しいミッションを変更可能
 　🎲 ゴールデンダイスでミッション報酬+20%`,
-  },
-  {
-    id: 'achieve',
-    label: '実績',
-    emoji: '🏆',
-    content: `\
+    },
+    {
+        id: 'achieve',
+        label: '実績',
+        emoji: '🏆',
+        content: `\
 🏆 **実績** (\`/achievements\`)
 
 プレイ中に条件を満たすと自動的に解除されます。
@@ -276,11 +276,11 @@ export const HELP_CATEGORIES: HelpCategory[] = [
 ⭐ **スペシャル実績**
 　🥈 初めてのマスタリー / 👑 ジョブマスター / ⭐ 昇進
 　…他にも隠し実績あり！`,
-  },
+    },
 ];
 
 export const HELP_CATEGORY_MAP = new Map<string, HelpCategory>(
-  HELP_CATEGORIES.map(c => [c.id, c]),
+    HELP_CATEGORIES.map(c => [c.id, c]),
 );
 
 export const HELP_TIPS = `\

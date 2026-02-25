@@ -5,43 +5,43 @@ import {buildHeistPhaseView} from '../builders/heist.builder.js';
 import type {PhaseResult} from '../../games/heist/heist.engine.js';
 
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export async function playHeistAnimation(
-  message: Message,
-  phaseResults: PhaseResult[],
+    message: Message,
+    phaseResults: PhaseResult[],
 ): Promise<void> {
-  const { animationInterval } = HEIST_CONFIG;
-  const completedPhases: PhaseResult[] = [];
+    const {animationInterval} = HEIST_CONFIG;
+    const completedPhases: PhaseResult[] = [];
 
-  for (let i = 0; i < phaseResults.length; i++) {
-    // Show current phase as "in progress" using data from phaseResults directly
-    const currentPhase = {
-      emoji: phaseResults[i].emoji,
-      name: phaseResults[i].name,
-    };
+    for (let i = 0; i < phaseResults.length; i++) {
+        // Show current phase as "in progress" using data from phaseResults directly
+        const currentPhase = {
+            emoji: phaseResults[i].emoji,
+            name: phaseResults[i].name,
+        };
 
-    const progressView = buildHeistPhaseView(completedPhases, currentPhase);
-    await message.edit({
-      components: [progressView],
-      flags: MessageFlags.IsComponentsV2,
-    });
+        const progressView = buildHeistPhaseView(completedPhases, currentPhase);
+        await message.edit({
+            components: [progressView],
+            flags: MessageFlags.IsComponentsV2,
+        });
 
-    await sleep(animationInterval);
+        await sleep(animationInterval);
 
-    // Mark phase as completed
-    completedPhases.push(phaseResults[i]);
+        // Mark phase as completed
+        completedPhases.push(phaseResults[i]);
 
-    // If this phase failed, show it and stop
-    if (!phaseResults[i].success) {
-      const failView = buildHeistPhaseView(completedPhases);
-      await message.edit({
-        components: [failView],
-        flags: MessageFlags.IsComponentsV2,
-      });
-      await sleep(animationInterval);
-      break;
+        // If this phase failed, show it and stop
+        if (!phaseResults[i].success) {
+            const failView = buildHeistPhaseView(completedPhases);
+            await message.edit({
+                components: [failView],
+                flags: MessageFlags.IsComponentsV2,
+            });
+            await sleep(animationInterval);
+            break;
+        }
     }
-  }
 }

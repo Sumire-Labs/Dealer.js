@@ -6,22 +6,22 @@ import type {RaceFrame} from '../../games/horse-race/race.engine.js';
 import {buildRaceFrameView} from '../builders/horse-race.builder.js';
 
 export async function playRaceAnimation(
-  message: Message,
-  horses: Horse[],
-  frames: RaceFrame[],
+    message: Message,
+    horses: Horse[],
+    frames: RaceFrame[],
 ): Promise<void> {
-  const { animationInterval, trackLength } = HORSE_RACE_CONFIG;
+    const {animationInterval, trackLength} = HORSE_RACE_CONFIG;
 
-  for (const frame of frames) {
-    const view = buildRaceFrameView(horses, frame.positions, trackLength);
-    await message.edit({
-      components: [view],
-      flags: MessageFlags.IsComponentsV2,
-    });
-    await sleep(animationInterval);
-  }
+    for (const frame of frames) {
+        const view = buildRaceFrameView(horses, frame.positions, trackLength);
+        await message.edit({
+            components: [view],
+            flags: MessageFlags.IsComponentsV2,
+        });
+        await sleep(animationInterval);
+    }
 }
 
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
 }

@@ -7,53 +7,53 @@ import {buildMissionNotification} from '../../database/services/mission.service.
 import {getBalance} from '../../database/services/economy.service.js';
 
 const data = new SlashCommandBuilder()
-  .setName('daily')
-  .setDescription('デイリーチップボーナスを受け取る')
-  .toJSON();
+    .setName('daily')
+    .setDescription('デイリーチップボーナスを受け取る')
+    .toJSON();
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
-  const userId = interaction.user.id;
-  const result = await claimDaily(userId);
+    const userId = interaction.user.id;
+    const result = await claimDaily(userId);
 
-  if (!result.success) {
-    const balance = await getBalance(userId);
-    const nextClaimAt = result.nextClaimAt ?? getNextResetTimestamp();
-    const view = buildDailyBonusAlreadyClaimed(nextClaimAt, balance, userId);
+    if (!result.success) {
+        const balance = await getBalance(userId);
+        const nextClaimAt = result.nextClaimAt ?? getNextResetTimestamp();
+        const view = buildDailyBonusAlreadyClaimed(nextClaimAt, balance, userId);
+
+        await interaction.reply({
+            components: [view],
+            flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    const view = buildDailyBonusClaimed(
+        result.amount!,
+        result.streak!,
+        result.newBalance!,
+        userId,
+    );
 
     await interaction.reply({
-      components: [view],
-      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [view],
+        flags: MessageFlags.IsComponentsV2,
     });
-    return;
-  }
 
-  const view = buildDailyBonusClaimed(
-    result.amount!,
-    result.streak!,
-    result.newBalance!,
-    userId,
-  );
+    // Achievement notification
+    if (result.newlyUnlocked && result.newlyUnlocked.length > 0) {
+        await interaction.followUp({
+            content: buildAchievementNotification(result.newlyUnlocked),
+            flags: MessageFlags.Ephemeral,
+        });
+    }
 
-  await interaction.reply({
-    components: [view],
-    flags: MessageFlags.IsComponentsV2,
-  });
-
-  // Achievement notification
-  if (result.newlyUnlocked && result.newlyUnlocked.length > 0) {
-    await interaction.followUp({
-      content: buildAchievementNotification(result.newlyUnlocked),
-      flags: MessageFlags.Ephemeral,
-    });
-  }
-
-  // Mission notification
-  if (result.missionsCompleted && result.missionsCompleted.length > 0) {
-    await interaction.followUp({
-      content: buildMissionNotification(result.missionsCompleted),
-      flags: MessageFlags.Ephemeral,
-    });
-  }
+    // Mission notification
+    if (result.missionsCompleted && result.missionsCompleted.length > 0) {
+        await interaction.followUp({
+            content: buildMissionNotification(result.missionsCompleted),
+            flags: MessageFlags.Ephemeral,
+        });
+    }
 }
 
-registerCommand({ data, execute: execute as never });
+registerCommand({data, execute: execute as never});

@@ -5,30 +5,30 @@ import {buildFreeView, buildPrisonView} from '../../ui/builders/prison.builder.j
 import {hasInventoryItem} from '../../database/services/shop.service.js';
 
 const data = new SlashCommandBuilder()
-  .setName('prison')
-  .setDescription('刑務所の状況を確認する')
-  .toJSON();
+    .setName('prison')
+    .setDescription('刑務所の状況を確認する')
+    .toJSON();
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
-  const userId = interaction.user.id;
-  const session = getJailSession(userId);
+    const userId = interaction.user.id;
+    const session = getJailSession(userId);
 
-  if (!session) {
-    const view = buildFreeView();
+    if (!session) {
+        const view = buildFreeView();
+        await interaction.reply({
+            components: [view],
+            flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    const jailbreakCd = getJailbreakCooldownRemaining(userId);
+    const hasKey = await hasInventoryItem(userId, 'PRISON_KEY');
+    const view = buildPrisonView(session, jailbreakCd, hasKey);
     await interaction.reply({
-      components: [view],
-      flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
+        components: [view],
+        flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
     });
-    return;
-  }
-
-  const jailbreakCd = getJailbreakCooldownRemaining(userId);
-  const hasKey = await hasInventoryItem(userId, 'PRISON_KEY');
-  const view = buildPrisonView(session, jailbreakCd, hasKey);
-  await interaction.reply({
-    components: [view],
-    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
-  });
 }
 
-registerCommand({ data, execute: execute as never });
+registerCommand({data, execute: execute as never});

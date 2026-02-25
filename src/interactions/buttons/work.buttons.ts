@@ -27,228 +27,232 @@ import {SPECIAL_SHIFTS} from '../../config/special-shifts.js';
 import {setOvertimeSession} from '../../games/work/overtime.session.js';
 
 async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
-  const parts = interaction.customId.split(':');
-  const action = parts[1];
-  const ownerId = parts[2];
+    const parts = interaction.customId.split(':');
+    const action = parts[1];
+    const ownerId = parts[2];
 
-  if (interaction.user.id !== ownerId) {
-    await interaction.reply({
-      content: '`/work` で自分のワークパネルを開いてください。',
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
-
-  switch (action) {
-    case 'panel': {
-      const userId = ownerId;
-      const panelData = await getWorkPanelData(userId);
-
-      // Get weekly challenge summary
-      let weeklyChallenges: { name: string; progress: number; target: number; completed: boolean }[] = [];
-      try {
-        const { getWeeklyChallenges } = await import('../../database/services/weekly-challenge.service.js');
-        const challenges = await getWeeklyChallenges(userId);
-        const { WEEKLY_CHALLENGE_POOL } = await import('../../config/weekly-challenges.js');
-        weeklyChallenges = challenges.map(c => {
-          const def = WEEKLY_CHALLENGE_POOL.find(p => p.key === c.challengeKey);
-          return {
-            name: def?.name ?? c.challengeKey,
-            progress: c.progress,
-            target: c.target,
-            completed: c.completed,
-          };
+    if (interaction.user.id !== ownerId) {
+        await interaction.reply({
+            content: '`/work` で自分のワークパネルを開いてください。',
+            flags: MessageFlags.Ephemeral,
         });
-      } catch { /* ignore */ }
-
-      const view = buildWorkPanelView({
-        userId,
-        workLevel: panelData.workLevel,
-        workXp: panelData.workXp,
-        workStreak: panelData.workStreak,
-        lastWorkAt: panelData.lastWorkAt,
-        xpForNextLevel: panelData.xpForNextLevel,
-        masteries: panelData.masteries,
-        weeklyChallenges,
-      });
-
-      await interaction.update({
-        components: [view],
-        flags: MessageFlags.IsComponentsV2,
-      });
-      break;
-    }
-
-    case 'shift': {
-      const jobId = parts[3];
-      const shiftType = parts[4] as ShiftType;
-
-      const result = await performWork(ownerId, jobId, shiftType);
-      await handleWorkResult(interaction, result);
-      break;
-    }
-
-    case 'special': {
-      const jobId = parts[3];
-      const specialType = parts[4];
-
-      // Special shifts use 'normal' shift type as base
-      const specialShift = SPECIAL_SHIFTS.find(s => s.type === specialType);
-      if (!specialShift) {
-        await interaction.reply({ content: '無効な特別シフトです。', flags: MessageFlags.Ephemeral });
         return;
-      }
-
-      const result = await performWork(ownerId, jobId, 'normal', specialType);
-      await handleWorkResult(interaction, result);
-      break;
     }
 
-    case 'choice': {
-      const choiceId = parts[3];
+    switch (action) {
+        case 'panel': {
+            const userId = ownerId;
+            const panelData = await getWorkPanelData(userId);
 
-      const result = await resolveMultiStepWork(ownerId, choiceId);
-      await handleWorkResult(interaction, result);
-      break;
+            // Get weekly challenge summary
+            let weeklyChallenges: { name: string; progress: number; target: number; completed: boolean }[] = [];
+            try {
+                const {getWeeklyChallenges} = await import('../../database/services/weekly-challenge.service.js');
+                const challenges = await getWeeklyChallenges(userId);
+                const {WEEKLY_CHALLENGE_POOL} = await import('../../config/weekly-challenges.js');
+                weeklyChallenges = challenges.map(c => {
+                    const def = WEEKLY_CHALLENGE_POOL.find(p => p.key === c.challengeKey);
+                    return {
+                        name: def?.name ?? c.challengeKey,
+                        progress: c.progress,
+                        target: c.target,
+                        completed: c.completed,
+                    };
+                });
+            } catch { /* ignore */
+            }
+
+            const view = buildWorkPanelView({
+                userId,
+                workLevel: panelData.workLevel,
+                workXp: panelData.workXp,
+                workStreak: panelData.workStreak,
+                lastWorkAt: panelData.lastWorkAt,
+                xpForNextLevel: panelData.xpForNextLevel,
+                masteries: panelData.masteries,
+                weeklyChallenges,
+            });
+
+            await interaction.update({
+                components: [view],
+                flags: MessageFlags.IsComponentsV2,
+            });
+            break;
+        }
+
+        case 'shift': {
+            const jobId = parts[3];
+            const shiftType = parts[4] as ShiftType;
+
+            const result = await performWork(ownerId, jobId, shiftType);
+            await handleWorkResult(interaction, result);
+            break;
+        }
+
+        case 'special': {
+            const jobId = parts[3];
+            const specialType = parts[4];
+
+            // Special shifts use 'normal' shift type as base
+            const specialShift = SPECIAL_SHIFTS.find(s => s.type === specialType);
+            if (!specialShift) {
+                await interaction.reply({content: '無効な特別シフトです。', flags: MessageFlags.Ephemeral});
+                return;
+            }
+
+            const result = await performWork(ownerId, jobId, 'normal', specialType);
+            await handleWorkResult(interaction, result);
+            break;
+        }
+
+        case 'choice': {
+            const choiceId = parts[3];
+
+            const result = await resolveMultiStepWork(ownerId, choiceId);
+            await handleWorkResult(interaction, result);
+            break;
+        }
+
+        case 'overtime':
+        case 'ot_go':
+        case 'ot_stop':
+            await handleOvertimeAction(interaction, action, parts);
+            break;
+
+        case 'team_select': {
+            const {buildTeamShiftTypeSelectView} = await import('../../ui/builders/team-shift.builder.js');
+            const teamView = buildTeamShiftTypeSelectView(ownerId);
+            await interaction.update({
+                components: [teamView],
+                flags: MessageFlags.IsComponentsV2,
+            });
+            break;
+        }
+
+        case 'weekly': {
+            try {
+                const {getWeeklyChallenges} = await import('../../database/services/weekly-challenge.service.js');
+                const {WEEKLY_CHALLENGE_POOL} = await import('../../config/weekly-challenges.js');
+                const challenges = await getWeeklyChallenges(ownerId);
+
+                const mapped = challenges.map(c => {
+                    const def = WEEKLY_CHALLENGE_POOL.find(p => p.key === c.challengeKey);
+                    return {
+                        name: def?.name ?? c.challengeKey,
+                        emoji: '📋',
+                        progress: c.progress,
+                        target: c.target,
+                        completed: c.completed,
+                        reward: c.reward,
+                    };
+                });
+
+                const allCompleted = mapped.length > 0 && mapped.every(c => c.completed);
+
+                const view = buildWeeklyChallengeView({
+                    userId: ownerId,
+                    challenges: mapped,
+                    allCompleted,
+                    allCompletedBonus: configService.getBigInt(S.weeklyAllBonus),
+                });
+
+                await interaction.update({
+                    components: [view],
+                    flags: MessageFlags.IsComponentsV2,
+                });
+            } catch {
+                await interaction.reply({
+                    content: 'チャレンジの読み込みに失敗しました。',
+                    flags: MessageFlags.Ephemeral
+                });
+            }
+            break;
+        }
     }
-
-    case 'overtime':
-    case 'ot_go':
-    case 'ot_stop':
-      await handleOvertimeAction(interaction, action, parts);
-      break;
-
-    case 'team_select': {
-      const { buildTeamShiftTypeSelectView } = await import('../../ui/builders/team-shift.builder.js');
-      const teamView = buildTeamShiftTypeSelectView(ownerId);
-      await interaction.update({
-        components: [teamView],
-        flags: MessageFlags.IsComponentsV2,
-      });
-      break;
-    }
-
-    case 'weekly': {
-      try {
-        const { getWeeklyChallenges } = await import('../../database/services/weekly-challenge.service.js');
-        const { WEEKLY_CHALLENGE_POOL } = await import('../../config/weekly-challenges.js');
-        const challenges = await getWeeklyChallenges(ownerId);
-
-        const mapped = challenges.map(c => {
-          const def = WEEKLY_CHALLENGE_POOL.find(p => p.key === c.challengeKey);
-          return {
-            name: def?.name ?? c.challengeKey,
-            emoji: '📋',
-            progress: c.progress,
-            target: c.target,
-            completed: c.completed,
-            reward: c.reward,
-          };
-        });
-
-        const allCompleted = mapped.length > 0 && mapped.every(c => c.completed);
-
-        const view = buildWeeklyChallengeView({
-          userId: ownerId,
-          challenges: mapped,
-          allCompleted,
-          allCompletedBonus: configService.getBigInt(S.weeklyAllBonus),
-        });
-
-        await interaction.update({
-          components: [view],
-          flags: MessageFlags.IsComponentsV2,
-        });
-      } catch {
-        await interaction.reply({ content: 'チャレンジの読み込みに失敗しました。', flags: MessageFlags.Ephemeral });
-      }
-      break;
-    }
-  }
 }
 
 async function handleWorkResult(
-  interaction: ButtonInteraction,
-  result: Awaited<ReturnType<typeof performWork>>,
+    interaction: ButtonInteraction,
+    result: Awaited<ReturnType<typeof performWork>>,
 ): Promise<void> {
-  if (!result.success) {
-    if (result.remainingCooldown) {
-      const container = new ContainerBuilder()
-        .setAccentColor(CasinoTheme.colors.red)
-        .addTextDisplayComponents(
-          new TextDisplayBuilder().setContent(CasinoTheme.prefixes.work),
-        )
-        .addSeparatorComponents(
-          new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-        )
-        .addTextDisplayComponents(
-          new TextDisplayBuilder().setContent(
-            `⏰ まだ休憩中です！\n次のシフトまで: **${formatTimeDelta(result.remainingCooldown)}**`,
-          ),
-        );
+    if (!result.success) {
+        if (result.remainingCooldown) {
+            const container = new ContainerBuilder()
+                .setAccentColor(CasinoTheme.colors.red)
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder().setContent(CasinoTheme.prefixes.work),
+                )
+                .addSeparatorComponents(
+                    new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+                )
+                .addTextDisplayComponents(
+                    new TextDisplayBuilder().setContent(
+                        `⏰ まだ休憩中です！\n次のシフトまで: **${formatTimeDelta(result.remainingCooldown)}**`,
+                    ),
+                );
 
-      await interaction.update({
-        components: [container],
-        flags: MessageFlags.IsComponentsV2,
-      });
-    } else {
-      await interaction.reply({
-        content: result.error ?? 'エラーが発生しました。',
-        flags: MessageFlags.Ephemeral,
-      });
+            await interaction.update({
+                components: [container],
+                flags: MessageFlags.IsComponentsV2,
+            });
+        } else {
+            await interaction.reply({
+                content: result.error ?? 'エラーが発生しました。',
+                flags: MessageFlags.Ephemeral,
+            });
+        }
+        return;
     }
-    return;
-  }
 
-  // Multi-step event pending — show choices
-  if (result.multiStepPending) {
-    const view = buildMultiStepEventView(interaction.user.id, result);
+    // Multi-step event pending — show choices
+    if (result.multiStepPending) {
+        const view = buildMultiStepEventView(interaction.user.id, result);
+        await interaction.update({
+            components: [view],
+            flags: MessageFlags.IsComponentsV2,
+        });
+        return;
+    }
+
+    const view = buildWorkResultView(result, interaction.user.id);
+
+    // Initialize overtime session if available
+    if (result.overtimeAvailable && result.totalPay && result.totalPay > 0n) {
+        const job = JOB_MAP.get(result.jobId!) ?? PROMOTED_JOB_MAP.get(result.jobId!);
+        if (job) {
+            setOvertimeSession(interaction.user.id, {
+                userId: interaction.user.id,
+                jobId: result.jobId!,
+                shiftType: result.shiftType!,
+                baseShiftPay: result.totalPay,
+                currentRound: 0,
+                accumulatedBonus: 0n,
+                baseRiskRate: job.riskRate,
+                createdAt: Date.now(),
+            });
+        }
+    }
+
     await interaction.update({
-      components: [view],
-      flags: MessageFlags.IsComponentsV2,
+        components: [view],
+        flags: MessageFlags.IsComponentsV2,
     });
-    return;
-  }
 
-  const view = buildWorkResultView(result, interaction.user.id);
-
-  // Initialize overtime session if available
-  if (result.overtimeAvailable && result.totalPay && result.totalPay > 0n) {
-    const job = JOB_MAP.get(result.jobId!) ?? PROMOTED_JOB_MAP.get(result.jobId!);
-    if (job) {
-      setOvertimeSession(interaction.user.id, {
-        userId: interaction.user.id,
-        jobId: result.jobId!,
-        shiftType: result.shiftType!,
-        baseShiftPay: result.totalPay,
-        currentRound: 0,
-        accumulatedBonus: 0n,
-        baseRiskRate: job.riskRate,
-        createdAt: Date.now(),
-      });
+    // Achievement notification
+    if (result.newlyUnlocked && result.newlyUnlocked.length > 0) {
+        await interaction.followUp({
+            content: buildAchievementNotification(result.newlyUnlocked),
+            flags: MessageFlags.Ephemeral,
+        });
     }
-  }
 
-  await interaction.update({
-    components: [view],
-    flags: MessageFlags.IsComponentsV2,
-  });
-
-  // Achievement notification
-  if (result.newlyUnlocked && result.newlyUnlocked.length > 0) {
-    await interaction.followUp({
-      content: buildAchievementNotification(result.newlyUnlocked),
-      flags: MessageFlags.Ephemeral,
-    });
-  }
-
-  // Mission notification
-  if (result.missionsCompleted && result.missionsCompleted.length > 0) {
-    await interaction.followUp({
-      content: buildMissionNotification(result.missionsCompleted),
-      flags: MessageFlags.Ephemeral,
-    });
-  }
+    // Mission notification
+    if (result.missionsCompleted && result.missionsCompleted.length > 0) {
+        await interaction.followUp({
+            content: buildMissionNotification(result.missionsCompleted),
+            flags: MessageFlags.Ephemeral,
+        });
+    }
 }
 
 registerButtonHandler('work', handleWorkButton as never);

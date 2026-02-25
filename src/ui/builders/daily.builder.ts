@@ -1,11 +1,11 @@
 import {
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    ContainerBuilder,
-    SeparatorBuilder,
-    SeparatorSpacingSize,
-    TextDisplayBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ContainerBuilder,
+  SeparatorBuilder,
+  SeparatorSpacingSize,
+  TextDisplayBuilder,
 } from 'discord.js';
 import {CasinoTheme} from '../themes/casino.theme.js';
 import {formatChips} from '../../utils/formatters.js';
@@ -17,198 +17,198 @@ import {S} from '../../config/setting-defs.js';
 export type DailyTab = 'bonus' | 'missions';
 
 const DIFFICULTY_LABEL: Record<MissionDifficulty, string> = {
-  easy: '🟢 Easy',
-  medium: '🟡 Medium',
-  hard: '🔴 Hard',
+    easy: '🟢 Easy',
+    medium: '🟡 Medium',
+    hard: '🔴 Hard',
 };
 
 function buildTabRow(userId: string, activeTab: DailyTab): ActionRowBuilder<ButtonBuilder> {
-  return new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`daily:tab_bonus:${userId}`)
-      .setLabel('🎁 ボーナス')
-      .setStyle(activeTab === 'bonus' ? ButtonStyle.Primary : ButtonStyle.Secondary)
-      .setDisabled(activeTab === 'bonus'),
-    new ButtonBuilder()
-      .setCustomId(`daily:tab_missions:${userId}`)
-      .setLabel('🎯 ミッション')
-      .setStyle(activeTab === 'missions' ? ButtonStyle.Primary : ButtonStyle.Secondary)
-      .setDisabled(activeTab === 'missions'),
-    new ButtonBuilder()
-      .setCustomId(`daily:mission_help:${userId}`)
-      .setLabel('❓ ヘルプ')
-      .setStyle(ButtonStyle.Secondary),
-  );
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+            .setCustomId(`daily:tab_bonus:${userId}`)
+            .setLabel('🎁 ボーナス')
+            .setStyle(activeTab === 'bonus' ? ButtonStyle.Primary : ButtonStyle.Secondary)
+            .setDisabled(activeTab === 'bonus'),
+        new ButtonBuilder()
+            .setCustomId(`daily:tab_missions:${userId}`)
+            .setLabel('🎯 ミッション')
+            .setStyle(activeTab === 'missions' ? ButtonStyle.Primary : ButtonStyle.Secondary)
+            .setDisabled(activeTab === 'missions'),
+        new ButtonBuilder()
+            .setCustomId(`daily:mission_help:${userId}`)
+            .setLabel('❓ ヘルプ')
+            .setStyle(ButtonStyle.Secondary),
+    );
 }
 
 // --- Bonus tab ---
 
 export function buildDailyBonusClaimed(
-  amount: bigint,
-  streak: number,
-  newBalance: bigint,
-  userId: string,
+    amount: bigint,
+    streak: number,
+    newBalance: bigint,
+    userId: string,
 ): ContainerBuilder {
-  return new ContainerBuilder()
-    .setAccentColor(CasinoTheme.colors.gold)
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.daily),
-    )
-    .addSeparatorComponents(
-      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-    )
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(
-        `✅ **${formatChips(amount)}** を受け取りました！\n🔥 連続ログイン: **${streak}日目**\n💰 残高: **${formatChips(newBalance)}**`,
-      ),
-    )
-    .addActionRowComponents(buildTabRow(userId, 'bonus'));
+    return new ContainerBuilder()
+        .setAccentColor(CasinoTheme.colors.gold)
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(CasinoTheme.prefixes.daily),
+        )
+        .addSeparatorComponents(
+            new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(
+                `✅ **${formatChips(amount)}** を受け取りました！\n🔥 連続ログイン: **${streak}日目**\n💰 残高: **${formatChips(newBalance)}**`,
+            ),
+        )
+        .addActionRowComponents(buildTabRow(userId, 'bonus'));
 }
 
 export function buildDailyBonusAlreadyClaimed(
-  nextClaimAt: number,
-  balance: bigint,
-  userId: string,
+    nextClaimAt: number,
+    balance: bigint,
+    userId: string,
 ): ContainerBuilder {
-  const nextClaimUnix = Math.floor(nextClaimAt / 1000);
+    const nextClaimUnix = Math.floor(nextClaimAt / 1000);
 
-  return new ContainerBuilder()
-    .setAccentColor(CasinoTheme.colors.red)
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.daily),
-    )
-    .addSeparatorComponents(
-      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-    )
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(
-        `⏰ 本日のボーナスは受取済みです！\n次回: <t:${nextClaimUnix}:R>\n💰 残高: **${formatChips(balance)}**`,
-      ),
-    )
-    .addActionRowComponents(buildTabRow(userId, 'bonus'));
+    return new ContainerBuilder()
+        .setAccentColor(CasinoTheme.colors.red)
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(CasinoTheme.prefixes.daily),
+        )
+        .addSeparatorComponents(
+            new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(
+                `⏰ 本日のボーナスは受取済みです！\n次回: <t:${nextClaimUnix}:R>\n💰 残高: **${formatChips(balance)}**`,
+            ),
+        )
+        .addActionRowComponents(buildTabRow(userId, 'bonus'));
 }
 
 export function buildDailyBonusUnclaimed(
-  balance: bigint,
-  userId: string,
+    balance: bigint,
+    userId: string,
 ): ContainerBuilder {
-  return new ContainerBuilder()
-    .setAccentColor(CasinoTheme.colors.gold)
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.daily),
-    )
-    .addSeparatorComponents(
-      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-    )
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(
-        `今日のボーナスを受け取れます！\n💰 残高: **${formatChips(balance)}**`,
-      ),
-    )
-    .addActionRowComponents(
-      new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(`daily:claim:${userId}`)
-          .setLabel('✅ 受け取る')
-          .setStyle(ButtonStyle.Success),
-      ),
-    )
-    .addActionRowComponents(buildTabRow(userId, 'bonus'));
+    return new ContainerBuilder()
+        .setAccentColor(CasinoTheme.colors.gold)
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(CasinoTheme.prefixes.daily),
+        )
+        .addSeparatorComponents(
+            new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(
+                `今日のボーナスを受け取れます！\n💰 残高: **${formatChips(balance)}**`,
+            ),
+        )
+        .addActionRowComponents(
+            new ActionRowBuilder<ButtonBuilder>().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`daily:claim:${userId}`)
+                    .setLabel('✅ 受け取る')
+                    .setStyle(ButtonStyle.Success),
+            ),
+        )
+        .addActionRowComponents(buildTabRow(userId, 'bonus'));
 }
 
 // --- Missions tab ---
 
 export function buildDailyMissionsView(
-  missions: DailyMission[],
-  balance: bigint,
-  userId: string,
+    missions: DailyMission[],
+    balance: bigint,
+    userId: string,
 ): ContainerBuilder {
-  const date = missions[0]?.date ?? new Date().toISOString().slice(0, 10);
+    const date = missions[0]?.date ?? new Date().toISOString().slice(0, 10);
 
-  const missionLines = missions.map(m => {
-    const def = MISSION_MAP.get(m.missionKey);
-    const name = def?.name ?? m.missionKey;
-    const reward = formatChips(m.reward);
+    const missionLines = missions.map(m => {
+        const def = MISSION_MAP.get(m.missionKey);
+        const name = def?.name ?? m.missionKey;
+        const reward = formatChips(m.reward);
 
-    if (m.completed) {
-      return `✅ ${name} [${m.target}/${m.target}] — ${reward} ✔️\n${buildMissionProgressBar(m.target, m.target)}`;
+        if (m.completed) {
+            return `✅ ${name} [${m.target}/${m.target}] — ${reward} ✔️\n${buildMissionProgressBar(m.target, m.target)}`;
+        }
+        const icon = m.progress > 0 ? '🔶' : '🔴';
+        return `${icon} ${name} [${m.progress}/${m.target}] — ${reward}\n${buildMissionProgressBar(m.progress, m.target)}`;
+    });
+
+    const completedCount = missions.filter(m => m.completed).length;
+    const totalCount = missions.length;
+
+    let content = `📅 ${date} のミッション\n`;
+    content += '────────────────\n';
+    content += missionLines.join('\n');
+    content += '\n────────────────\n';
+    content += `🏆 コンプリートボーナス: ${formatChips(configService.getBigInt(S.missionCompleteBonus))} [${completedCount}/${totalCount}]`;
+    if (completedCount === totalCount) {
+        content += ' ✔️';
     }
-    const icon = m.progress > 0 ? '🔶' : '🔴';
-    return `${icon} ${name} [${m.progress}/${m.target}] — ${reward}\n${buildMissionProgressBar(m.progress, m.target)}`;
-  });
+    content += `\n💰 残高: **${formatChips(balance)}**`;
 
-  const completedCount = missions.filter(m => m.completed).length;
-  const totalCount = missions.length;
-
-  let content = `📅 ${date} のミッション\n`;
-  content += '────────────────\n';
-  content += missionLines.join('\n');
-  content += '\n────────────────\n';
-  content += `🏆 コンプリートボーナス: ${formatChips(configService.getBigInt(S.missionCompleteBonus))} [${completedCount}/${totalCount}]`;
-  if (completedCount === totalCount) {
-    content += ' ✔️';
-  }
-  content += `\n💰 残高: **${formatChips(balance)}**`;
-
-  return new ContainerBuilder()
-    .setAccentColor(CasinoTheme.colors.purple)
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(CasinoTheme.prefixes.missions),
-    )
-    .addSeparatorComponents(
-      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-    )
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(content),
-    )
-    .addActionRowComponents(buildTabRow(userId, 'missions'));
+    return new ContainerBuilder()
+        .setAccentColor(CasinoTheme.colors.purple)
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(CasinoTheme.prefixes.missions),
+        )
+        .addSeparatorComponents(
+            new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(content),
+        )
+        .addActionRowComponents(buildTabRow(userId, 'missions'));
 }
 
 // --- Mission help view ---
 
 export function buildDailyMissionsHelpView(
-  missions: DailyMission[],
-  balance: bigint,
-  userId: string,
+    missions: DailyMission[],
+    balance: bigint,
+    userId: string,
 ): ContainerBuilder {
-  const missionLines = missions.map(m => {
-    const def = MISSION_MAP.get(m.missionKey);
-    const name = def?.name ?? m.missionKey;
-    const description = def?.description ?? '';
-    const difficulty = def?.difficulty ?? 'easy';
-    const label = DIFFICULTY_LABEL[difficulty];
-    return `${label}　**${name}**\n　　${description}`;
-  });
+    const missionLines = missions.map(m => {
+        const def = MISSION_MAP.get(m.missionKey);
+        const name = def?.name ?? m.missionKey;
+        const description = def?.description ?? '';
+        const difficulty = def?.difficulty ?? 'easy';
+        const label = DIFFICULTY_LABEL[difficulty];
+        return `${label}　**${name}**\n　　${description}`;
+    });
 
-  let content = missionLines.join('\n\n');
-  content += `\n────────────────\n💰 残高: **${formatChips(balance)}**`;
+    let content = missionLines.join('\n\n');
+    content += `\n────────────────\n💰 残高: **${formatChips(balance)}**`;
 
-  return new ContainerBuilder()
-    .setAccentColor(CasinoTheme.colors.purple)
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent('📖 ミッションガイド'),
-    )
-    .addSeparatorComponents(
-      new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-    )
-    .addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(content),
-    )
-    .addActionRowComponents(
-      new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId(`daily:tab_missions:${userId}`)
-          .setLabel('🔙 戻る')
-          .setStyle(ButtonStyle.Secondary),
-      ),
-    );
+    return new ContainerBuilder()
+        .setAccentColor(CasinoTheme.colors.purple)
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent('📖 ミッションガイド'),
+        )
+        .addSeparatorComponents(
+            new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+        )
+        .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(content),
+        )
+        .addActionRowComponents(
+            new ActionRowBuilder<ButtonBuilder>().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`daily:tab_missions:${userId}`)
+                    .setLabel('🔙 戻る')
+                    .setStyle(ButtonStyle.Secondary),
+            ),
+        );
 }
 
 function buildMissionProgressBar(progress: number, target: number): string {
-  const ratio = Math.min(progress / target, 1);
-  const filled = Math.round(ratio * 10);
-  const empty = 10 - filled;
-  const bar = '█'.repeat(filled) + '░'.repeat(empty);
-  const percent = Math.round(ratio * 100);
-  return `[${bar}] ${percent}%`;
+    const ratio = Math.min(progress / target, 1);
+    const filled = Math.round(ratio * 10);
+    const empty = 10 - filled;
+    const bar = '█'.repeat(filled) + '░'.repeat(empty);
+    const percent = Math.round(ratio * 100);
+    return `[${bar}] ${percent}%`;
 }

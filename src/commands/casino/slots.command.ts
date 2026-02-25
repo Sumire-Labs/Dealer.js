@@ -12,85 +12,85 @@ import {setSessionBet as setSlotsBet} from '../../interactions/buttons/slots.but
 import {buildAchievementNotification} from '../../database/services/achievement.service.js';
 
 const data = new SlashCommandBuilder()
-  .setName('slots')
-  .setDescription('ダイヤモンドカジノのスロットマシンで遊ぶ')
-  .addIntegerOption(option =>
-    option
-      .setName('bet')
-      .setDescription('ベット額')
-      .setRequired(false)
-      .setMinValue(Number(S.minBet.defaultValue)),
-  )
-  .toJSON();
+    .setName('slots')
+    .setDescription('ダイヤモンドカジノのスロットマシンで遊ぶ')
+    .addIntegerOption(option =>
+        option
+            .setName('bet')
+            .setDescription('ベット額')
+            .setRequired(false)
+            .setMinValue(Number(S.minBet.defaultValue)),
+    )
+    .toJSON();
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
-  const userId = interaction.user.id;
-  const betInput = interaction.options.getInteger('bet');
-  const bet = betInput ? BigInt(betInput) : configService.getBigInt(S.minBet);
+    const userId = interaction.user.id;
+    const betInput = interaction.options.getInteger('bet');
+    const bet = betInput ? BigInt(betInput) : configService.getBigInt(S.minBet);
 
-  const minBet = configService.getBigInt(S.minBet);
-  const maxBet = configService.getBigInt(S.maxSlots);
-  if (bet < minBet) {
+    const minBet = configService.getBigInt(S.minBet);
+    const maxBet = configService.getBigInt(S.maxSlots);
+    if (bet < minBet) {
+        await interaction.reply({
+            content: `最低ベットは${formatChips(minBet)}です。`,
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+    if (maxBet > 0n && bet > maxBet) {
+        await interaction.reply({
+            content: `ベット上限は${formatChips(maxBet)}です。`,
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    const user = await findOrCreateUser(userId);
+    if (user.chips < bet) {
+        await interaction.reply({
+            content: `チップが不足しています！ 残高: ${formatChips(user.chips)}`,
+            flags: MessageFlags.Ephemeral,
+        });
+        return;
+    }
+
+    // Store session bet for button interactions
+    setSlotsBet(userId, bet);
+
+    // Show spinning placeholder and defer
+    const spinPlaceholder = buildSlotsSpinningView(['🔄', '🔄', '🔄']);
     await interaction.reply({
-      content: `最低ベットは${formatChips(minBet)}です。`,
-      flags: MessageFlags.Ephemeral,
+        components: [spinPlaceholder],
+        flags: MessageFlags.IsComponentsV2,
     });
-    return;
-  }
-  if (maxBet > 0n && bet > maxBet) {
-    await interaction.reply({
-      content: `ベット上限は${formatChips(maxBet)}です。`,
-      flags: MessageFlags.Ephemeral,
+
+    // Run the game
+    const result = spin();
+    const gameResult = await processGameResult(userId, 'SLOTS', bet, result.paytable.multiplier, {
+        multiplier: result.paytable.multiplier,
     });
-    return;
-  }
 
-  const user = await findOrCreateUser(userId);
-  if (user.chips < bet) {
-    await interaction.reply({
-      content: `チップが不足しています！ 残高: ${formatChips(user.chips)}`,
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
-  }
+    // Get today's stats
+    const todayStats = await getTodayStats(userId);
 
-  // Store session bet for button interactions
-  setSlotsBet(userId, bet);
+    // Play animation
+    await playSlotsAnimation(
+        interaction,
+        result,
+        bet,
+        gameResult.payout,
+        gameResult.newBalance,
+        userId,
+        todayStats,
+    );
 
-  // Show spinning placeholder and defer
-  const spinPlaceholder = buildSlotsSpinningView(['🔄', '🔄', '🔄']);
-  await interaction.reply({
-    components: [spinPlaceholder],
-    flags: MessageFlags.IsComponentsV2,
-  });
-
-  // Run the game
-  const result = spin();
-  const gameResult = await processGameResult(userId, 'SLOTS', bet, result.paytable.multiplier, {
-    multiplier: result.paytable.multiplier,
-  });
-
-  // Get today's stats
-  const todayStats = await getTodayStats(userId);
-
-  // Play animation
-  await playSlotsAnimation(
-    interaction,
-    result,
-    bet,
-    gameResult.payout,
-    gameResult.newBalance,
-    userId,
-    todayStats,
-  );
-
-  // Achievement notification
-  if (gameResult.newlyUnlocked.length > 0) {
-    await interaction.followUp({
-      content: buildAchievementNotification(gameResult.newlyUnlocked),
-      flags: MessageFlags.Ephemeral,
-    });
-  }
+    // Achievement notification
+    if (gameResult.newlyUnlocked.length > 0) {
+        await interaction.followUp({
+            content: buildAchievementNotification(gameResult.newlyUnlocked),
+            flags: MessageFlags.Ephemeral,
+        });
+    }
 }
 
-registerCommand({ data, execute: execute as never });
+registerCommand({data, execute: execute as never});

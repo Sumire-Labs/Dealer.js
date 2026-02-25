@@ -1,35 +1,35 @@
 import {ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, TextDisplayBuilder,} from 'discord.js';
 
 export function createContainer(accentColor: number): ContainerBuilder {
-  return new ContainerBuilder().setAccentColor(accentColor);
+    return new ContainerBuilder().setAccentColor(accentColor);
 }
 
 export function createHeader(text: string): TextDisplayBuilder {
-  return new TextDisplayBuilder().setContent(text);
+    return new TextDisplayBuilder().setContent(text);
 }
 
 export function createText(text: string): TextDisplayBuilder {
-  return new TextDisplayBuilder().setContent(text);
+    return new TextDisplayBuilder().setContent(text);
 }
 
 export function createDivider(
-  spacing: SeparatorSpacingSize = SeparatorSpacingSize.Small,
+    spacing: SeparatorSpacingSize = SeparatorSpacingSize.Small,
 ): SeparatorBuilder {
-  return new SeparatorBuilder().setDivider(true).setSpacing(spacing);
+    return new SeparatorBuilder().setDivider(true).setSpacing(spacing);
 }
 
 export function buildGameContainer(
-  accentColor: number,
-  header: string,
-  bodyLines: string[],
+    accentColor: number,
+    header: string,
+    bodyLines: string[],
 ): ContainerBuilder {
-  const container = createContainer(accentColor)
-    .addTextDisplayComponents(createHeader(header))
-    .addSeparatorComponents(createDivider());
+    const container = createContainer(accentColor)
+        .addTextDisplayComponents(createHeader(header))
+        .addSeparatorComponents(createDivider());
 
-  for (const line of bodyLines) {
-    container.addTextDisplayComponents(createText(line));
-  }
+    for (const line of bodyLines) {
+        container.addTextDisplayComponents(createText(line));
+    }
 
-  return container;
+    return container;
 }
