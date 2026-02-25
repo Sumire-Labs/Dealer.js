@@ -1,4 +1,4 @@
-import type { GameType } from '@prisma/client';
+import type {GameType} from '@prisma/client';
 
 export type MissionType =
   | 'play_game'

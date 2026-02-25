@@ -1,5 +1,5 @@
-import { prisma } from '../client.js';
-import type { LotteryRound, LotteryTicket } from '@prisma/client';
+import {prisma} from '../client.js';
+import type {LotteryRound, LotteryTicket} from '@prisma/client';
 
 export async function getCurrentRound(): Promise<LotteryRound | null> {
   return prisma.lotteryRound.findFirst({

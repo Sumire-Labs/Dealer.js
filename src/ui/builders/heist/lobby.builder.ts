@@ -1,26 +1,22 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import { formatChips } from '../../../utils/formatters.js';
-import { HEIST_MAX_PLAYERS } from '../../../config/constants.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import {formatChips} from '../../../utils/formatters.js';
+import {HEIST_MAX_PLAYERS} from '../../../config/constants.js';
 import {
-  calculateSuccessRate,
-  calculateMultiplierRange,
-  type HeistCalcParams,
+    calculateMultiplierRange,
+    calculateSuccessRate,
+    type HeistCalcParams,
 } from '../../../games/heist/heist.engine.js';
-import type { HeistSessionState } from '../../../games/heist/heist.session.js';
-import {
-  HEIST_TARGET_MAP,
-  HEIST_RISK_MAP,
-  HEIST_APPROACH_MAP,
-} from '../../../config/heist.js';
+import type {HeistSessionState} from '../../../games/heist/heist.session.js';
+import {HEIST_APPROACH_MAP, HEIST_RISK_MAP, HEIST_TARGET_MAP,} from '../../../config/heist.js';
 
 export function buildHeistLobbyView(
   session: HeistSessionState,

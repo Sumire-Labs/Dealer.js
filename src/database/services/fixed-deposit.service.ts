@@ -1,12 +1,12 @@
-import { prisma } from '../client.js';
+import {prisma} from '../client.js';
 import {
-  getActiveDeposits,
-  getActiveDepositCount,
-  getMatureDeposits,
+    getActiveDepositCount,
+    getActiveDeposits,
+    getMatureDeposits,
 } from '../repositories/fixed-deposit.repository.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { logger } from '../../utils/logger.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {logger} from '../../utils/logger.js';
 
 export interface FixedDepositInfo {
   id: string;

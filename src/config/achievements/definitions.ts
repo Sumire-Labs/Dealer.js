@@ -1,4 +1,4 @@
-import type { AchievementDefinition } from './types.js';
+import type {AchievementDefinition} from './types.js';
 
 export const ACHIEVEMENTS: AchievementDefinition[] = [
   // Gaming

@@ -1,9 +1,9 @@
-import type { Message } from 'discord.js';
-import { MessageFlags } from 'discord.js';
-import { HORSE_RACE_CONFIG } from '../../config/games.js';
-import type { Horse } from '../../games/horse-race/race.horses.js';
-import type { RaceFrame } from '../../games/horse-race/race.engine.js';
-import { buildRaceFrameView } from '../builders/horse-race.builder.js';
+import type {Message} from 'discord.js';
+import {MessageFlags} from 'discord.js';
+import {HORSE_RACE_CONFIG} from '../../config/games.js';
+import type {Horse} from '../../games/horse-race/race.horses.js';
+import type {RaceFrame} from '../../games/horse-race/race.engine.js';
+import {buildRaceFrameView} from '../builders/horse-race.builder.js';
 
 export async function playRaceAnimation(
   message: Message,

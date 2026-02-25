@@ -1,15 +1,9 @@
-import { MessageFlags } from 'discord.js';
-import { logger } from '../../../utils/logger.js';
-import { findOrCreateUser } from '../../../database/repositories/user.repository.js';
-import {
-  getTeamSession,
-  removeTeamSession,
-} from '../../../games/work/team-shift.session.js';
-import {
-  buildTeamShiftLobbyView,
-  buildTeamShiftJobSelectView,
-} from '../../../ui/builders/team-shift.builder.js';
-import type { TeamShiftSession } from '../../../games/work/team-shift.session.js';
+import {MessageFlags} from 'discord.js';
+import {logger} from '../../../utils/logger.js';
+import {findOrCreateUser} from '../../../database/repositories/user.repository.js';
+import type {TeamShiftSession} from '../../../games/work/team-shift.session.js';
+import {getTeamSession, removeTeamSession,} from '../../../games/work/team-shift.session.js';
+import {buildTeamShiftJobSelectView, buildTeamShiftLobbyView,} from '../../../ui/builders/team-shift.builder.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function startTeamLobbyCountdown(

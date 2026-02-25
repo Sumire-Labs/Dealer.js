@@ -1,11 +1,7 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { buildBankViewData } from '../../database/services/bank-view.service.js';
-import { buildBankMainView } from '../../ui/builders/bank.builder.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {buildBankViewData} from '../../database/services/bank-view.service.js';
+import {buildBankMainView} from '../../ui/builders/bank.builder.js';
 
 const data = new SlashCommandBuilder()
   .setName('bank')

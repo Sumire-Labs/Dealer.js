@@ -1,8 +1,8 @@
-import { type ModalSubmitInteraction, MessageFlags } from 'discord.js';
-import { registerModalHandler } from '../handler.js';
-import { hireEmployee } from '../../database/services/business.service.js';
-import { buildBusinessEmployeeView } from '../../ui/builders/business.builder.js';
-import { getBusiness } from '../../database/repositories/business.repository.js';
+import {MessageFlags, type ModalSubmitInteraction} from 'discord.js';
+import {registerModalHandler} from '../handler.js';
+import {hireEmployee} from '../../database/services/business.service.js';
+import {buildBusinessEmployeeView} from '../../ui/builders/business.builder.js';
+import {getBusiness} from '../../database/repositories/business.repository.js';
 
 async function handleBusinessModal(interaction: ModalSubmitInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

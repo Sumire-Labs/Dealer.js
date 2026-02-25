@@ -1,15 +1,15 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { ITEM_MAP } from '../../config/shop.js';
-import type { ActiveBuff } from '@prisma/client';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {ITEM_MAP} from '../../config/shop.js';
+import type {ActiveBuff} from '@prisma/client';
 
 export function buildProfileView(
   userId: string,

@@ -1,6 +1,6 @@
-import { formatCard, formatHidden } from '../../../games/poker/poker.deck.js';
-import type { PokerPhase } from '../../../games/poker/poker.engine.js';
-import { evaluateBestHand } from '../../../games/poker/poker.hand.js';
+import {formatCard, formatHidden} from '../../../games/poker/poker.deck.js';
+import type {PokerPhase} from '../../../games/poker/poker.engine.js';
+import {evaluateBestHand} from '../../../games/poker/poker.hand.js';
 
 export const PHASE_LABELS: Record<PokerPhase, string> = {
   preflop: 'PRE-FLOP',

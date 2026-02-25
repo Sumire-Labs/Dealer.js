@@ -1,10 +1,10 @@
-import { prisma } from '../../client.js';
-import { findOrCreateUser } from '../../repositories/user.repository.js';
+import {prisma} from '../../client.js';
+import {findOrCreateUser} from '../../repositories/user.repository.js';
 import {
-  getInventoryItem,
-  decrementInventoryItem,
-  getActiveBuffs,
-  getInventory,
+    decrementInventoryItem,
+    getActiveBuffs,
+    getInventory,
+    getInventoryItem,
 } from '../../repositories/shop.repository.js';
 
 // ── Buff query helpers (used by other services) ──

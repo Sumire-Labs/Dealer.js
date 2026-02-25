@@ -1,11 +1,6 @@
-import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  MessageFlags,
-  type ButtonInteraction,
-} from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { buildCraftResultView } from '../builders/craft.builder.js';
+import {type ButtonInteraction, ContainerBuilder, MessageFlags, TextDisplayBuilder,} from 'discord.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {buildCraftResultView} from '../builders/craft.builder.js';
 
 const CRAFT_FRAMES = [
   '🔨 素材を集めています...',

@@ -1,4 +1,4 @@
-import { prisma } from '../client.js';
+import {prisma} from '../client.js';
 
 export async function getOutstandingLoans(userId: string) {
   return prisma.loan.findMany({

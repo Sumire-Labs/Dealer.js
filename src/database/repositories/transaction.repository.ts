@@ -1,5 +1,5 @@
-import { Prisma, type GameType, type TransactionType } from '@prisma/client';
-import { prisma } from '../client.js';
+import {type GameType, Prisma, type TransactionType} from '@prisma/client';
+import {prisma} from '../client.js';
 
 export interface CreateTransactionInput {
   userId: string;

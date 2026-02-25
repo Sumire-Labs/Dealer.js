@@ -1,26 +1,21 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import { formatChips } from '../../../utils/formatters.js';
-import {
-  JOBS,
-  LEVEL_THRESHOLDS,
-} from '../../../config/jobs.js';
-import { getAvailableJobs } from '../../../games/work/work.engine.js';
-import { getRemainingCooldown, buildCooldownKey } from '../../../utils/cooldown.js';
-import { formatTimeDelta } from '../../../utils/formatters.js';
-import { getMasteryTier } from '../../../config/work-mastery.js';
-import { PROMOTED_JOBS, type PromotedJobDefinition } from '../../../config/promoted-jobs.js';
-import { SHIFTS } from '../../../config/jobs.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import {formatChips, formatTimeDelta} from '../../../utils/formatters.js';
+import {JOBS, LEVEL_THRESHOLDS, SHIFTS,} from '../../../config/jobs.js';
+import {getAvailableJobs} from '../../../games/work/work.engine.js';
+import {buildCooldownKey, getRemainingCooldown} from '../../../utils/cooldown.js';
+import {getMasteryTier} from '../../../config/work-mastery.js';
+import {PROMOTED_JOBS, type PromotedJobDefinition} from '../../../config/promoted-jobs.js';
 
 export interface WorkPanelViewData {
   userId: string;

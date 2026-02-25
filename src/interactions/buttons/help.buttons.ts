@@ -1,6 +1,6 @@
-import { type ButtonInteraction, MessageFlags } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { buildHelpTopView } from '../../ui/builders/help.builder.js';
+import {type ButtonInteraction, MessageFlags} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
+import {buildHelpTopView} from '../../ui/builders/help.builder.js';
 
 async function handleHelpButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

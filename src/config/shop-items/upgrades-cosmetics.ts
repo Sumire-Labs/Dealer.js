@@ -1,4 +1,4 @@
-import type { ShopItem } from './types.js';
+import type {ShopItem} from './types.js';
 
 // ── Permanent Upgrades ──
 

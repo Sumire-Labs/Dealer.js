@@ -1,15 +1,10 @@
-import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-} from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import { formatChips } from '../../../utils/formatters.js';
-import { cardToString } from '../../../games/blackjack/blackjack.deck.js';
-import { evaluateHand } from '../../../games/blackjack/blackjack.hand.js';
-import type { BlackjackTableSession, TablePlayer } from '../../../games/blackjack/blackjack-table.session.js';
-import { calculatePlayerPayout } from '../../../games/blackjack/blackjack-table.engine.js';
+import {ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, TextDisplayBuilder,} from 'discord.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import {formatChips} from '../../../utils/formatters.js';
+import {cardToString} from '../../../games/blackjack/blackjack.deck.js';
+import {evaluateHand} from '../../../games/blackjack/blackjack.hand.js';
+import type {BlackjackTableSession, TablePlayer} from '../../../games/blackjack/blackjack-table.session.js';
+import {calculatePlayerPayout} from '../../../games/blackjack/blackjack-table.engine.js';
 
 function renderHand(cards: { suit: string; rank: string }[]): string {
   return cards.map(c => cardToString(c as never)).join('  ');

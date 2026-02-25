@@ -1,18 +1,18 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import { formatChips } from '../../../utils/formatters.js';
-import { cardToString } from '../../../games/blackjack/blackjack.deck.js';
-import { evaluateHand } from '../../../games/blackjack/blackjack.hand.js';
-import type { BlackjackTableSession, TablePlayer } from '../../../games/blackjack/blackjack-table.session.js';
-import { getTableAvailableActions } from '../../../games/blackjack/blackjack-table.engine.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import {formatChips} from '../../../utils/formatters.js';
+import {cardToString} from '../../../games/blackjack/blackjack.deck.js';
+import {evaluateHand} from '../../../games/blackjack/blackjack.hand.js';
+import type {BlackjackTableSession, TablePlayer} from '../../../games/blackjack/blackjack-table.session.js';
+import {getTableAvailableActions} from '../../../games/blackjack/blackjack-table.engine.js';
 
 function renderHand(cards: { suit: string; rank: string }[], hideSecond = false): string {
   if (hideSecond && cards.length >= 2) {

@@ -1,5 +1,5 @@
-import type { Card } from './poker.deck.js';
-import type { PokerPhase, PokerPlayer } from './poker.engine.js';
+import type {Card} from './poker.deck.js';
+import type {PokerPhase, PokerPlayer} from './poker.engine.js';
 
 export type SessionStatus = 'waiting' | 'playing' | 'finished' | 'cancelled';
 

@@ -1,6 +1,6 @@
-import { weightedRandom } from '../../utils/random.js';
-import { SLOT_SYMBOLS, type SlotSymbol } from './slots.symbols.js';
-import { evaluatePaytable, type PaytableResult } from './slots.paytable.js';
+import {weightedRandom} from '../../utils/random.js';
+import {SLOT_SYMBOLS, type SlotSymbol} from './slots.symbols.js';
+import {evaluatePaytable, type PaytableResult} from './slots.paytable.js';
 
 export interface SlotsResult {
   reels: SlotSymbol[];

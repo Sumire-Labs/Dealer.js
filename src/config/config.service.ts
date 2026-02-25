@@ -1,17 +1,9 @@
-import { config } from './index.js';
-import { DEFAULT_HORSE_NAMES } from './defaults.js';
-import { loadYamlConfig, type YamlConfig } from './yaml-loader.js';
-import {
-  upsertSetting,
-  deleteSetting,
-  getAllSettings,
-} from '../database/repositories/setting.repository.js';
-import { logger } from '../utils/logger.js';
-import {
-  type SettingDef,
-  type AnySettingDef,
-  SETTING_CATEGORIES,
-} from './setting-defs.js';
+import {config} from './index.js';
+import {DEFAULT_HORSE_NAMES} from './defaults.js';
+import {loadYamlConfig, type YamlConfig} from './yaml-loader.js';
+import {deleteSetting, getAllSettings, upsertSetting,} from '../database/repositories/setting.repository.js';
+import {logger} from '../utils/logger.js';
+import {type AnySettingDef, SETTING_CATEGORIES, type SettingDef,} from './setting-defs.js';
 
 const HORSE_NAMES_KEY = 'horse_race.names';
 

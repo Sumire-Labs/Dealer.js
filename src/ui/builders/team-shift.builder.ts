@@ -1,21 +1,21 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { formatChips } from '../../utils/formatters.js';
-import { JOBS } from '../../config/jobs.js';
-import { TEAM_SHIFT_MAX_PLAYERS } from '../../config/constants.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import type { TeamShiftSession } from '../../games/work/team-shift.session.js';
-import type { WorkResult } from '../../database/services/work.service.js';
-import type { TeamEvent } from '../../config/team-events.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {formatChips} from '../../utils/formatters.js';
+import {JOBS} from '../../config/jobs.js';
+import {TEAM_SHIFT_MAX_PLAYERS} from '../../config/constants.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import type {TeamShiftSession} from '../../games/work/team-shift.session.js';
+import type {WorkResult} from '../../database/services/work.service.js';
+import type {TeamEvent} from '../../config/team-events.js';
 
 const TEAM_PREFIX = '👥 ━━━ TEAM SHIFT ━━━ 👥';
 

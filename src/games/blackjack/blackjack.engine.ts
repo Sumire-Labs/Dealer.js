@@ -1,7 +1,7 @@
-import { BLACKJACK_CONFIG } from '../../config/games.js';
-import { Shoe, type Card } from './blackjack.deck.js';
-import { evaluateHand, canSplit, canDoubleDown } from './blackjack.hand.js';
-import { dealerPlay } from './blackjack.strategy.js';
+import {BLACKJACK_CONFIG} from '../../config/games.js';
+import {type Card, Shoe} from './blackjack.deck.js';
+import {canDoubleDown, canSplit, evaluateHand} from './blackjack.hand.js';
+import {dealerPlay} from './blackjack.strategy.js';
 
 export type GamePhase = 'playing' | 'dealer_turn' | 'resolved';
 export type GameOutcome = 'blackjack' | 'win' | 'lose' | 'push' | 'bust' | 'dealer_bust';

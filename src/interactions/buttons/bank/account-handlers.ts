@@ -1,15 +1,15 @@
 import {
-  type ButtonInteraction,
-  MessageFlags,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ActionRowBuilder,
+    ActionRowBuilder,
+    type ButtonInteraction,
+    MessageFlags,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js';
-import { findOrCreateUser } from '../../../database/repositories/user.repository.js';
-import { depositChips, withdrawChips } from '../../../database/services/bank-account.service.js';
-import { buildBankViewData } from '../../../database/services/bank-view.service.js';
-import { buildBankMainView } from '../../../ui/builders/bank.builder.js';
+import {findOrCreateUser} from '../../../database/repositories/user.repository.js';
+import {depositChips, withdrawChips} from '../../../database/services/bank-account.service.js';
+import {buildBankViewData} from '../../../database/services/bank-view.service.js';
+import {buildBankMainView} from '../../../ui/builders/bank.builder.js';
 
 export async function handleDeposit(interaction: ButtonInteraction): Promise<void> {
   const modal = new ModalBuilder()

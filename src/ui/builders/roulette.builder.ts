@@ -1,21 +1,21 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { formatChips } from '../../utils/formatters.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { getEffectiveMax } from '../../utils/bet.js';
-import { getNumberEmoji, getNumberColor } from '../../config/roulette.js';
-import type { TodayStats } from '../../database/repositories/user.repository.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {formatChips} from '../../utils/formatters.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {getEffectiveMax} from '../../utils/bet.js';
+import {getNumberColor, getNumberEmoji} from '../../config/roulette.js';
+import type {TodayStats} from '../../database/repositories/user.repository.js';
 
 function formatTodayStats(stats: TodayStats): string {
   const sign = stats.netAmount >= 0n ? '+' : '';

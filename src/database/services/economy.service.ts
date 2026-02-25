@@ -1,14 +1,14 @@
-import { Prisma, type GameType, type TransactionType } from '@prisma/client';
-import { prisma } from '../client.js';
-import { findOrCreateUser } from '../repositories/user.repository.js';
-import { getBankruptcyPenaltyMultiplier, applyPenalty } from './loan.service.js';
-import { checkAchievements, type AchievementCheckInput } from './achievement.service.js';
-import { getUnlockedIds } from '../repositories/achievement.repository.js';
-import type { AchievementDefinition } from '../../config/achievements.js';
-import { updateMissionProgress, type CompletedMission } from './mission.service.js';
-import { consumeInventoryItem } from './shop.service.js';
-import { loadUserItemsSnapshot, snapshotHasItem, snapshotHasBuff } from './shop/batch-inventory.service.js';
-import { SHOP_EFFECTS } from '../../config/shop.js';
+import {type GameType, Prisma, type TransactionType} from '@prisma/client';
+import {prisma} from '../client.js';
+import {findOrCreateUser} from '../repositories/user.repository.js';
+import {applyPenalty, getBankruptcyPenaltyMultiplier} from './loan.service.js';
+import {type AchievementCheckInput, checkAchievements} from './achievement.service.js';
+import {getUnlockedIds} from '../repositories/achievement.repository.js';
+import type {AchievementDefinition} from '../../config/achievements.js';
+import {type CompletedMission, updateMissionProgress} from './mission.service.js';
+import {consumeInventoryItem} from './shop.service.js';
+import {loadUserItemsSnapshot, snapshotHasBuff, snapshotHasItem} from './shop/batch-inventory.service.js';
+import {SHOP_EFFECTS} from '../../config/shop.js';
 
 export async function getBalance(userId: string): Promise<bigint> {
   const user = await findOrCreateUser(userId);

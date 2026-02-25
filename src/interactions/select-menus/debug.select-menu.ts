@@ -1,14 +1,10 @@
-import {
-  type UserSelectMenuInteraction,
-  type StringSelectMenuInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerSelectMenuHandler } from '../handler.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { createBusiness, getBusiness } from '../../database/repositories/business.repository.js';
-import { BUSINESS_TYPE_MAP } from '../../config/business.js';
-import { loadDebugViewData } from '../buttons/debug.buttons.js';
-import { buildDebugTabView, buildDebugResultView } from '../../ui/builders/debug.builder.js';
+import {MessageFlags, type StringSelectMenuInteraction, type UserSelectMenuInteraction,} from 'discord.js';
+import {registerSelectMenuHandler} from '../handler.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {createBusiness, getBusiness} from '../../database/repositories/business.repository.js';
+import {BUSINESS_TYPE_MAP} from '../../config/business.js';
+import {loadDebugViewData} from '../buttons/debug.buttons.js';
+import {buildDebugResultView, buildDebugTabView} from '../../ui/builders/debug.builder.js';
 
 async function handleDebugSelectMenu(
   interaction: UserSelectMenuInteraction | StringSelectMenuInteraction,

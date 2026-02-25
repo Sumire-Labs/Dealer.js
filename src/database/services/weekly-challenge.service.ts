@@ -1,20 +1,13 @@
-import { prisma } from '../client.js';
-import type { WorkWeeklyChallenge } from '@prisma/client';
-import {
-  getChallengesForWeek,
-  createChallenge,
-  updateProgress,
-} from '../repositories/weekly-challenge.repository.js';
-import {
-  WEEKLY_CHALLENGE_POOL,
-  WEEKLY_CHALLENGE_MAP,
-} from '../../config/weekly-challenges.js';
-import { WEEKLY_CHALLENGE_COUNT } from '../../config/constants.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { shuffleArray } from '../../utils/random.js';
-import type { WorkEventType, ShiftType } from '../../config/jobs.js';
-import { logger } from '../../utils/logger.js';
+import {prisma} from '../client.js';
+import type {WorkWeeklyChallenge} from '@prisma/client';
+import {createChallenge, getChallengesForWeek, updateProgress,} from '../repositories/weekly-challenge.repository.js';
+import {WEEKLY_CHALLENGE_MAP, WEEKLY_CHALLENGE_POOL,} from '../../config/weekly-challenges.js';
+import {WEEKLY_CHALLENGE_COUNT} from '../../config/constants.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {shuffleArray} from '../../utils/random.js';
+import type {ShiftType, WorkEventType} from '../../config/jobs.js';
+import {logger} from '../../utils/logger.js';
 
 export interface WorkEventInfo {
   jobId: string;

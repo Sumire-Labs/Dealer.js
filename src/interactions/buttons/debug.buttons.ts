@@ -1,27 +1,27 @@
 import {
-  type ButtonInteraction,
-  MessageFlags,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ActionRowBuilder,
-  type ModalActionRowComponentBuilder,
+    ActionRowBuilder,
+    type ButtonInteraction,
+    MessageFlags,
+    type ModalActionRowComponentBuilder,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { findOrCreateUser, resetUser } from '../../database/repositories/user.repository.js';
-import { getBusiness, deleteBusiness } from '../../database/repositories/business.repository.js';
-import { BUSINESS_TYPE_MAP } from '../../config/business.js';
-import { prisma } from '../../database/client.js';
-import { createTransaction } from '../../database/repositories/transaction.repository.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { formatChips } from '../../utils/formatters.js';
+import {registerButtonHandler} from '../handler.js';
+import {findOrCreateUser, resetUser} from '../../database/repositories/user.repository.js';
+import {deleteBusiness, getBusiness} from '../../database/repositories/business.repository.js';
+import {BUSINESS_TYPE_MAP} from '../../config/business.js';
+import {prisma} from '../../database/client.js';
+import {createTransaction} from '../../database/repositories/transaction.repository.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {formatChips} from '../../utils/formatters.js';
 import {
-  type DebugViewData,
-  type DebugTab,
-  buildDebugTabView,
-  buildDebugResetConfirmView,
-  buildDebugResultView,
+    buildDebugResetConfirmView,
+    buildDebugResultView,
+    buildDebugTabView,
+    type DebugTab,
+    type DebugViewData,
 } from '../../ui/builders/debug.builder.js';
 
 // ─── Load data for debug views ───

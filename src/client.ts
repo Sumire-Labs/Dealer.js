@@ -1,9 +1,9 @@
-import { Client, Events, GatewayIntentBits, ActivityType } from 'discord.js';
-import { createRequire } from 'node:module';
-import { config } from './config/index.js';
-import { deployCommands } from './commands/registry.js';
-import { handleInteraction } from './interactions/handler.js';
-import { logger } from './utils/logger.js';
+import {ActivityType, Client, Events, GatewayIntentBits} from 'discord.js';
+import {createRequire} from 'node:module';
+import {config} from './config/index.js';
+import {deployCommands} from './commands/registry.js';
+import {handleInteraction} from './interactions/handler.js';
+import {logger} from './utils/logger.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json') as { version: string };

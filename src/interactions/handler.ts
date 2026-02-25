@@ -1,16 +1,11 @@
-import { type Interaction, MessageFlags } from 'discord.js';
-import { getCommand } from '../commands/registry.js';
-import { handleInteractionError } from '../utils/error-handler.js';
-import {
-  isOnCooldown,
-  getRemainingCooldown,
-  setCooldown,
-  buildCooldownKey,
-} from '../utils/cooldown.js';
-import { COMMAND_COOLDOWN_MS } from '../config/constants.js';
-import { formatTimeDelta } from '../utils/formatters.js';
-import { logger } from '../utils/logger.js';
-import { isJailed, getRemainingJailTime } from '../games/prison/prison.session.js';
+import {type Interaction, MessageFlags} from 'discord.js';
+import {getCommand} from '../commands/registry.js';
+import {handleInteractionError} from '../utils/error-handler.js';
+import {buildCooldownKey, getRemainingCooldown, isOnCooldown, setCooldown,} from '../utils/cooldown.js';
+import {COMMAND_COOLDOWN_MS} from '../config/constants.js';
+import {formatTimeDelta} from '../utils/formatters.js';
+import {logger} from '../utils/logger.js';
+import {getRemainingJailTime, isJailed} from '../games/prison/prison.session.js';
 
 const buttonHandlers = new Map<string, (interaction: never) => Promise<void>>();
 const modalHandlers = new Map<string, (interaction: never) => Promise<void>>();

@@ -1,39 +1,30 @@
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder, type TextBasedChannel,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {HEIST_GROUP_MIN_PLAYERS,} from '../../config/constants.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {findOrCreateUser, incrementGameStats} from '../../database/repositories/user.repository.js';
+import {addChips} from '../../database/services/economy.service.js';
+import {calculateHeistOutcome, type HeistCalcParams} from '../../games/heist/heist.engine.js';
 import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  type TextBasedChannel,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import {
-  HEIST_GROUP_MIN_PLAYERS,
-} from '../../config/constants.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { addChips } from '../../database/services/economy.service.js';
-import { incrementGameStats } from '../../database/repositories/user.repository.js';
-import { calculateHeistOutcome, type HeistCalcParams } from '../../games/heist/heist.engine.js';
-import {
-  getActiveHeistSession,
-  removeActiveHeistSession,
-  type HeistSessionState,
+    getActiveHeistSession,
+    type HeistSessionState,
+    removeActiveHeistSession,
 } from '../../games/heist/heist.session.js';
 import {
-  buildHeistLobbyView,
-  buildHeistResultView,
-  buildHeistCancelledView,
-  buildHeistTargetSelectView,
+    buildHeistCancelledView,
+    buildHeistLobbyView,
+    buildHeistResultView,
+    buildHeistTargetSelectView,
 } from '../../ui/builders/heist.builder.js';
-import { playHeistAnimation } from '../../ui/animations/heist.animation.js';
-import { formatChips } from '../../utils/formatters.js';
-import { isOnCooldown, setCooldown, getRemainingCooldown } from '../../utils/cooldown.js';
-import { formatTimeDelta } from '../../utils/formatters.js';
-import { logger } from '../../utils/logger.js';
-import { checkAchievements, buildAchievementNotification } from '../../database/services/achievement.service.js';
-import { jailUser } from '../../games/prison/prison.session.js';
-import { HEIST_TARGET_MAP } from '../../config/heist.js';
-import { hasInventoryItem, consumeInventoryItem } from '../../database/services/shop.service.js';
+import {playHeistAnimation} from '../../ui/animations/heist.animation.js';
+import {formatChips, formatTimeDelta} from '../../utils/formatters.js';
+import {getRemainingCooldown, isOnCooldown, setCooldown} from '../../utils/cooldown.js';
+import {logger} from '../../utils/logger.js';
+import {buildAchievementNotification, checkAchievements} from '../../database/services/achievement.service.js';
+import {jailUser} from '../../games/prison/prison.session.js';
+import {HEIST_TARGET_MAP} from '../../config/heist.js';
+import {consumeInventoryItem, hasInventoryItem} from '../../database/services/shop.service.js';
 
 const data = new SlashCommandBuilder()
   .setName('heist')

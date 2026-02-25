@@ -1,18 +1,18 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { formatChips } from '../../utils/formatters.js';
-import type { Horse } from '../../games/horse-race/race.horses.js';
-import type { RaceBetEntry, PayoutEntry } from '../../games/horse-race/race.betting.js';
-import { formatHorseInfo, numberEmoji } from '../../games/horse-race/race.horses.js';
-import { getTotalPool } from '../../games/horse-race/race.betting.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {formatChips} from '../../utils/formatters.js';
+import type {Horse} from '../../games/horse-race/race.horses.js';
+import {formatHorseInfo, numberEmoji} from '../../games/horse-race/race.horses.js';
+import type {PayoutEntry, RaceBetEntry} from '../../games/horse-race/race.betting.js';
+import {getTotalPool} from '../../games/horse-race/race.betting.js';
 
 export function buildBettingView(
   sessionId: string,

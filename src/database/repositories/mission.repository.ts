@@ -1,5 +1,5 @@
-import { prisma } from '../client.js';
-import type { DailyMission } from '@prisma/client';
+import {prisma} from '../client.js';
+import type {DailyMission} from '@prisma/client';
 
 export async function getMissionsForDate(
   userId: string,

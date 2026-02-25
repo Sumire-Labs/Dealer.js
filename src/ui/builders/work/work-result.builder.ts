@@ -1,16 +1,16 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import { formatChips } from '../../../utils/formatters.js';
-import type { WorkResult } from '../../../database/services/work.service.js';
-import { getMasteryTier } from '../../../config/work-mastery.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import {formatChips} from '../../../utils/formatters.js';
+import type {WorkResult} from '../../../database/services/work.service.js';
+import {getMasteryTier} from '../../../config/work-mastery.js';
 
 export function buildWorkResultView(result: WorkResult, userId: string): ContainerBuilder {
   const container = new ContainerBuilder()

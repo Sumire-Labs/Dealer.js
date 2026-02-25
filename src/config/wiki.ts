@@ -1,6 +1,6 @@
-import { ALL_ITEMS, type ShopItem } from './shop.js';
-import { CRAFT_RECIPES, type CraftRecipe } from './crafting.js';
-import { COLLECTION_SETS, type CollectionSet } from './collections.js';
+import {ALL_ITEMS, type ShopItem} from './shop.js';
+import {CRAFT_RECIPES, type CraftRecipe} from './crafting.js';
+import {COLLECTION_SETS, type CollectionSet} from './collections.js';
 
 export interface WikiCategory {
   key: string;

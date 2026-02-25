@@ -1,21 +1,18 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    ModalBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { configService } from '../../config/config.service.js';
-import {
-  SETTING_CATEGORIES,
-  type AnySettingDef,
-} from '../../config/setting-defs.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {configService} from '../../config/config.service.js';
+import {type AnySettingDef, SETTING_CATEGORIES,} from '../../config/setting-defs.js';
 
 // ── Setting menu (top-level) ─────────────────────────────────────────
 

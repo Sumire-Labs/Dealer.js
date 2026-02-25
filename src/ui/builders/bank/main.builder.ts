@@ -1,19 +1,19 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import type { BankTab, BankViewData } from './types.js';
-import { buildAccountTab } from './account-tab.builder.js';
-import { buildLoanTab } from './loan-tab.builder.js';
-import { buildHistoryTab } from './history-tab.builder.js';
-import { buildFixedDepositTab } from './fixed-deposit-tab.builder.js';
-import { buildTransferSelectTab } from './transfer-tab.builder.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import type {BankTab, BankViewData} from './types.js';
+import {buildAccountTab} from './account-tab.builder.js';
+import {buildLoanTab} from './loan-tab.builder.js';
+import {buildHistoryTab} from './history-tab.builder.js';
+import {buildFixedDepositTab} from './fixed-deposit-tab.builder.js';
+import {buildTransferSelectTab} from './transfer-tab.builder.js';
 
 // ── Tab bar builder ──────────────────────────────────────────────────
 

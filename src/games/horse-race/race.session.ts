@@ -1,5 +1,5 @@
-import type { Horse } from './race.horses.js';
-import type { RaceBetEntry } from './race.betting.js';
+import type {Horse} from './race.horses.js';
+import type {RaceBetEntry} from './race.betting.js';
 
 export type RaceSessionStatus = 'betting' | 'running' | 'finished' | 'cancelled';
 

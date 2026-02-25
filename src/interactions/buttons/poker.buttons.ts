@@ -1,26 +1,20 @@
 import {
-  type ButtonInteraction,
-  ModalBuilder,
-  ActionRowBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  MessageFlags,
+    ActionRowBuilder,
+    type ButtonInteraction,
+    MessageFlags,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { POKER_MAX_PLAYERS } from '../../config/constants.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import {
-  getActiveSession,
-  hasPlayer,
-} from '../../games/poker/poker.session.js';
-import {
-  processAction,
-  canCheck,
-} from '../../games/poker/poker.engine.js';
-import { advanceGame, tryStartGame } from '../../commands/casino/poker.command.js';
-import { buildPlayerPanel, buildActionConfirmation } from '../../ui/builders/poker.builder.js';
-import { formatChips } from '../../utils/formatters.js';
+import {registerButtonHandler} from '../handler.js';
+import {POKER_MAX_PLAYERS} from '../../config/constants.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {getActiveSession, hasPlayer,} from '../../games/poker/poker.session.js';
+import {canCheck, processAction,} from '../../games/poker/poker.engine.js';
+import {advanceGame, tryStartGame} from '../../commands/casino/poker.command.js';
+import {buildActionConfirmation, buildPlayerPanel} from '../../ui/builders/poker.builder.js';
+import {formatChips} from '../../utils/formatters.js';
 
 async function handlePokerButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

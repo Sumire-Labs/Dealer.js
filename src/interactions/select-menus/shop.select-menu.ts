@@ -1,13 +1,10 @@
-import {
-  type StringSelectMenuInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerSelectMenuHandler } from '../handler.js';
-import { getBalance } from '../../database/services/economy.service.js';
-import { getFlashSale } from '../../database/services/shop.service.js';
-import { SHOP_CATEGORIES } from '../../config/shop.js';
-import { getState, getRankInfo } from '../buttons/shop.buttons.js';
-import { buildShopView } from '../../ui/builders/shop.builder.js';
+import {MessageFlags, type StringSelectMenuInteraction,} from 'discord.js';
+import {registerSelectMenuHandler} from '../handler.js';
+import {getBalance} from '../../database/services/economy.service.js';
+import {getFlashSale} from '../../database/services/shop.service.js';
+import {SHOP_CATEGORIES} from '../../config/shop.js';
+import {getRankInfo, getState} from '../buttons/shop.buttons.js';
+import {buildShopView} from '../../ui/builders/shop.builder.js';
 
 async function handleShopSelectMenu(interaction: StringSelectMenuInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

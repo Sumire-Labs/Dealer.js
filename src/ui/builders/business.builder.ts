@@ -1,23 +1,20 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { formatChips } from '../../utils/formatters.js';
-import {
-  BUSINESS_TYPES,
-  getBusinessLevel,
-} from '../../config/business.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import type { BusinessDashboardData, CollectResult } from '../../database/services/business.service.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {formatChips} from '../../utils/formatters.js';
+import {BUSINESS_TYPES, getBusinessLevel,} from '../../config/business.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import type {BusinessDashboardData, CollectResult} from '../../database/services/business.service.js';
 
 const BIZ_PREFIX = '🏢 ━━━ BUSINESS ━━━ 🏢';
 

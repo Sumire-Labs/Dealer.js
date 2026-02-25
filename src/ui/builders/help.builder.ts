@@ -1,14 +1,14 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
+    ActionRowBuilder,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { HELP_TOP_CONTENT, HELP_CATEGORIES, HELP_CATEGORY_MAP, HELP_TIPS } from '../../config/help.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {HELP_CATEGORIES, HELP_CATEGORY_MAP, HELP_TIPS, HELP_TOP_CONTENT} from '../../config/help.js';
 
 const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   casino: 'スロット・BJ・ルーレットなどのゲーム',

@@ -1,14 +1,14 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { formatChips, formatTimeDelta } from '../../../utils/formatters.js';
-import type { BankViewData } from './types.js';
+import {formatChips, formatTimeDelta} from '../../../utils/formatters.js';
+import type {BankViewData} from './types.js';
 
 export function buildAccountTab(container: ContainerBuilder, data: BankViewData): void {
   const { userId, walletBalance, bankBalance, estimatedInterest } = data;

@@ -1,30 +1,30 @@
 import {
   type ButtonInteraction,
-  MessageFlags,
   ContainerBuilder,
-  TextDisplayBuilder,
+  MessageFlags,
   SeparatorBuilder,
   SeparatorSpacingSize,
+  TextDisplayBuilder,
 } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { performWork, resolveMultiStepWork, getWorkPanelData } from '../../database/services/work.service.js';
+import {registerButtonHandler} from '../handler.js';
+import {getWorkPanelData, performWork, resolveMultiStepWork} from '../../database/services/work.service.js';
 import {
-  buildWorkPanelView,
-  buildWorkResultView,
   buildMultiStepEventView,
   buildWeeklyChallengeView,
+  buildWorkPanelView,
+  buildWorkResultView,
 } from '../../ui/builders/work.builder.js';
-import { handleOvertimeAction } from './work-overtime.buttons.js';
-import { JOB_MAP, type ShiftType } from '../../config/jobs.js';
-import { PROMOTED_JOB_MAP } from '../../config/promoted-jobs.js';
-import { CasinoTheme } from '../../ui/themes/casino.theme.js';
-import { formatTimeDelta } from '../../utils/formatters.js';
-import { buildAchievementNotification } from '../../database/services/achievement.service.js';
-import { buildMissionNotification } from '../../database/services/mission.service.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { SPECIAL_SHIFTS } from '../../config/special-shifts.js';
-import { setOvertimeSession } from '../../games/work/overtime.session.js';
+import {handleOvertimeAction} from './work-overtime.buttons.js';
+import {JOB_MAP, type ShiftType} from '../../config/jobs.js';
+import {PROMOTED_JOB_MAP} from '../../config/promoted-jobs.js';
+import {CasinoTheme} from '../../ui/themes/casino.theme.js';
+import {formatTimeDelta} from '../../utils/formatters.js';
+import {buildAchievementNotification} from '../../database/services/achievement.service.js';
+import {buildMissionNotification} from '../../database/services/mission.service.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {SPECIAL_SHIFTS} from '../../config/special-shifts.js';
+import {setOvertimeSession} from '../../games/work/overtime.session.js';
 
 async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

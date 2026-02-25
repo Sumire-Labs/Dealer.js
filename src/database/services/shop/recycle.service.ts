@@ -1,11 +1,8 @@
-import { prisma } from '../../client.js';
-import {
-  getInventoryItem,
-  decrementInventoryItem,
-} from '../../repositories/shop.repository.js';
-import { checkAchievements } from '../achievement.service.js';
-import type { AchievementDefinition } from '../../../config/achievements.js';
-import { ITEM_MAP, SHOP_EFFECTS } from '../../../config/shop.js';
+import {prisma} from '../../client.js';
+import {decrementInventoryItem, getInventoryItem,} from '../../repositories/shop.repository.js';
+import {checkAchievements} from '../achievement.service.js';
+import type {AchievementDefinition} from '../../../config/achievements.js';
+import {ITEM_MAP, SHOP_EFFECTS} from '../../../config/shop.js';
 
 export interface RecycleResult {
   success: boolean;

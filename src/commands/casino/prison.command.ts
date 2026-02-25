@@ -1,12 +1,8 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { getJailSession, getJailbreakCooldownRemaining } from '../../games/prison/prison.session.js';
-import { buildPrisonView, buildFreeView } from '../../ui/builders/prison.builder.js';
-import { hasInventoryItem } from '../../database/services/shop.service.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {getJailbreakCooldownRemaining, getJailSession} from '../../games/prison/prison.session.js';
+import {buildFreeView, buildPrisonView} from '../../ui/builders/prison.builder.js';
+import {hasInventoryItem} from '../../database/services/shop.service.js';
 
 const data = new SlashCommandBuilder()
   .setName('prison')

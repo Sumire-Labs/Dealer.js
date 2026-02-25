@@ -1,7 +1,7 @@
-import type { ShiftType, WorkEvent } from '../../config/jobs.js';
-import type { WorkBonuses } from './work.engine.js';
-import type { WorkScenario } from '../../config/work-events.js';
-import { MULTI_STEP_SESSION_TTL_MS } from '../../config/constants.js';
+import type {ShiftType, WorkEvent} from '../../config/jobs.js';
+import type {WorkBonuses} from './work.engine.js';
+import type {WorkScenario} from '../../config/work-events.js';
+import {MULTI_STEP_SESSION_TTL_MS} from '../../config/constants.js';
 
 export interface PendingWorkSession {
   userId: string;

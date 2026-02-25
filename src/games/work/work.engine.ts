@@ -1,22 +1,19 @@
 import {
-  type JobDefinition,
-  type ShiftDefinition,
-  type WorkEventType,
-  type WorkEvent,
-  EVENT_MAP,
   EVENT_FLAVORS,
-  LEVEL_THRESHOLDS,
+  EVENT_MAP,
+  type JobDefinition,
   JOBS,
+  LEVEL_THRESHOLDS,
+  type ShiftDefinition,
+  type WorkEvent,
+  type WorkEventType,
 } from '../../config/jobs.js';
-import {
-  OVERTIME_MULTIPLIERS,
-} from '../../config/constants.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { secureRandomInt } from '../../utils/random.js';
-import { weightedRandom } from '../../utils/random.js';
-import type { MasteryTier } from '../../config/work-mastery.js';
-import type { PromotedJobDefinition } from '../../config/promoted-jobs.js';
+import {OVERTIME_MULTIPLIERS,} from '../../config/constants.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {secureRandomInt, weightedRandom} from '../../utils/random.js';
+import type {MasteryTier} from '../../config/work-mastery.js';
+import type {PromotedJobDefinition} from '../../config/promoted-jobs.js';
 
 export interface WorkBonuses {
   mastery?: MasteryTier;

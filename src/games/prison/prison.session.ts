@@ -1,9 +1,7 @@
-import { secureRandomInt } from '../../utils/random.js';
-import {
-  PRISON_JAILBREAK_COOLDOWN_MS,
-} from '../../config/constants.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
+import {secureRandomInt} from '../../utils/random.js';
+import {PRISON_JAILBREAK_COOLDOWN_MS,} from '../../config/constants.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
 
 export interface PrisonSession {
   userId: string;

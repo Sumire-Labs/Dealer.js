@@ -1,11 +1,7 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { getBusinessDashboard } from '../../database/services/business.service.js';
-import { buildBusinessDashboardView } from '../../ui/builders/business.builder.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {getBusinessDashboard} from '../../database/services/business.service.js';
+import {buildBusinessDashboardView} from '../../ui/builders/business.builder.js';
 
 const data = new SlashCommandBuilder()
   .setName('business')

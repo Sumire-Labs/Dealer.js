@@ -1,12 +1,9 @@
-import {
-  type StringSelectMenuInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerSelectMenuHandler } from '../handler.js';
-import { JOB_MAP } from '../../config/jobs.js';
-import { PROMOTED_JOB_MAP } from '../../config/promoted-jobs.js';
-import { buildShiftSelectView } from '../../ui/builders/work.builder.js';
-import { rollSpecialShifts } from '../../config/special-shifts.js';
+import {MessageFlags, type StringSelectMenuInteraction,} from 'discord.js';
+import {registerSelectMenuHandler} from '../handler.js';
+import {JOB_MAP} from '../../config/jobs.js';
+import {PROMOTED_JOB_MAP} from '../../config/promoted-jobs.js';
+import {buildShiftSelectView} from '../../ui/builders/work.builder.js';
+import {rollSpecialShifts} from '../../config/special-shifts.js';
 
 async function handleWorkSelectMenu(interaction: StringSelectMenuInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

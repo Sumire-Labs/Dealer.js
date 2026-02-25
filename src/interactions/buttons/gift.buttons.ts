@@ -1,25 +1,21 @@
 import {
-  type ButtonInteraction,
-  MessageFlags,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ActionRowBuilder,
+    ActionRowBuilder,
+    type ButtonInteraction,
+    MessageFlags,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
+import {registerButtonHandler} from '../handler.js';
+import {getRemainingGifts, sendGiftChips, sendGiftItem,} from '../../database/services/gift.service.js';
+import {getUserInventorySummary} from '../../database/services/shop.service.js';
 import {
-  sendGiftItem,
-  sendGiftChips,
-  getRemainingGifts,
-} from '../../database/services/gift.service.js';
-import { getUserInventorySummary } from '../../database/services/shop.service.js';
-import {
-  buildGiftTypeSelectView,
-  buildGiftItemSelectView,
-  buildGiftConfirmView,
-  buildGiftResultView,
+    buildGiftConfirmView,
+    buildGiftItemSelectView,
+    buildGiftResultView,
+    buildGiftTypeSelectView,
 } from '../../ui/builders/gift.builder.js';
-import { buildAchievementNotification } from '../../database/services/achievement.service.js';
+import {buildAchievementNotification} from '../../database/services/achievement.service.js';
 
 const giftItemPage = new Map<string, number>();
 

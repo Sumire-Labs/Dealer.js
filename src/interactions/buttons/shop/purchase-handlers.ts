@@ -1,20 +1,20 @@
 import {
-  type ButtonInteraction,
-  MessageFlags,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ActionRowBuilder,
-  type ModalActionRowComponentBuilder,
+    ActionRowBuilder,
+    type ButtonInteraction,
+    MessageFlags,
+    type ModalActionRowComponentBuilder,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js';
-import { getBalance } from '../../../database/services/economy.service.js';
-import { purchaseItem, getDailyRotation, getFlashSale } from '../../../database/services/shop.service.js';
-import { ITEM_MAP } from '../../../config/shop.js';
-import { getRankDiscount } from '../../../config/shop-ranks.js';
-import { getLifetimeShopSpend } from '../../../database/repositories/shop.repository.js';
-import { buildShopView, buildPurchaseConfirmView, buildPurchaseResultView } from '../../../ui/builders/shop.builder.js';
-import { buildAchievementNotification } from '../../../database/services/achievement.service.js';
-import { getState, getRankInfo } from './state.js';
+import {getBalance} from '../../../database/services/economy.service.js';
+import {getDailyRotation, getFlashSale, purchaseItem} from '../../../database/services/shop.service.js';
+import {ITEM_MAP} from '../../../config/shop.js';
+import {getRankDiscount} from '../../../config/shop-ranks.js';
+import {getLifetimeShopSpend} from '../../../database/repositories/shop.repository.js';
+import {buildPurchaseConfirmView, buildPurchaseResultView, buildShopView} from '../../../ui/builders/shop.builder.js';
+import {buildAchievementNotification} from '../../../database/services/achievement.service.js';
+import {getRankInfo, getState} from './state.js';
 
 export async function handleBuy(interaction: ButtonInteraction, userId: string, parts: string[]): Promise<void> {
   const itemId = parts[3];

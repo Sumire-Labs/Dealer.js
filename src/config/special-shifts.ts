@@ -1,6 +1,6 @@
-import { secureRandomInt } from '../utils/random.js';
-import { SPECIAL_SHIFT_CACHE_TTL_MS, SPECIAL_SHIFT_TRAINING_CD_MS } from './constants.js';
-import { isOnCooldown, buildCooldownKey } from '../utils/cooldown.js';
+import {secureRandomInt} from '../utils/random.js';
+import {SPECIAL_SHIFT_CACHE_TTL_MS, SPECIAL_SHIFT_TRAINING_CD_MS} from './constants.js';
+import {buildCooldownKey, isOnCooldown} from '../utils/cooldown.js';
 
 export interface SpecialShiftDefinition {
   type: string;

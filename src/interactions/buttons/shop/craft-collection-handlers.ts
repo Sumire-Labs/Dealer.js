@@ -1,18 +1,13 @@
-import {
-  type ButtonInteraction,
-  MessageFlags,
-  ContainerBuilder,
-  TextDisplayBuilder,
-} from 'discord.js';
-import { craftItem } from '../../../database/services/shop.service.js';
-import { getCollectionProgress } from '../../../database/services/collection.service.js';
-import { CRAFT_RECIPES } from '../../../config/crafting.js';
-import { buildCraftListView, buildCraftConfirmView } from '../../../ui/builders/craft.builder.js';
-import { buildCollectionDetailView } from '../../../ui/builders/collection.builder.js';
-import { playCraftAnimation } from '../../../ui/animations/craft.animation.js';
-import { buildAchievementNotification } from '../../../database/services/achievement.service.js';
-import { getInventory } from '../../../database/repositories/shop.repository.js';
-import { getState } from './state.js';
+import {type ButtonInteraction, ContainerBuilder, MessageFlags, TextDisplayBuilder,} from 'discord.js';
+import {craftItem} from '../../../database/services/shop.service.js';
+import {getCollectionProgress} from '../../../database/services/collection.service.js';
+import {CRAFT_RECIPES} from '../../../config/crafting.js';
+import {buildCraftConfirmView, buildCraftListView} from '../../../ui/builders/craft.builder.js';
+import {buildCollectionDetailView} from '../../../ui/builders/collection.builder.js';
+import {playCraftAnimation} from '../../../ui/animations/craft.animation.js';
+import {buildAchievementNotification} from '../../../database/services/achievement.service.js';
+import {getInventory} from '../../../database/repositories/shop.repository.js';
+import {getState} from './state.js';
 
 export async function handleCraft(interaction: ButtonInteraction, userId: string, parts: string[]): Promise<void> {
   const recipeId = parts[3];

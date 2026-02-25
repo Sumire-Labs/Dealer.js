@@ -1,4 +1,4 @@
-import type { ShiftType } from '../../config/jobs.js';
+import type {ShiftType} from '../../config/jobs.js';
 
 export interface TeamShiftPlayer {
   userId: string;

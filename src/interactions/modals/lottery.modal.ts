@@ -1,20 +1,11 @@
-import {
-  type ModalSubmitInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerModalHandler } from '../handler.js';
-import {
-  LOTTERY_NUMBER_MIN,
-  LOTTERY_NUMBER_MAX,
-} from '../../config/constants.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { buyTicket, getOrCreateCurrentRound } from '../../database/services/lottery.service.js';
-import {
-  getUserTickets,
-  getRoundTicketCount,
-} from '../../database/repositories/lottery.repository.js';
-import { buildLotteryView } from '../../ui/builders/lottery.builder.js';
-import { checkAchievements, buildAchievementNotification } from '../../database/services/achievement.service.js';
+import {MessageFlags, type ModalSubmitInteraction,} from 'discord.js';
+import {registerModalHandler} from '../handler.js';
+import {LOTTERY_NUMBER_MAX, LOTTERY_NUMBER_MIN,} from '../../config/constants.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {buyTicket, getOrCreateCurrentRound} from '../../database/services/lottery.service.js';
+import {getRoundTicketCount, getUserTickets,} from '../../database/repositories/lottery.repository.js';
+import {buildLotteryView} from '../../ui/builders/lottery.builder.js';
+import {buildAchievementNotification, checkAchievements} from '../../database/services/achievement.service.js';
 
 async function handleLotteryModal(interaction: ModalSubmitInteraction): Promise<void> {
   const userId = interaction.user.id;

@@ -1,4 +1,4 @@
-import type { Horse } from './race.horses.js';
+import type {Horse} from './race.horses.js';
 
 export interface RaceBetEntry {
   userId: string;

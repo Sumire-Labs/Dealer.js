@@ -1,21 +1,17 @@
-import { type ButtonInteraction, MessageFlags } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
+import {type ButtonInteraction, MessageFlags} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
 import {
-  getJailSession,
-  releaseUser,
-  attemptJailbreak,
-  getJailbreakCooldownRemaining,
-  usePrisonKey,
+    attemptJailbreak,
+    getJailbreakCooldownRemaining,
+    getJailSession,
+    releaseUser,
+    usePrisonKey,
 } from '../../games/prison/prison.session.js';
-import {
-  buildPrisonView,
-  buildJailbreakResultView,
-  buildReleasedView,
-} from '../../ui/builders/prison.builder.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { removeChips } from '../../database/services/economy.service.js';
-import { formatChips } from '../../utils/formatters.js';
-import { hasInventoryItem, consumeInventoryItem } from '../../database/services/shop.service.js';
+import {buildJailbreakResultView, buildPrisonView, buildReleasedView,} from '../../ui/builders/prison.builder.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {removeChips} from '../../database/services/economy.service.js';
+import {formatChips} from '../../utils/formatters.js';
+import {consumeInventoryItem, hasInventoryItem} from '../../database/services/shop.service.js';
 
 async function handlePrisonButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

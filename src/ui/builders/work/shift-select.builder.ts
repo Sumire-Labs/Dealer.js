@@ -1,19 +1,19 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import { formatTimeDelta } from '../../../utils/formatters.js';
-import { SHIFTS, type ShiftType } from '../../../config/jobs.js';
-import { configService } from '../../../config/config.service.js';
-import { S } from '../../../config/setting-defs.js';
-import { getRemainingCooldown, buildCooldownKey } from '../../../utils/cooldown.js';
-import type { SpecialShiftDefinition } from '../../../config/special-shifts.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import {formatTimeDelta} from '../../../utils/formatters.js';
+import {SHIFTS, type ShiftType} from '../../../config/jobs.js';
+import {configService} from '../../../config/config.service.js';
+import {S} from '../../../config/setting-defs.js';
+import {buildCooldownKey, getRemainingCooldown} from '../../../utils/cooldown.js';
+import type {SpecialShiftDefinition} from '../../../config/special-shifts.js';
 
 export interface ShiftSelectViewData {
   userId: string;

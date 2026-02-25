@@ -1,17 +1,17 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { ITEM_MAP } from '../../config/shop.js';
-import { buildTabRow } from './shop.builder.js';
-import type { CraftRecipe } from '../../config/crafting.js';
-import type { UserInventory } from '@prisma/client';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {ITEM_MAP} from '../../config/shop.js';
+import {buildTabRow} from './shop.builder.js';
+import type {CraftRecipe} from '../../config/crafting.js';
+import type {UserInventory} from '@prisma/client';
 
 const RECIPES_PER_PAGE = 3;
 

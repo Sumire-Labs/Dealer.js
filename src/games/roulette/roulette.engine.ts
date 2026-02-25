@@ -1,13 +1,13 @@
-import { secureRandomInt } from '../../utils/random.js';
+import {secureRandomInt} from '../../utils/random.js';
 import {
-  getNumberColor,
-  type RouletteColor,
-  type RouletteBet,
-  type OutsideBetType,
-  type InsideBetType,
-  OUTSIDE_BET_MULTIPLIER,
-  INSIDE_BET_MULTIPLIER,
-  WHEEL_ORDER,
+    getNumberColor,
+    INSIDE_BET_MULTIPLIER,
+    type InsideBetType,
+    OUTSIDE_BET_MULTIPLIER,
+    type OutsideBetType,
+    type RouletteBet,
+    type RouletteColor,
+    WHEEL_ORDER,
 } from '../../config/roulette.js';
 
 export interface RouletteResult {

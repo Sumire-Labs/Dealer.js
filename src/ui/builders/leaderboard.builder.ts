@@ -1,16 +1,16 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import type { LeaderboardCategory } from '../../database/repositories/leaderboard.repository.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import type {LeaderboardCategory} from '../../database/repositories/leaderboard.repository.js';
 
 export const LEADERBOARD_PAGE_SIZE = 10;
 

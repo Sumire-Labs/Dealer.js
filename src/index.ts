@@ -1,7 +1,7 @@
-import { startBot } from './client.js';
-import { startScheduler } from './scheduler/daily-reset.scheduler.js';
-import { configService } from './config/config.service.js';
-import { logger } from './utils/logger.js';
+import {startBot} from './client.js';
+import {startScheduler} from './scheduler/daily-reset.scheduler.js';
+import {configService} from './config/config.service.js';
+import {logger} from './utils/logger.js';
 
 async function loadModules(): Promise<void> {
   // Economy commands

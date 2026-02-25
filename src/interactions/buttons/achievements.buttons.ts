@@ -1,11 +1,8 @@
-import { type ButtonInteraction, MessageFlags } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { getUnlockedIds } from '../../database/repositories/achievement.repository.js';
-import {
-  buildAchievementsView,
-  type AchievementTab,
-} from '../../ui/builders/achievements.builder.js';
+import {type ButtonInteraction, MessageFlags} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {getUnlockedIds} from '../../database/repositories/achievement.repository.js';
+import {type AchievementTab, buildAchievementsView,} from '../../ui/builders/achievements.builder.js';
 
 async function handleAchievementButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

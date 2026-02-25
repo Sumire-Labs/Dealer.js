@@ -1,6 +1,5 @@
-import type { BlackjackHand, GameOutcome } from './blackjack.engine.js';
-import type { Shoe } from './blackjack.deck.js';
-import type { Card } from './blackjack.deck.js';
+import type {BlackjackHand, GameOutcome} from './blackjack.engine.js';
+import type {Card, Shoe} from './blackjack.deck.js';
 
 export interface TablePlayer {
   userId: string;

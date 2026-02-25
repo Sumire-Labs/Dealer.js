@@ -1,12 +1,31 @@
-import { type ButtonInteraction, MessageFlags } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
+import {type ButtonInteraction, MessageFlags} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
+import {
+  handlePageNext,
+  handlePagePrev,
+  handleTabCollection,
+  handleTabCraft,
+  handleTabDaily,
+  handleTabShop
+} from './shop/navigation-handlers.js';
+import {
+  handleBuy,
+  handleBuyQty,
+  handleCancelBuy,
+  handleConfirmBuy,
+  handleDailyBuy,
+  handleFlashBuy
+} from './shop/purchase-handlers.js';
+import {
+  handleCollectionDetail,
+  handleConfirmCraft,
+  handleCraft,
+  handleCraftNext,
+  handleCraftPrev
+} from './shop/craft-collection-handlers.js';
 
 // Re-export externally referenced state
 export { shopState, getState, getRankInfo } from './shop/state.js';
-
-import { handleTabShop, handleTabDaily, handleTabCraft, handleTabCollection, handlePagePrev, handlePageNext } from './shop/navigation-handlers.js';
-import { handleBuy, handleDailyBuy, handleFlashBuy, handleConfirmBuy, handleCancelBuy, handleBuyQty } from './shop/purchase-handlers.js';
-import { handleCraft, handleConfirmCraft, handleCraftPrev, handleCraftNext, handleCollectionDetail } from './shop/craft-collection-handlers.js';
 
 async function handleShopButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

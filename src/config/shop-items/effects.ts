@@ -1,4 +1,4 @@
-import type { ItemRarity } from './types.js';
+import type {ItemRarity} from './types.js';
 
 // ── Buff effect constants ──
 

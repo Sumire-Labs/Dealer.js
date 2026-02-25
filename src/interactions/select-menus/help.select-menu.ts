@@ -1,10 +1,7 @@
-import {
-  type StringSelectMenuInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerSelectMenuHandler } from '../handler.js';
-import { buildHelpTopView, buildHelpCategoryView } from '../../ui/builders/help.builder.js';
-import { buildWikiTopView } from '../../ui/builders/wiki.builder.js';
+import {MessageFlags, type StringSelectMenuInteraction,} from 'discord.js';
+import {registerSelectMenuHandler} from '../handler.js';
+import {buildHelpCategoryView, buildHelpTopView} from '../../ui/builders/help.builder.js';
+import {buildWikiTopView} from '../../ui/builders/wiki.builder.js';
 
 async function handleHelpSelectMenu(interaction: StringSelectMenuInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

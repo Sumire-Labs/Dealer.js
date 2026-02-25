@@ -1,19 +1,28 @@
+// Re-import here to avoid circular: inline builder for bet-change updates
 import {
-  type ButtonInteraction,
-  MessageFlags,
+    ActionRowBuilder,
+    ButtonBuilder,
+    type ButtonInteraction,
+    ButtonStyle,
+    ContainerBuilder,
+    MessageFlags,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { findOrCreateUser, getTodayStats } from '../../database/repositories/user.repository.js';
-import { processGameResult } from '../../database/services/economy.service.js';
-import { spin } from '../../games/slots/slots.engine.js';
-import { buildSlotsSpinningView } from '../../ui/builders/slots.builder.js';
-import { playSlotsAnimation } from '../../ui/animations/slots.animation.js';
-import { formatChips } from '../../utils/formatters.js';
-import { getEffectiveMax } from '../../utils/bet.js';
-import { buildAchievementNotification } from '../../database/services/achievement.service.js';
-import { buildMissionNotification } from '../../database/services/mission.service.js';
+import {registerButtonHandler} from '../handler.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {findOrCreateUser, getTodayStats} from '../../database/repositories/user.repository.js';
+import {processGameResult} from '../../database/services/economy.service.js';
+import {spin} from '../../games/slots/slots.engine.js';
+import {buildSlotsSpinningView} from '../../ui/builders/slots.builder.js';
+import {playSlotsAnimation} from '../../ui/animations/slots.animation.js';
+import {formatChips} from '../../utils/formatters.js';
+import {getEffectiveMax} from '../../utils/bet.js';
+import {buildAchievementNotification} from '../../database/services/achievement.service.js';
+import {buildMissionNotification} from '../../database/services/mission.service.js';
+import {CasinoTheme} from '../../ui/themes/casino.theme.js';
 
 const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n, 100_000n, 500_000n, 1_000_000n];
 
@@ -142,18 +151,6 @@ async function handleSlotsButton(interaction: ButtonInteraction): Promise<void> 
     return;
   }
 }
-
-// Re-import here to avoid circular: inline builder for bet-change updates
-import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} from 'discord.js';
-import { CasinoTheme } from '../../ui/themes/casino.theme.js';
 
 function buildSlotsIdleViewWithButtons(
   bet: bigint,

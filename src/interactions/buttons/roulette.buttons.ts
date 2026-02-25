@@ -1,26 +1,16 @@
-import {
-  type ButtonInteraction,
-  type MessageComponentInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { findOrCreateUser, getTodayStats } from '../../database/repositories/user.repository.js';
-import { processGameResult } from '../../database/services/economy.service.js';
-import {
-  spinRoulette,
-  evaluateBet,
-} from '../../games/roulette/roulette.engine.js';
-import type { RouletteBet } from '../../config/roulette.js';
-import {
-  buildRouletteIdleView,
-  buildRouletteSpinningView,
-} from '../../ui/builders/roulette.builder.js';
-import { playRouletteAnimation } from '../../ui/animations/roulette.animation.js';
-import { buildAchievementNotification } from '../../database/services/achievement.service.js';
-import { buildMissionNotification } from '../../database/services/mission.service.js';
-import { getEffectiveMax } from '../../utils/bet.js';
+import {type ButtonInteraction, type MessageComponentInteraction, MessageFlags,} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {findOrCreateUser, getTodayStats} from '../../database/repositories/user.repository.js';
+import {processGameResult} from '../../database/services/economy.service.js';
+import {evaluateBet, spinRoulette,} from '../../games/roulette/roulette.engine.js';
+import type {RouletteBet} from '../../config/roulette.js';
+import {buildRouletteIdleView, buildRouletteSpinningView,} from '../../ui/builders/roulette.builder.js';
+import {playRouletteAnimation} from '../../ui/animations/roulette.animation.js';
+import {buildAchievementNotification} from '../../database/services/achievement.service.js';
+import {buildMissionNotification} from '../../database/services/mission.service.js';
+import {getEffectiveMax} from '../../utils/bet.js';
 
 const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n, 100_000n, 500_000n, 1_000_000n];
 

@@ -1,6 +1,6 @@
-import { prisma } from '../client.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
+import {prisma} from '../client.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
 
 export async function findOrCreateUser(userId: string) {
   return prisma.user.upsert({

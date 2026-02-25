@@ -1,13 +1,13 @@
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {getTopPlayers, getTotalPlayerCount, getUserRank} from '../../database/repositories/leaderboard.repository.js';
 import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { getTopPlayers, getUserRank, getTotalPlayerCount } from '../../database/repositories/leaderboard.repository.js';
-import { buildLeaderboardView, LEADERBOARD_PAGE_SIZE, LEADERBOARD_CATEGORIES } from '../../ui/builders/leaderboard.builder.js';
-import { formatChips } from '../../utils/formatters.js';
+    buildLeaderboardView,
+    LEADERBOARD_CATEGORIES,
+    LEADERBOARD_PAGE_SIZE
+} from '../../ui/builders/leaderboard.builder.js';
+import {formatChips} from '../../utils/formatters.js';
 
 const data = new SlashCommandBuilder()
   .setName('leaderboard')

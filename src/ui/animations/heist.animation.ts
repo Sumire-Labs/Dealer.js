@@ -1,8 +1,8 @@
-import type { Message } from 'discord.js';
-import { MessageFlags } from 'discord.js';
-import { HEIST_CONFIG } from '../../config/games.js';
-import { buildHeistPhaseView } from '../builders/heist.builder.js';
-import type { PhaseResult } from '../../games/heist/heist.engine.js';
+import type {Message} from 'discord.js';
+import {MessageFlags} from 'discord.js';
+import {HEIST_CONFIG} from '../../config/games.js';
+import {buildHeistPhaseView} from '../builders/heist.builder.js';
+import type {PhaseResult} from '../../games/heist/heist.engine.js';
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));

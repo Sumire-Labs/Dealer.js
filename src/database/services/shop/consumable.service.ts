@@ -1,13 +1,13 @@
-import { prisma } from '../../client.js';
+import {prisma} from '../../client.js';
 import {
-  getInventoryItem,
-  decrementInventoryItem,
-  setActiveTitle,
-  setActiveBadge,
+    decrementInventoryItem,
+    getInventoryItem,
+    setActiveBadge,
+    setActiveTitle,
 } from '../../repositories/shop.repository.js';
-import { ITEM_MAP } from '../../../config/shop.js';
-import { deleteCooldownsForUser } from '../../../utils/cooldown.js';
-import { assignDailyMissions } from '../mission.service.js';
+import {ITEM_MAP} from '../../../config/shop.js';
+import {deleteCooldownsForUser} from '../../../utils/cooldown.js';
+import {assignDailyMissions} from '../mission.service.js';
 
 // ── Use consumable ──
 

@@ -1,6 +1,6 @@
-import { DAILY_ELIGIBLE_ITEMS } from '../../../config/shop.js';
-import { getSetting, upsertSetting } from '../../repositories/setting.repository.js';
-import { shuffleArray } from '../../../utils/random.js';
+import {DAILY_ELIGIBLE_ITEMS} from '../../../config/shop.js';
+import {getSetting, upsertSetting} from '../../repositories/setting.repository.js';
+import {shuffleArray} from '../../../utils/random.js';
 
 export interface FlashSale {
   itemId: string;

@@ -1,10 +1,6 @@
-import {
-  REST,
-  Routes,
-  type RESTPostAPIChatInputApplicationCommandsJSONBody,
-} from 'discord.js';
-import { config } from '../config/index.js';
-import { logger } from '../utils/logger.js';
+import {REST, type RESTPostAPIChatInputApplicationCommandsJSONBody, Routes,} from 'discord.js';
+import {config} from '../config/index.js';
+import {logger} from '../utils/logger.js';
 
 export interface CommandModule {
   data: RESTPostAPIChatInputApplicationCommandsJSONBody;

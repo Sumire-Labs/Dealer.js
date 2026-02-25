@@ -1,25 +1,17 @@
+import {type ButtonInteraction, MessageFlags,} from 'discord.js';
 import {
-  type ButtonInteraction,
-  MessageFlags,
-} from 'discord.js';
-import {
-  buildOvertimeConfirmView,
-  buildOvertimeResultView,
-  buildOvertimeStopView,
+    buildOvertimeConfirmView,
+    buildOvertimeResultView,
+    buildOvertimeStopView,
 } from '../../ui/builders/overtime.builder.js';
-import { JOB_MAP } from '../../config/jobs.js';
-import { PROMOTED_JOB_MAP } from '../../config/promoted-jobs.js';
-import {
-  OVERTIME_MULTIPLIERS,
-} from '../../config/constants.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import {
-  getOvertimeSession,
-  removeOvertimeSession,
-} from '../../games/work/overtime.session.js';
-import { rollOvertimeEvent, calculateOvertimePay } from '../../games/work/work.engine.js';
-import { addChips, removeChips } from '../../database/services/economy.service.js';
+import {JOB_MAP} from '../../config/jobs.js';
+import {PROMOTED_JOB_MAP} from '../../config/promoted-jobs.js';
+import {OVERTIME_MULTIPLIERS,} from '../../config/constants.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {getOvertimeSession, removeOvertimeSession,} from '../../games/work/overtime.session.js';
+import {calculateOvertimePay, rollOvertimeEvent} from '../../games/work/work.engine.js';
+import {addChips, removeChips} from '../../database/services/economy.service.js';
 
 export async function handleOvertimeAction(
   interaction: ButtonInteraction,

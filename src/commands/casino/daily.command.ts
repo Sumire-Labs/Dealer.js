@@ -1,18 +1,10 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { claimDaily } from '../../database/services/daily.service.js';
-import {
-  buildDailyBonusClaimed,
-  buildDailyBonusAlreadyClaimed,
-} from '../../ui/builders/daily.builder.js';
-import { buildAchievementNotification } from '../../database/services/achievement.service.js';
-import { buildMissionNotification } from '../../database/services/mission.service.js';
-import { getBalance } from '../../database/services/economy.service.js';
-import { getNextResetTimestamp } from '../../database/services/daily.service.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {claimDaily, getNextResetTimestamp} from '../../database/services/daily.service.js';
+import {buildDailyBonusAlreadyClaimed, buildDailyBonusClaimed,} from '../../ui/builders/daily.builder.js';
+import {buildAchievementNotification} from '../../database/services/achievement.service.js';
+import {buildMissionNotification} from '../../database/services/mission.service.js';
+import {getBalance} from '../../database/services/economy.service.js';
 
 const data = new SlashCommandBuilder()
   .setName('daily')

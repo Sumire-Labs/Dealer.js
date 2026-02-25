@@ -1,5 +1,5 @@
-import { prisma } from '../client.js';
-import type { WorkWeeklyChallenge, Prisma } from '@prisma/client';
+import {prisma} from '../client.js';
+import type {Prisma, WorkWeeklyChallenge} from '@prisma/client';
 
 export async function getChallengesForWeek(
   userId: string,

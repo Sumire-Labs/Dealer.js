@@ -1,4 +1,4 @@
-import { loadYamlConfig } from './yaml-loader.js';
+import {loadYamlConfig} from './yaml-loader.js';
 
 const configPath = process.env['CONFIG_PATH'] || './config.yaml';
 const yaml = loadYamlConfig(configPath);

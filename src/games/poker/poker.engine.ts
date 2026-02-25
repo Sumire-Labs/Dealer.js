@@ -1,5 +1,5 @@
-import type { Card } from './poker.deck.js';
-import { evaluateBestHand, type HandResult } from './poker.hand.js';
+import type {Card} from './poker.deck.js';
+import {evaluateBestHand, type HandResult} from './poker.hand.js';
 
 export type PokerPhase = 'preflop' | 'flop' | 'turn' | 'river' | 'showdown';
 

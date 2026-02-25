@@ -1,16 +1,16 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { ITEM_MAP } from '../../config/shop.js';
-import { buildTabRow } from './shop.builder.js';
-import type { CollectionProgress } from '../../database/services/collection.service.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {ITEM_MAP} from '../../config/shop.js';
+import {buildTabRow} from './shop.builder.js';
+import type {CollectionProgress} from '../../database/services/collection.service.js';
 
 export function buildCollectionListView(
   userId: string,

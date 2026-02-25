@@ -1,4 +1,4 @@
-import { prisma } from '../client.js';
+import {prisma} from '../client.js';
 
 export async function createBusiness(ownerId: string, type: string) {
   return prisma.business.create({

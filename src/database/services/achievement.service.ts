@@ -1,13 +1,13 @@
-import type { GameType } from '@prisma/client';
+import type {GameType} from '@prisma/client';
 import {
-  type AchievementDefinition,
-  type AchievementContext,
-  ACHIEVEMENTS_BY_CONTEXT,
-  ALL_GAME_TYPES,
+    type AchievementContext,
+    type AchievementDefinition,
+    ACHIEVEMENTS_BY_CONTEXT,
+    ALL_GAME_TYPES,
 } from '../../config/achievements.js';
-import { getUnlockedIds, unlockAchievement } from '../repositories/achievement.repository.js';
-import { prisma } from '../client.js';
-import { logger } from '../../utils/logger.js';
+import {getUnlockedIds, unlockAchievement} from '../repositories/achievement.repository.js';
+import {prisma} from '../client.js';
+import {logger} from '../../utils/logger.js';
 
 export interface AchievementCheckInput {
   userId: string;

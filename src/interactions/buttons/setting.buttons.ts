@@ -1,19 +1,19 @@
 import {
-  type ButtonInteraction,
-  ModalBuilder,
-  ActionRowBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  MessageFlags,
+    ActionRowBuilder,
+    type ButtonInteraction,
+    MessageFlags,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { configService } from '../../config/config.service.js';
+import {registerButtonHandler} from '../handler.js';
+import {configService} from '../../config/config.service.js';
 import {
-  buildSettingMenuView,
-  buildHorseNameSettingView,
-  buildSettingCategoryPicker,
-  buildSettingCategoryView,
-  buildSettingEditModal,
+    buildHorseNameSettingView,
+    buildSettingCategoryPicker,
+    buildSettingCategoryView,
+    buildSettingEditModal,
+    buildSettingMenuView,
 } from '../../ui/builders/setting.builder.js';
 
 async function handleSettingButton(interaction: ButtonInteraction): Promise<void> {

@@ -1,21 +1,21 @@
-import { type ButtonInteraction, MessageFlags } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
+import {type ButtonInteraction, MessageFlags} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
 import {
-  getTopPlayers,
-  getUserRank,
-  getTotalPlayerCount,
-  type LeaderboardCategory,
-  type LeaderboardEntry,
+    getTopPlayers,
+    getTotalPlayerCount,
+    getUserRank,
+    type LeaderboardCategory,
+    type LeaderboardEntry,
 } from '../../database/repositories/leaderboard.repository.js';
 import {
-  buildLeaderboardView,
-  LEADERBOARD_PAGE_SIZE,
-  LEADERBOARD_CATEGORIES,
-  type LeaderboardDisplayEntry,
+    buildLeaderboardView,
+    LEADERBOARD_CATEGORIES,
+    LEADERBOARD_PAGE_SIZE,
+    type LeaderboardDisplayEntry,
 } from '../../ui/builders/leaderboard.builder.js';
-import { formatChips } from '../../utils/formatters.js';
-import { prisma } from '../../database/client.js';
+import {formatChips} from '../../utils/formatters.js';
+import {prisma} from '../../database/client.js';
 
 export function formatEntryValue(entry: LeaderboardEntry, category: LeaderboardCategory): LeaderboardDisplayEntry {
   switch (category) {

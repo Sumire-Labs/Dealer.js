@@ -1,6 +1,6 @@
-import { HORSE_RACE_CONFIG } from '../../config/games.js';
-import { weightedRandom, secureRandomInt } from '../../utils/random.js';
-import type { Horse } from './race.horses.js';
+import {HORSE_RACE_CONFIG} from '../../config/games.js';
+import {secureRandomInt, weightedRandom} from '../../utils/random.js';
+import type {Horse} from './race.horses.js';
 
 export interface RaceFrame {
   positions: number[]; // position for each horse (0..trackLength)

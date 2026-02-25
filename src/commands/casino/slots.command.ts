@@ -1,19 +1,15 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { findOrCreateUser, getTodayStats } from '../../database/repositories/user.repository.js';
-import { processGameResult } from '../../database/services/economy.service.js';
-import { spin } from '../../games/slots/slots.engine.js';
-import { buildSlotsSpinningView } from '../../ui/builders/slots.builder.js';
-import { playSlotsAnimation } from '../../ui/animations/slots.animation.js';
-import { formatChips } from '../../utils/formatters.js';
-import { setSessionBet as setSlotsBet } from '../../interactions/buttons/slots.buttons.js';
-import { buildAchievementNotification } from '../../database/services/achievement.service.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {findOrCreateUser, getTodayStats} from '../../database/repositories/user.repository.js';
+import {processGameResult} from '../../database/services/economy.service.js';
+import {spin} from '../../games/slots/slots.engine.js';
+import {buildSlotsSpinningView} from '../../ui/builders/slots.builder.js';
+import {playSlotsAnimation} from '../../ui/animations/slots.animation.js';
+import {formatChips} from '../../utils/formatters.js';
+import {setSessionBet as setSlotsBet} from '../../interactions/buttons/slots.buttons.js';
+import {buildAchievementNotification} from '../../database/services/achievement.service.js';
 
 const data = new SlashCommandBuilder()
   .setName('slots')

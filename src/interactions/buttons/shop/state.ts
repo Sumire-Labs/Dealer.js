@@ -1,5 +1,5 @@
-import { getLifetimeShopSpend } from '../../../database/repositories/shop.repository.js';
-import { getShopRank, getNextRank } from '../../../config/shop-ranks.js';
+import {getLifetimeShopSpend} from '../../../database/repositories/shop.repository.js';
+import {getNextRank, getShopRank} from '../../../config/shop-ranks.js';
 
 // Session state per user
 export const shopState = new Map<string, { category: number; page: number; craftPage: number; collectionPage: number }>();

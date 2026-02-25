@@ -1,11 +1,11 @@
-import type { MessageComponentInteraction, ChatInputCommandInteraction } from 'discord.js';
-import { MessageFlags } from 'discord.js';
-import { SLOTS_CONFIG } from '../../config/games.js';
-import { generateRandomReelDisplay, type SlotsResult } from '../../games/slots/slots.engine.js';
-import { SPIN_EMOJIS } from '../../games/slots/slots.symbols.js';
-import { buildSlotsSpinningView, buildSlotsResultView } from '../builders/slots.builder.js';
-import { secureRandomInt } from '../../utils/random.js';
-import type { TodayStats } from '../../database/repositories/user.repository.js';
+import type {ChatInputCommandInteraction, MessageComponentInteraction} from 'discord.js';
+import {MessageFlags} from 'discord.js';
+import {SLOTS_CONFIG} from '../../config/games.js';
+import {generateRandomReelDisplay, type SlotsResult} from '../../games/slots/slots.engine.js';
+import {SPIN_EMOJIS} from '../../games/slots/slots.symbols.js';
+import {buildSlotsResultView, buildSlotsSpinningView} from '../builders/slots.builder.js';
+import {secureRandomInt} from '../../utils/random.js';
+import type {TodayStats} from '../../database/repositories/user.repository.js';
 
 function pickRandomEmoji(): string {
   return SPIN_EMOJIS[secureRandomInt(0, SPIN_EMOJIS.length - 1)];

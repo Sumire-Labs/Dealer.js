@@ -1,31 +1,28 @@
-import { findOrCreateUser } from '../repositories/user.repository.js';
-import { logger } from '../../utils/logger.js';
+import {findOrCreateUser} from '../repositories/user.repository.js';
+import {logger} from '../../utils/logger.js';
 import {
-  createBusiness,
-  getBusiness,
-  upgradeBusiness,
-  updateLastCollected,
-  addEmployee,
-  removeEmployee,
-  getEmploymentInfo,
-  deleteBusiness,
+    addEmployee,
+    createBusiness,
+    deleteBusiness,
+    getBusiness,
+    getEmploymentInfo,
+    removeEmployee,
+    updateLastCollected,
+    upgradeBusiness,
 } from '../repositories/business.repository.js';
 import {
-  BUSINESS_TYPE_MAP,
-  getBusinessLevel,
-  BUSINESS_EVENTS,
-  type BusinessEvent,
-  type BusinessTypeDefinition,
-  type BusinessLevelDefinition,
+    BUSINESS_EVENTS,
+    BUSINESS_TYPE_MAP,
+    type BusinessEvent,
+    type BusinessLevelDefinition,
+    type BusinessTypeDefinition,
+    getBusinessLevel,
 } from '../../config/business.js';
-import {
-  BUSINESS_MAX_ACCUMULATION_MS,
-} from '../../config/constants.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { addChips, removeChips } from './economy.service.js';
-import { weightedRandom } from '../../utils/random.js';
-import { secureRandomInt } from '../../utils/random.js';
+import {BUSINESS_MAX_ACCUMULATION_MS,} from '../../config/constants.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {addChips, removeChips} from './economy.service.js';
+import {secureRandomInt, weightedRandom} from '../../utils/random.js';
 
 export interface BusinessDashboardData {
   hasBusiness: boolean;

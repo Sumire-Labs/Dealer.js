@@ -1,17 +1,17 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { formatChips } from '../../utils/formatters.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import type { LotteryRound, LotteryTicket } from '@prisma/client';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {formatChips} from '../../utils/formatters.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import type {LotteryRound, LotteryTicket} from '@prisma/client';
 
 export type LotteryTab = 'current' | 'history';
 

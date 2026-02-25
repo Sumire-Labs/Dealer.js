@@ -1,4 +1,4 @@
-import type { ShopRank } from '../shop-ranks.js';
+import type {ShopRank} from '../shop-ranks.js';
 
 export type ShopCategory =
   | 'consumable'

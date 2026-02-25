@@ -1,4 +1,4 @@
-import { prisma } from '../client.js';
+import {prisma} from '../client.js';
 
 export type LeaderboardCategory = 'chips' | 'net_worth' | 'total_won' | 'work_level' | 'shop_spend' | 'achievements';
 

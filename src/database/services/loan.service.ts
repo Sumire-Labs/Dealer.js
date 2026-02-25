@@ -1,14 +1,12 @@
-import { prisma } from '../client.js';
-import { findOrCreateUser } from '../repositories/user.repository.js';
-import {
-  LOAN_INTEREST_PERIOD_MS,
-} from '../../config/constants.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { checkAchievements } from './achievement.service.js';
-import type { AchievementDefinition } from '../../config/achievements.js';
-import { hasActiveBuff, hasInventoryItem, consumeInventoryItem } from './shop.service.js';
-import { SHOP_EFFECTS } from '../../config/shop.js';
+import {prisma} from '../client.js';
+import {findOrCreateUser} from '../repositories/user.repository.js';
+import {LOAN_INTEREST_PERIOD_MS,} from '../../config/constants.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {checkAchievements} from './achievement.service.js';
+import type {AchievementDefinition} from '../../config/achievements.js';
+import {consumeInventoryItem, hasActiveBuff, hasInventoryItem} from './shop.service.js';
+import {SHOP_EFFECTS} from '../../config/shop.js';
 
 export function calculateLoanInterest(loan: { principal: bigint; createdAt: Date }): bigint {
   const elapsedMs = BigInt(Date.now() - loan.createdAt.getTime());

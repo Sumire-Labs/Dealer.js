@@ -1,4 +1,4 @@
-import { prisma } from '../client.js';
+import {prisma} from '../client.js';
 
 export async function getActiveDeposits(userId: string) {
   return prisma.fixedDeposit.findMany({

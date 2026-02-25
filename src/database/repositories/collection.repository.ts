@@ -1,5 +1,5 @@
-import type { UserCollection } from '@prisma/client';
-import { prisma } from '../client.js';
+import type {UserCollection} from '@prisma/client';
+import {prisma} from '../client.js';
 
 export async function getUserCollections(userId: string): Promise<UserCollection[]> {
   return prisma.userCollection.findMany({

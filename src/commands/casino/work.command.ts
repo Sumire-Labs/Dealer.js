@@ -1,11 +1,7 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { getWorkPanelData } from '../../database/services/work.service.js';
-import { buildWorkPanelView } from '../../ui/builders/work.builder.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {getWorkPanelData} from '../../database/services/work.service.js';
+import {buildWorkPanelView} from '../../ui/builders/work.builder.js';
 
 const data = new SlashCommandBuilder()
   .setName('work')

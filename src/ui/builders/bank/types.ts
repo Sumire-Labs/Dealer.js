@@ -1,6 +1,6 @@
-import type { LoanSummary, IndividualLoanDetail } from '../../../database/services/loan.service.js';
-import type { FixedDepositInfo } from '../../../database/services/fixed-deposit.service.js';
-import type { TransactionType } from '@prisma/client';
+import type {IndividualLoanDetail, LoanSummary} from '../../../database/services/loan.service.js';
+import type {FixedDepositInfo} from '../../../database/services/fixed-deposit.service.js';
+import type {TransactionType} from '@prisma/client';
 
 // ── Types ────────────────────────────────────────────────────────────
 

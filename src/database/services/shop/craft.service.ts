@@ -1,16 +1,16 @@
-import { prisma } from '../../client.js';
+import {prisma} from '../../client.js';
 import {
-  getInventoryItem,
-  upsertInventoryItem,
-  decrementInventoryItem,
-  createActiveBuff,
-  markEverOwned,
+    createActiveBuff,
+    decrementInventoryItem,
+    getInventoryItem,
+    markEverOwned,
+    upsertInventoryItem,
 } from '../../repositories/shop.repository.js';
-import { checkAchievements } from '../achievement.service.js';
-import type { AchievementDefinition } from '../../../config/achievements.js';
-import { ITEM_MAP, type ShopItem } from '../../../config/shop.js';
-import { RECIPE_MAP } from '../../../config/crafting.js';
-import { checkAndCompleteCollections } from '../collection.service.js';
+import {checkAchievements} from '../achievement.service.js';
+import type {AchievementDefinition} from '../../../config/achievements.js';
+import {ITEM_MAP, type ShopItem} from '../../../config/shop.js';
+import {RECIPE_MAP} from '../../../config/crafting.js';
+import {checkAndCompleteCollections} from '../collection.service.js';
 
 export interface CraftResult {
   success: boolean;

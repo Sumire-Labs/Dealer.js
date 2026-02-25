@@ -1,4 +1,4 @@
-import type { HeistTarget, HeistRiskLevel, HeistApproach } from '../../config/heist.js';
+import type {HeistApproach, HeistRiskLevel, HeistTarget} from '../../config/heist.js';
 
 export interface HeistPlayer {
   userId: string;

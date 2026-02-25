@@ -1,6 +1,6 @@
-import { type ModalSubmitInteraction, MessageFlags } from 'discord.js';
-import { registerModalHandler } from '../handler.js';
-import { buildGiftConfirmView } from '../../ui/builders/gift.builder.js';
+import {MessageFlags, type ModalSubmitInteraction} from 'discord.js';
+import {registerModalHandler} from '../handler.js';
+import {buildGiftConfirmView} from '../../ui/builders/gift.builder.js';
 
 async function handleGiftModal(interaction: ModalSubmitInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

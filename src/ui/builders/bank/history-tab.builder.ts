@@ -1,14 +1,14 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { formatChips } from '../../../utils/formatters.js';
-import { TRANSACTION_TYPE_EMOJI, TRANSACTION_TYPE_LABEL, formatTransactionDate, type BankViewData } from './types.js';
+import {formatChips} from '../../../utils/formatters.js';
+import {type BankViewData, formatTransactionDate, TRANSACTION_TYPE_EMOJI, TRANSACTION_TYPE_LABEL} from './types.js';
 
 export function buildHistoryTab(container: ContainerBuilder, data: BankViewData): void {
   const { userId } = data;

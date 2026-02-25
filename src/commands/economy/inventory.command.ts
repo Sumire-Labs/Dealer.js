@@ -1,11 +1,7 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { getUserInventorySummary } from '../../database/services/shop.service.js';
-import { buildInventoryView } from '../../ui/builders/inventory.builder.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {getUserInventorySummary} from '../../database/services/shop.service.js';
+import {buildInventoryView} from '../../ui/builders/inventory.builder.js';
 
 const data = new SlashCommandBuilder()
   .setName('inv')

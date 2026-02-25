@@ -1,22 +1,18 @@
 import {
-  type StringSelectMenuInteraction,
-  MessageFlags,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ActionRowBuilder,
+    ActionRowBuilder,
+    MessageFlags,
+    ModalBuilder,
+    type StringSelectMenuInteraction,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js';
-import { registerSelectMenuHandler } from '../handler.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import {
-  type OutsideBetType,
-  type RouletteBet,
-  getOutsideBetNumbers,
-} from '../../config/roulette.js';
-import { getSessionBet, executeRouletteSpin } from '../buttons/roulette.buttons.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { formatChips } from '../../utils/formatters.js';
+import {registerSelectMenuHandler} from '../handler.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {getOutsideBetNumbers, type OutsideBetType, type RouletteBet,} from '../../config/roulette.js';
+import {executeRouletteSpin, getSessionBet} from '../buttons/roulette.buttons.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {formatChips} from '../../utils/formatters.js';
 
 const OUTSIDE_BET_ACTIONS = new Set<string>([
   'red', 'black', 'even', 'odd', 'low', 'high', '1st12', '2nd12', '3rd12',

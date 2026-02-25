@@ -1,17 +1,14 @@
 import {
-  type ButtonInteraction,
-  ModalBuilder,
   ActionRowBuilder,
+  type ButtonInteraction,
+  MessageFlags,
+  ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
-  MessageFlags,
 } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import {
-  getActiveSession,
-  hasUserBet,
-} from '../../games/horse-race/race.session.js';
-import { runRace } from '../../commands/casino/horse-race.command.js';
+import {registerButtonHandler} from '../handler.js';
+import {getActiveSession, hasUserBet,} from '../../games/horse-race/race.session.js';
+import {runRace} from '../../commands/casino/horse-race.command.js';
 
 async function handleRaceButton(interaction: ButtonInteraction): Promise<void> {
   // customId format: race:<action>:<sessionId>:<param>

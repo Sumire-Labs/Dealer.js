@@ -1,5 +1,5 @@
-import { shuffleArray } from '../../utils/random.js';
-import { BLACKJACK_CONFIG } from '../../config/games.js';
+import {shuffleArray} from '../../utils/random.js';
+import {BLACKJACK_CONFIG} from '../../config/games.js';
 
 export type Suit = 'spades' | 'hearts' | 'diamonds' | 'clubs';
 export type Rank = 'A' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | 'J' | 'Q' | 'K';

@@ -1,6 +1,6 @@
-import { HORSE_RACE_CONFIG } from '../../config/games.js';
-import { configService } from '../../config/config.service.js';
-import { secureRandomInt } from '../../utils/random.js';
+import {HORSE_RACE_CONFIG} from '../../config/games.js';
+import {configService} from '../../config/config.service.js';
+import {secureRandomInt} from '../../utils/random.js';
 
 export interface Horse {
   index: number;

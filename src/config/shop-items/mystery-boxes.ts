@@ -1,4 +1,4 @@
-import type { MysteryBoxDefinition, MysteryBoxLoot } from './types.js';
+import type {MysteryBoxDefinition, MysteryBoxLoot} from './types.js';
 
 // ── Mystery Boxes ──
 

@@ -1,30 +1,30 @@
 import {
-  type ButtonInteraction,
-  MessageFlags,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ActionRowBuilder,
-  type ModalActionRowComponentBuilder,
+    ActionRowBuilder,
+    type ButtonInteraction,
+    MessageFlags,
+    type ModalActionRowComponentBuilder,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
+import {registerButtonHandler} from '../handler.js';
 import {
-  getBusinessDashboard,
-  upgradeBusinessLevel,
-  collectIncome,
-  fireEmployee,
-  sellBusiness,
+    collectIncome,
+    fireEmployee,
+    getBusinessDashboard,
+    sellBusiness,
+    upgradeBusinessLevel,
 } from '../../database/services/business.service.js';
 import {
-  buildBusinessDashboardView,
-  buildBusinessCollectView,
-  buildBusinessUpgradeConfirmView,
-  buildBusinessSellConfirmView,
-  buildBusinessEmployeeView,
+    buildBusinessCollectView,
+    buildBusinessDashboardView,
+    buildBusinessEmployeeView,
+    buildBusinessSellConfirmView,
+    buildBusinessUpgradeConfirmView,
 } from '../../ui/builders/business.builder.js';
-import { BUSINESS_TYPE_MAP, getBusinessLevel } from '../../config/business.js';
-import { formatChips } from '../../utils/formatters.js';
-import { getBusiness } from '../../database/repositories/business.repository.js';
+import {BUSINESS_TYPE_MAP, getBusinessLevel} from '../../config/business.js';
+import {formatChips} from '../../utils/formatters.js';
+import {getBusiness} from '../../database/repositories/business.repository.js';
 
 async function handleBusinessButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

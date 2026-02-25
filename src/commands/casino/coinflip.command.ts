@@ -1,15 +1,11 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { buildCoinflipChoiceView } from '../../ui/builders/coinflip.builder.js';
-import { setSessionBet as setCoinflipBet } from '../../interactions/buttons/coinflip.buttons.js';
-import { formatChips } from '../../utils/formatters.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {buildCoinflipChoiceView} from '../../ui/builders/coinflip.builder.js';
+import {setSessionBet as setCoinflipBet} from '../../interactions/buttons/coinflip.buttons.js';
+import {formatChips} from '../../utils/formatters.js';
 
 const data = new SlashCommandBuilder()
   .setName('coinflip')

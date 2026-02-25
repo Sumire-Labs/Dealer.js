@@ -1,10 +1,10 @@
-import { type ModalSubmitInteraction, MessageFlags } from 'discord.js';
-import { registerModalHandler } from '../handler.js';
-import { purchaseItem } from '../../database/services/shop.service.js';
-import { getBalance } from '../../database/services/economy.service.js';
-import { ITEM_MAP } from '../../config/shop.js';
-import { buildPurchaseResultView } from '../../ui/builders/shop.builder.js';
-import { buildAchievementNotification } from '../../database/services/achievement.service.js';
+import {MessageFlags, type ModalSubmitInteraction} from 'discord.js';
+import {registerModalHandler} from '../handler.js';
+import {purchaseItem} from '../../database/services/shop.service.js';
+import {getBalance} from '../../database/services/economy.service.js';
+import {ITEM_MAP} from '../../config/shop.js';
+import {buildPurchaseResultView} from '../../ui/builders/shop.builder.js';
+import {buildAchievementNotification} from '../../database/services/achievement.service.js';
 
 async function handleShopModal(interaction: ModalSubmitInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

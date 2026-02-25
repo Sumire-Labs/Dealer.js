@@ -1,14 +1,14 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  UserSelectMenuBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
+    UserSelectMenuBuilder,
 } from 'discord.js';
-import type { BankViewData } from './types.js';
+import type {BankViewData} from './types.js';
 
 export function buildTransferSelectTab(container: ContainerBuilder, data: BankViewData): void {
   const { userId } = data;

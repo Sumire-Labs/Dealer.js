@@ -1,14 +1,9 @@
-import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-} from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import { formatChips } from '../../../utils/formatters.js';
-import type { PokerSessionState } from '../../../games/poker/poker.session.js';
-import type { WinnerInfo, PotInfo } from '../../../games/poker/poker.engine.js';
-import { formatCard } from '../../../games/poker/poker.deck.js';
+import {ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, TextDisplayBuilder,} from 'discord.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import {formatChips} from '../../../utils/formatters.js';
+import type {PokerSessionState} from '../../../games/poker/poker.session.js';
+import type {PotInfo, WinnerInfo} from '../../../games/poker/poker.engine.js';
+import {formatCard} from '../../../games/poker/poker.deck.js';
 
 export function buildPokerResultView(
   session: PokerSessionState,

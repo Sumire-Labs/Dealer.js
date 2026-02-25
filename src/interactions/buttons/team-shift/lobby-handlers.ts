@@ -1,20 +1,15 @@
+import {type ButtonInteraction, ContainerBuilder, MessageFlags, TextDisplayBuilder,} from 'discord.js';
+import type {TeamShiftSession} from '../../../games/work/team-shift.session.js';
 import {
-  type ButtonInteraction,
-  MessageFlags,
-  ContainerBuilder,
-  TextDisplayBuilder,
-} from 'discord.js';
-import {
-  getTeamSession,
-  setTeamSession,
-  addPlayerToTeam,
-  isPlayerInTeam,
-  removeTeamSession,
+    addPlayerToTeam,
+    getTeamSession,
+    isPlayerInTeam,
+    removeTeamSession,
+    setTeamSession,
 } from '../../../games/work/team-shift.session.js';
-import { buildTeamShiftLobbyView } from '../../../ui/builders/team-shift.builder.js';
-import { TEAM_SHIFT_MAX_PLAYERS } from '../../../config/constants.js';
-import { startTeamLobbyCountdown } from './countdown.js';
-import type { TeamShiftSession } from '../../../games/work/team-shift.session.js';
+import {buildTeamShiftLobbyView} from '../../../ui/builders/team-shift.builder.js';
+import {TEAM_SHIFT_MAX_PLAYERS} from '../../../config/constants.js';
+import {startTeamLobbyCountdown} from './countdown.js';
 
 export async function handleCreate(interaction: ButtonInteraction, userId: string, parts: string[]): Promise<void> {
   const ownerId = parts[2];

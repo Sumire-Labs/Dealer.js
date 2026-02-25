@@ -1,11 +1,8 @@
-import {
-  type StringSelectMenuInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerSelectMenuHandler } from '../handler.js';
-import { getUserInventorySummary } from '../../database/services/shop.service.js';
-import { getInvState } from '../buttons/inventory.buttons.js';
-import { buildInventoryView } from '../../ui/builders/inventory.builder.js';
+import {MessageFlags, type StringSelectMenuInteraction,} from 'discord.js';
+import {registerSelectMenuHandler} from '../handler.js';
+import {getUserInventorySummary} from '../../database/services/shop.service.js';
+import {getInvState} from '../buttons/inventory.buttons.js';
+import {buildInventoryView} from '../../ui/builders/inventory.builder.js';
 
 async function handleInventorySelectMenu(interaction: StringSelectMenuInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

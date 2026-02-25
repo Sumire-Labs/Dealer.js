@@ -1,23 +1,19 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ContainerBuilder,
+  SeparatorBuilder,
+  SeparatorSpacingSize,
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
+  TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { formatChips } from '../../utils/formatters.js';
-import {
-  SHOP_CATEGORIES,
-  ITEM_MAP,
-  type ShopItem,
-} from '../../config/shop.js';
-import type { ShopRankDef } from '../../config/shop-ranks.js';
-import type { FlashSale } from '../../database/services/shop.service.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {formatChips} from '../../utils/formatters.js';
+import {ITEM_MAP, SHOP_CATEGORIES, type ShopItem,} from '../../config/shop.js';
+import type {ShopRankDef} from '../../config/shop-ranks.js';
+import type {FlashSale} from '../../database/services/shop.service.js';
 
 export type ShopTab = 'shop' | 'daily' | 'craft' | 'collection';
 const ITEMS_PER_PAGE = 4;

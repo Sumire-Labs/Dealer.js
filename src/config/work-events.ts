@@ -1,4 +1,4 @@
-import { secureRandomInt } from '../utils/random.js';
+import {secureRandomInt} from '../utils/random.js';
 
 export interface ScenarioChoice {
   id: string;

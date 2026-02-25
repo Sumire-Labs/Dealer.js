@@ -1,12 +1,8 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { getUserRank } from '../../database/repositories/leaderboard.repository.js';
-import { buildBalanceView } from '../../ui/builders/balance.builder.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {getUserRank} from '../../database/repositories/leaderboard.repository.js';
+import {buildBalanceView} from '../../ui/builders/balance.builder.js';
 
 const data = new SlashCommandBuilder()
   .setName('balance')

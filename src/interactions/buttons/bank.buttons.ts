@@ -1,10 +1,29 @@
-import { type ButtonInteraction, MessageFlags } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { handleTabAccount, handleTabLoan, handleTabHistory, handleTabFixed } from './bank/tab-handlers.js';
-import { handleDeposit, handleWithdraw, handleTransfer, handleQuickDepositAll, handleQuickWithdrawAll, handleQuickDepositHalf } from './bank/account-handlers.js';
-import { handleBorrow, handleRepay, handleBankrupt, handleConfirmBankrupt, handleCancel, handleLoanPrev, handleLoanNext } from './bank/loan-handlers.js';
-import { handleHistoryPrev, handleHistoryNext } from './bank/history-handlers.js';
-import { handleFixedCreate, handleFixedEarlyWithdraw, handleFixedWithdrawConfirm } from './bank/fixed-deposit-handlers.js';
+import {type ButtonInteraction, MessageFlags} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
+import {handleTabAccount, handleTabFixed, handleTabHistory, handleTabLoan} from './bank/tab-handlers.js';
+import {
+    handleDeposit,
+    handleQuickDepositAll,
+    handleQuickDepositHalf,
+    handleQuickWithdrawAll,
+    handleTransfer,
+    handleWithdraw
+} from './bank/account-handlers.js';
+import {
+    handleBankrupt,
+    handleBorrow,
+    handleCancel,
+    handleConfirmBankrupt,
+    handleLoanNext,
+    handleLoanPrev,
+    handleRepay
+} from './bank/loan-handlers.js';
+import {handleHistoryNext, handleHistoryPrev} from './bank/history-handlers.js';
+import {
+    handleFixedCreate,
+    handleFixedEarlyWithdraw,
+    handleFixedWithdrawConfirm
+} from './bank/fixed-deposit-handlers.js';
 
 async function handleBankButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

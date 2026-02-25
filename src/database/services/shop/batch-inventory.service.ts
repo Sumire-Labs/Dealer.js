@@ -1,5 +1,5 @@
-import type { UserInventory, ActiveBuff } from '@prisma/client';
-import { prisma } from '../../client.js';
+import type {ActiveBuff, UserInventory} from '@prisma/client';
+import {prisma} from '../../client.js';
 
 /**
  * Snapshot of a user's inventory + active buffs loaded in 2 queries.

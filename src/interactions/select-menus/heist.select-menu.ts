@@ -1,23 +1,15 @@
+import {MessageFlags, type StringSelectMenuInteraction,} from 'discord.js';
+import {registerSelectMenuHandler} from '../handler.js';
 import {
-  type StringSelectMenuInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerSelectMenuHandler } from '../handler.js';
-import {
-  buildHeistRiskSelectView,
-  buildHeistApproachSelectView,
-  buildHeistConfirmView,
+    buildHeistApproachSelectView,
+    buildHeistConfirmView,
+    buildHeistRiskSelectView,
 } from '../../ui/builders/heist.builder.js';
-import { formatChips } from '../../utils/formatters.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { calculateMaxEntryFee } from '../../games/heist/heist.engine.js';
-import {
-  type HeistTarget,
-  type HeistRiskLevel,
-  type HeistApproach,
-  HEIST_TARGET_MAP,
-} from '../../config/heist.js';
+import {formatChips} from '../../utils/formatters.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {calculateMaxEntryFee} from '../../games/heist/heist.engine.js';
+import {HEIST_TARGET_MAP, type HeistApproach, type HeistRiskLevel, type HeistTarget,} from '../../config/heist.js';
 
 async function handleHeistSelectMenu(interaction: StringSelectMenuInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

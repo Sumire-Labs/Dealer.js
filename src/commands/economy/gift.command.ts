@@ -1,11 +1,7 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { getRemainingGifts } from '../../database/services/gift.service.js';
-import { buildGiftTypeSelectView } from '../../ui/builders/gift.builder.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {getRemainingGifts} from '../../database/services/gift.service.js';
+import {buildGiftTypeSelectView} from '../../ui/builders/gift.builder.js';
 
 const data = new SlashCommandBuilder()
   .setName('gift')

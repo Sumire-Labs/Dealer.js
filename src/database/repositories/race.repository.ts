@@ -1,5 +1,5 @@
-import type { RaceStatus } from '@prisma/client';
-import { prisma } from '../client.js';
+import type {RaceStatus} from '@prisma/client';
+import {prisma} from '../client.js';
 
 export interface CreateRaceSessionInput {
   channelId: string;

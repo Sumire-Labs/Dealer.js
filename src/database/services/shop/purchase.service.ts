@@ -1,17 +1,17 @@
-import { prisma } from '../../client.js';
+import {prisma} from '../../client.js';
 import {
-  getInventoryItem,
-  upsertInventoryItem,
-  createActiveBuff,
-  incrementLifetimeShopSpend,
-  markEverOwned,
-  getLifetimeShopSpend,
+    createActiveBuff,
+    getInventoryItem,
+    getLifetimeShopSpend,
+    incrementLifetimeShopSpend,
+    markEverOwned,
+    upsertInventoryItem,
 } from '../../repositories/shop.repository.js';
-import { checkAchievements } from '../achievement.service.js';
-import type { AchievementDefinition } from '../../../config/achievements.js';
-import { ITEM_MAP } from '../../../config/shop.js';
-import { SHOP_RANKS, getShopRank, getRankDiscount } from '../../../config/shop-ranks.js';
-import { checkAndCompleteCollections } from '../collection.service.js';
+import {checkAchievements} from '../achievement.service.js';
+import type {AchievementDefinition} from '../../../config/achievements.js';
+import {ITEM_MAP} from '../../../config/shop.js';
+import {getRankDiscount, getShopRank, SHOP_RANKS} from '../../../config/shop-ranks.js';
+import {checkAndCompleteCollections} from '../collection.service.js';
 
 export interface PurchaseResult {
   success: boolean;

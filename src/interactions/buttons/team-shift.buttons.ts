@@ -1,7 +1,7 @@
-import { type ButtonInteraction } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { handleCreate, handleJoin, handleCancel } from './team-shift/lobby-handlers.js';
-import { handleStart, handleJob } from './team-shift/game-handlers.js';
+import {type ButtonInteraction} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
+import {handleCancel, handleCreate, handleJoin} from './team-shift/lobby-handlers.js';
+import {handleJob, handleStart} from './team-shift/game-handlers.js';
 
 // Re-export externally referenced function
 export { startTeamLobbyCountdown } from './team-shift/countdown.js';

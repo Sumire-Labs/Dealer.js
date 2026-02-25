@@ -1,16 +1,16 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import { formatChips } from '../../../utils/formatters.js';
-import { BJ_TABLE_MAX_PLAYERS, BJ_TABLE_MIN_PLAYERS } from '../../../config/constants.js';
-import type { BlackjackTableSession } from '../../../games/blackjack/blackjack-table.session.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import {formatChips} from '../../../utils/formatters.js';
+import {BJ_TABLE_MAX_PLAYERS, BJ_TABLE_MIN_PLAYERS} from '../../../config/constants.js';
+import type {BlackjackTableSession} from '../../../games/blackjack/blackjack-table.session.js';
 
 export function buildBjTableLobbyView(
   session: BlackjackTableSession,

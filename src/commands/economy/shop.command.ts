@@ -1,14 +1,10 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { getBalance } from '../../database/services/economy.service.js';
-import { getFlashSale } from '../../database/services/shop.service.js';
-import { getLifetimeShopSpend } from '../../database/repositories/shop.repository.js';
-import { getShopRank, getNextRank } from '../../config/shop-ranks.js';
-import { buildShopView } from '../../ui/builders/shop.builder.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {getBalance} from '../../database/services/economy.service.js';
+import {getFlashSale} from '../../database/services/shop.service.js';
+import {getLifetimeShopSpend} from '../../database/repositories/shop.repository.js';
+import {getNextRank, getShopRank} from '../../config/shop-ranks.js';
+import {buildShopView} from '../../ui/builders/shop.builder.js';
 
 const data = new SlashCommandBuilder()
   .setName('shop')

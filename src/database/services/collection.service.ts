@@ -1,10 +1,9 @@
-import { COLLECTION_SETS, type CollectionSet } from '../../config/collections.js';
-import { getEverOwnedItems } from '../repositories/shop.repository.js';
-import { getUserCollections, completeCollection } from '../repositories/collection.repository.js';
-import { upsertInventoryItem } from '../repositories/shop.repository.js';
-import { checkAchievements } from './achievement.service.js';
-import type { AchievementDefinition } from '../../config/achievements.js';
-import { logger } from '../../utils/logger.js';
+import {COLLECTION_SETS, type CollectionSet} from '../../config/collections.js';
+import {getEverOwnedItems, upsertInventoryItem} from '../repositories/shop.repository.js';
+import {completeCollection, getUserCollections} from '../repositories/collection.repository.js';
+import {checkAchievements} from './achievement.service.js';
+import type {AchievementDefinition} from '../../config/achievements.js';
+import {logger} from '../../utils/logger.js';
 
 export interface CollectionProgress {
   collection: CollectionSet;

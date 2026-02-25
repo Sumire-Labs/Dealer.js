@@ -1,26 +1,19 @@
+import {MessageFlags, type ModalSubmitInteraction,} from 'discord.js';
+import {registerModalHandler} from '../handler.js';
+import {S} from '../../config/setting-defs.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {borrowChips, getLoanSummary, repayChips,} from '../../database/services/loan.service.js';
 import {
-  type ModalSubmitInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerModalHandler } from '../handler.js';
-import { S } from '../../config/setting-defs.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import {
-  borrowChips,
-  repayChips,
-  getLoanSummary,
-} from '../../database/services/loan.service.js';
-import {
-  depositChips,
-  withdrawChips,
-  transferChips,
-  getBankAccountSummary,
+    depositChips,
+    getBankAccountSummary,
+    transferChips,
+    withdrawChips,
 } from '../../database/services/bank-account.service.js';
-import { buildBankViewData } from '../../database/services/bank-view.service.js';
-import { buildBankMainView } from '../../ui/builders/bank.builder.js';
-import { createFixedDeposit } from '../../database/services/fixed-deposit.service.js';
-import { formatChips } from '../../utils/formatters.js';
-import { configService } from '../../config/config.service.js';
+import {buildBankViewData} from '../../database/services/bank-view.service.js';
+import {buildBankMainView} from '../../ui/builders/bank.builder.js';
+import {createFixedDeposit} from '../../database/services/fixed-deposit.service.js';
+import {formatChips} from '../../utils/formatters.js';
+import {configService} from '../../config/config.service.js';
 
 async function handleBankModal(interaction: ModalSubmitInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

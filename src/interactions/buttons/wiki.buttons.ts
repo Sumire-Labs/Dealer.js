@@ -1,11 +1,7 @@
-import { type ButtonInteraction, MessageFlags } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { buildHelpTopView } from '../../ui/builders/help.builder.js';
-import {
-  buildWikiTopView,
-  buildWikiCategoryView,
-  buildWikiItemDetailView,
-} from '../../ui/builders/wiki.builder.js';
+import {type ButtonInteraction, MessageFlags} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
+import {buildHelpTopView} from '../../ui/builders/help.builder.js';
+import {buildWikiCategoryView, buildWikiItemDetailView, buildWikiTopView,} from '../../ui/builders/wiki.builder.js';
 
 // State per user: current category + page
 export const wikiState = new Map<string, { category: string; page: number }>();

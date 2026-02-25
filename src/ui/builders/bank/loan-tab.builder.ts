@@ -1,15 +1,15 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import { formatChips, formatTimeDelta } from '../../../utils/formatters.js';
-import type { BankViewData } from './types.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import {formatChips, formatTimeDelta} from '../../../utils/formatters.js';
+import type {BankViewData} from './types.js';
 
 export function buildLoanTab(container: ContainerBuilder, data: BankViewData): void {
   const { userId, walletBalance, loanSummary, penaltyRemainingMs } = data;

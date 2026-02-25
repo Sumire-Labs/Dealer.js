@@ -1,48 +1,51 @@
-import { prisma } from '../../client.js';
-import { findOrCreateUser } from '../../repositories/user.repository.js';
+import {prisma} from '../../client.js';
+import {findOrCreateUser} from '../../repositories/user.repository.js';
 import {
-  type ShiftType,
-  type WorkEvent,
-  JOB_MAP,
-  SHIFT_MAP,
-  LEVEL_THRESHOLDS,
-  type JobDefinition,
+    JOB_MAP,
+    type JobDefinition,
+    LEVEL_THRESHOLDS,
+    SHIFT_MAP,
+    type ShiftType,
+    type WorkEvent,
 } from '../../../config/jobs.js';
+import {WORK_STREAK_WINDOW_MS,} from '../../../config/constants.js';
+import {configService} from '../../../config/config.service.js';
+import {S} from '../../../config/setting-defs.js';
 import {
-  WORK_STREAK_WINDOW_MS,
-} from '../../../config/constants.js';
-import { configService } from '../../../config/config.service.js';
-import { S } from '../../../config/setting-defs.js';
-import {
-  rollWorkEvent,
-  rollBasePay,
-  rollTipAmount,
-  getStreakBonus,
-  calculateWorkPayout,
-  calculateXpGain,
-  getLevelForXp,
-  getEventFlavor,
-  type WorkBonuses,
+    calculateWorkPayout,
+    calculateXpGain,
+    getEventFlavor,
+    getLevelForXp,
+    getStreakBonus,
+    rollBasePay,
+    rollTipAmount,
+    rollWorkEvent,
+    type WorkBonuses,
 } from '../../../games/work/work.engine.js';
-import type { AchievementDefinition } from '../../../config/achievements.js';
-import type { CompletedMission } from '../mission.service.js';
+import type {AchievementDefinition} from '../../../config/achievements.js';
+import type {CompletedMission} from '../mission.service.js';
+import {buildCooldownKey, getRemainingCooldown, isOnCooldown, setCooldown,} from '../../../utils/cooldown.js';
+import {hasActiveBuff, hasInventoryItem} from '../shop.service.js';
+import {SHOP_EFFECTS} from '../../../config/shop.js';
+import {getMasteryLevelForShifts, getMasteryTier, type MasteryTier} from '../../../config/work-mastery.js';
+import {getMastery, incrementShifts, updateMasteryLevel} from '../../repositories/work-mastery.repository.js';
+import {PROMOTED_JOB_MAP, type PromotedJobDefinition} from '../../../config/promoted-jobs.js';
 import {
-  isOnCooldown,
-  getRemainingCooldown,
-  setCooldown,
-  buildCooldownKey,
-} from '../../../utils/cooldown.js';
-import { hasActiveBuff, hasInventoryItem } from '../shop.service.js';
-import { SHOP_EFFECTS } from '../../../config/shop.js';
-import { getMasteryTier, getMasteryLevelForShifts, type MasteryTier } from '../../../config/work-mastery.js';
-import { getMastery, incrementShifts, updateMasteryLevel } from '../../repositories/work-mastery.repository.js';
-import { PROMOTED_JOB_MAP, type PromotedJobDefinition } from '../../../config/promoted-jobs.js';
-import { SPECIAL_SHIFTS, type SpecialShiftDefinition, isVipEventUsedToday, markVipEventUsed } from '../../../config/special-shifts.js';
-import { getWorkSession, setWorkSession, removeWorkSession, type PendingWorkSession } from '../../../games/work/work.session.js';
-import { getScenarioForJob, type WorkScenario } from '../../../config/work-events.js';
-import { secureRandomInt } from '../../../utils/random.js';
-import { WORK_TOOL_IDS, getToolBonusesForJob } from '../../../config/work-tools.js';
-import { postWorkHooks } from './work-hooks.service.js';
+    isVipEventUsedToday,
+    markVipEventUsed,
+    SPECIAL_SHIFTS,
+    type SpecialShiftDefinition
+} from '../../../config/special-shifts.js';
+import {
+    getWorkSession,
+    type PendingWorkSession,
+    removeWorkSession,
+    setWorkSession
+} from '../../../games/work/work.session.js';
+import {getScenarioForJob, type WorkScenario} from '../../../config/work-events.js';
+import {secureRandomInt} from '../../../utils/random.js';
+import {getToolBonusesForJob, WORK_TOOL_IDS} from '../../../config/work-tools.js';
+import {postWorkHooks} from './work-hooks.service.js';
 
 function getCooldownMs(type: ShiftType): number {
   const map: Record<ShiftType, () => number> = {

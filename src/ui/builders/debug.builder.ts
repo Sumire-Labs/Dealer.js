@@ -1,20 +1,20 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ButtonBuilder,
-  ButtonStyle,
-  ActionRowBuilder,
-  type MessageActionRowComponentBuilder,
-  UserSelectMenuBuilder,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    type MessageActionRowComponentBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    TextDisplayBuilder,
+    UserSelectMenuBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { formatChips } from '../../utils/formatters.js';
-import { BUSINESS_TYPES } from '../../config/business.js';
-import { LEVEL_THRESHOLDS } from '../../config/jobs.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {formatChips} from '../../utils/formatters.js';
+import {BUSINESS_TYPES} from '../../config/business.js';
+import {LEVEL_THRESHOLDS} from '../../config/jobs.js';
 
 // ─── Types ───
 

@@ -1,15 +1,12 @@
-import {
-  type ModalSubmitInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerModalHandler } from '../handler.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { addChips } from '../../database/services/economy.service.js';
-import { getBusiness } from '../../database/repositories/business.repository.js';
-import { prisma } from '../../database/client.js';
-import { formatChips } from '../../utils/formatters.js';
-import { loadDebugViewData } from '../buttons/debug.buttons.js';
-import { buildDebugTabView } from '../../ui/builders/debug.builder.js';
+import {MessageFlags, type ModalSubmitInteraction,} from 'discord.js';
+import {registerModalHandler} from '../handler.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {addChips} from '../../database/services/economy.service.js';
+import {getBusiness} from '../../database/repositories/business.repository.js';
+import {prisma} from '../../database/client.js';
+import {formatChips} from '../../utils/formatters.js';
+import {loadDebugViewData} from '../buttons/debug.buttons.js';
+import {buildDebugTabView} from '../../ui/builders/debug.builder.js';
 
 function parseInput(interaction: ModalSubmitInteraction): number | null {
   const raw = interaction.fields.getTextInputValue('value').trim();

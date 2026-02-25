@@ -1,11 +1,6 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  PermissionFlagsBits,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { buildDebugUserSelectView } from '../../ui/builders/debug.builder.js';
+import {type ChatInputCommandInteraction, MessageFlags, PermissionFlagsBits, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {buildDebugUserSelectView} from '../../ui/builders/debug.builder.js';
 
 const data = new SlashCommandBuilder()
   .setName('debug')

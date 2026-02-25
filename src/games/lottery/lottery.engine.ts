@@ -1,9 +1,5 @@
-import { secureRandomInt } from '../../utils/random.js';
-import {
-  LOTTERY_NUMBER_MIN,
-  LOTTERY_NUMBER_MAX,
-  LOTTERY_NUMBERS_COUNT,
-} from '../../config/constants.js';
+import {secureRandomInt} from '../../utils/random.js';
+import {LOTTERY_NUMBER_MAX, LOTTERY_NUMBER_MIN, LOTTERY_NUMBERS_COUNT,} from '../../config/constants.js';
 
 export function drawWinningNumbers(): number[] {
   const numbers: number[] = [];

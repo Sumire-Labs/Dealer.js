@@ -1,7 +1,7 @@
-import { readFileSync, existsSync } from 'node:fs';
-import { parse } from 'yaml';
-import { logger } from '../utils/logger.js';
-import { SETTING_BY_KEY } from './setting-defs.js';
+import {existsSync, readFileSync} from 'node:fs';
+import {parse} from 'yaml';
+import {logger} from '../utils/logger.js';
+import {SETTING_BY_KEY} from './setting-defs.js';
 
 export interface YamlBotConfig {
   token?: string;

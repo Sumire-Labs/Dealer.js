@@ -1,14 +1,8 @@
-import {
-  type StringSelectMenuInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerSelectMenuHandler } from '../handler.js';
-import {
-  getBusinessDashboard,
-  buyBusiness,
-} from '../../database/services/business.service.js';
-import { buildBusinessDashboardView } from '../../ui/builders/business.builder.js';
-import { BUSINESS_TYPE_MAP } from '../../config/business.js';
+import {MessageFlags, type StringSelectMenuInteraction,} from 'discord.js';
+import {registerSelectMenuHandler} from '../handler.js';
+import {buyBusiness, getBusinessDashboard,} from '../../database/services/business.service.js';
+import {buildBusinessDashboardView} from '../../ui/builders/business.builder.js';
+import {BUSINESS_TYPE_MAP} from '../../config/business.js';
 
 async function handleBusinessSelectMenu(interaction: StringSelectMenuInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

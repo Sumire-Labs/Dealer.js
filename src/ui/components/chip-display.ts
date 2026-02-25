@@ -1,4 +1,4 @@
-import { formatChips } from '../../utils/formatters.js';
+import {formatChips} from '../../utils/formatters.js';
 
 export function chipDisplay(amount: bigint): string {
   return formatChips(amount);

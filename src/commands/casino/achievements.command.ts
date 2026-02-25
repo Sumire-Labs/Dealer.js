@@ -1,12 +1,8 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { getUnlockedIds } from '../../database/repositories/achievement.repository.js';
-import { buildAchievementsView } from '../../ui/builders/achievements.builder.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {getUnlockedIds} from '../../database/repositories/achievement.repository.js';
+import {buildAchievementsView} from '../../ui/builders/achievements.builder.js';
 
 const data = new SlashCommandBuilder()
   .setName('achievements')

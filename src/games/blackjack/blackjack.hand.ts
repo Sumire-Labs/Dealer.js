@@ -1,4 +1,4 @@
-import type { Card } from './blackjack.deck.js';
+import type {Card} from './blackjack.deck.js';
 
 export interface HandValue {
   values: number[];  // all possible values (accounting for soft aces)

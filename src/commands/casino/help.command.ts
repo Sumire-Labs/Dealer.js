@@ -1,10 +1,6 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { buildHelpTopView } from '../../ui/builders/help.builder.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {buildHelpTopView} from '../../ui/builders/help.builder.js';
 
 const data = new SlashCommandBuilder()
   .setName('help')

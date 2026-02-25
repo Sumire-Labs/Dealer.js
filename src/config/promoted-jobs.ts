@@ -1,4 +1,4 @@
-import type { JobDefinition } from './jobs.js';
+import type {JobDefinition} from './jobs.js';
 
 export interface PromotedJobDefinition extends JobDefinition {
   baseJobId: string;

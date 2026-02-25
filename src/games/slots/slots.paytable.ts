@@ -1,5 +1,5 @@
-import { SLOTS_CONFIG } from '../../config/games.js';
-import type { SlotSymbol } from './slots.symbols.js';
+import {SLOTS_CONFIG} from '../../config/games.js';
+import type {SlotSymbol} from './slots.symbols.js';
 
 export interface PaytableResult {
   multiplier: number;

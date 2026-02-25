@@ -1,15 +1,11 @@
-import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { buildRouletteIdleView } from '../../ui/builders/roulette.builder.js';
-import { setSessionBet as setRouletteBet } from '../../interactions/buttons/roulette.buttons.js';
-import { formatChips } from '../../utils/formatters.js';
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {buildRouletteIdleView} from '../../ui/builders/roulette.builder.js';
+import {setSessionBet as setRouletteBet} from '../../interactions/buttons/roulette.buttons.js';
+import {formatChips} from '../../utils/formatters.js';
 
 const data = new SlashCommandBuilder()
   .setName('roulette')

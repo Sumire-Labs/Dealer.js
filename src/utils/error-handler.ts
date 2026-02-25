@@ -1,10 +1,5 @@
-import {
-  type Interaction,
-  ContainerBuilder,
-  TextDisplayBuilder,
-  MessageFlags,
-} from 'discord.js';
-import { logger } from './logger.js';
+import {ContainerBuilder, type Interaction, MessageFlags, TextDisplayBuilder,} from 'discord.js';
+import {logger} from './logger.js';
 
 export async function handleInteractionError(
   interaction: Interaction,

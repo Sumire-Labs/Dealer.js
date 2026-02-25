@@ -1,31 +1,25 @@
+import {MessageFlags, type ModalSubmitInteraction,} from 'discord.js';
+import {registerModalHandler} from '../handler.js';
+import {findOrCreateUser, getTodayStats} from '../../database/repositories/user.repository.js';
+import {processGameResult} from '../../database/services/economy.service.js';
+import {evaluateBet, spinRoulette,} from '../../games/roulette/roulette.engine.js';
 import {
-  type ModalSubmitInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerModalHandler } from '../handler.js';
-import { findOrCreateUser, getTodayStats } from '../../database/repositories/user.repository.js';
-import { processGameResult } from '../../database/services/economy.service.js';
-import {
-  spinRoulette,
-  evaluateBet,
-} from '../../games/roulette/roulette.engine.js';
-import {
-  type RouletteBet,
-  type InsideBetType,
-  validateSplit,
-  validateStreet,
-  validateCorner,
-  validateSixLine,
-  getNumberEmoji,
+    getNumberEmoji,
+    type InsideBetType,
+    type RouletteBet,
+    validateCorner,
+    validateSixLine,
+    validateSplit,
+    validateStreet,
 } from '../../config/roulette.js';
-import { rouletteSessionManager } from '../buttons/roulette.buttons.js';
-import { buildRouletteSpinningView } from '../../ui/builders/roulette.builder.js';
-import { playRouletteAnimation } from '../../ui/animations/roulette.animation.js';
-import { formatChips } from '../../utils/formatters.js';
-import { buildAchievementNotification } from '../../database/services/achievement.service.js';
-import { buildMissionNotification } from '../../database/services/mission.service.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
+import {rouletteSessionManager} from '../buttons/roulette.buttons.js';
+import {buildRouletteSpinningView} from '../../ui/builders/roulette.builder.js';
+import {playRouletteAnimation} from '../../ui/animations/roulette.animation.js';
+import {formatChips} from '../../utils/formatters.js';
+import {buildAchievementNotification} from '../../database/services/achievement.service.js';
+import {buildMissionNotification} from '../../database/services/mission.service.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
 
 async function handleRouletteModal(interaction: ModalSubmitInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

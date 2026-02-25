@@ -1,32 +1,32 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import { formatChips } from '../../../utils/formatters.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import {formatChips} from '../../../utils/formatters.js';
 import {
-  calculateSuccessRate,
-  calculateMultiplierRange,
-  calculateMaxEntryFee,
-  type HeistCalcParams,
+    calculateMaxEntryFee,
+    calculateMultiplierRange,
+    calculateSuccessRate,
+    type HeistCalcParams,
 } from '../../../games/heist/heist.engine.js';
 import {
-  HEIST_TARGETS,
-  HEIST_RISKS,
-  HEIST_APPROACHES,
-  HEIST_TARGET_MAP,
-  HEIST_RISK_MAP,
-  HEIST_APPROACH_MAP,
-  type HeistTarget,
-  type HeistRiskLevel,
-  type HeistApproach,
+    HEIST_APPROACH_MAP,
+    HEIST_APPROACHES,
+    HEIST_RISK_MAP,
+    HEIST_RISKS,
+    HEIST_TARGET_MAP,
+    HEIST_TARGETS,
+    type HeistApproach,
+    type HeistRiskLevel,
+    type HeistTarget,
 } from '../../../config/heist.js';
 
 export function buildHeistTargetSelectView(userId: string, amount: bigint): ContainerBuilder {

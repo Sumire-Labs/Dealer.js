@@ -1,24 +1,24 @@
-import { type ButtonInteraction, MessageFlags, ContainerBuilder, TextDisplayBuilder } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { getBalance } from '../../database/services/economy.service.js';
+import {type ButtonInteraction, ContainerBuilder, MessageFlags, TextDisplayBuilder} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
+import {getBalance} from '../../database/services/economy.service.js';
 import {
-  useItem,
-  equipCosmetic,
-  unequipCosmetic,
-  openMysteryBox,
-  getUserInventorySummary,
-  recycleItem,
+    equipCosmetic,
+    getUserInventorySummary,
+    openMysteryBox,
+    recycleItem,
+    unequipCosmetic,
+    useItem,
 } from '../../database/services/shop.service.js';
-import { ITEM_MAP } from '../../config/shop.js';
+import {ITEM_MAP} from '../../config/shop.js';
 import {
-  buildInventoryView,
-  buildUseItemResultView,
-  buildRecycleConfirmView,
+    buildInventoryView,
+    buildRecycleConfirmView,
+    buildUseItemResultView,
 } from '../../ui/builders/inventory.builder.js';
-import { playMysteryBoxAnimation } from '../../ui/animations/mystery-box.animation.js';
-import { buildAchievementNotification } from '../../database/services/achievement.service.js';
-import { formatChips } from '../../utils/formatters.js';
-import type { UserInventory, ActiveBuff } from '@prisma/client';
+import {playMysteryBoxAnimation} from '../../ui/animations/mystery-box.animation.js';
+import {buildAchievementNotification} from '../../database/services/achievement.service.js';
+import {formatChips} from '../../utils/formatters.js';
+import type {ActiveBuff, UserInventory} from '@prisma/client';
 
 const ITEMS_PER_INV_PAGE = 5;
 

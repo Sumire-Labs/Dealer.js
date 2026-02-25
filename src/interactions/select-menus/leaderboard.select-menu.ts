@@ -1,25 +1,15 @@
+import {MessageFlags, type StringSelectMenuInteraction,} from 'discord.js';
+import {registerSelectMenuHandler} from '../handler.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
 import {
-  type StringSelectMenuInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerSelectMenuHandler } from '../handler.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import {
-  getTopPlayers,
-  getUserRank,
-  getTotalPlayerCount,
-  type LeaderboardCategory,
+    getTopPlayers,
+    getTotalPlayerCount,
+    getUserRank,
+    type LeaderboardCategory,
 } from '../../database/repositories/leaderboard.repository.js';
-import {
-  buildLeaderboardView,
-  LEADERBOARD_PAGE_SIZE,
-} from '../../ui/builders/leaderboard.builder.js';
-import {
-  formatEntryValue,
-  formatRequesterValue,
-  getCategoryLabel,
-} from '../buttons/leaderboard.buttons.js';
-import { prisma } from '../../database/client.js';
+import {buildLeaderboardView, LEADERBOARD_PAGE_SIZE,} from '../../ui/builders/leaderboard.builder.js';
+import {formatEntryValue, formatRequesterValue, getCategoryLabel,} from '../buttons/leaderboard.buttons.js';
+import {prisma} from '../../database/client.js';
 
 const VALID_CATEGORIES = new Set<string>(['chips', 'net_worth', 'total_won', 'work_level', 'shop_spend', 'achievements']);
 

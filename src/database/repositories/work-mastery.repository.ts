@@ -1,5 +1,5 @@
-import { prisma } from '../client.js';
-import type { Prisma, WorkMastery } from '@prisma/client';
+import {prisma} from '../client.js';
+import type {Prisma, WorkMastery} from '@prisma/client';
 
 export async function getMastery(
   userId: string,

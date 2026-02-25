@@ -8,11 +8,11 @@ export { SHOP_EFFECTS, RARITY_LABELS, RARITY_EMOJI } from './shop-items/effects.
 
 // ── Imports for aggregation ──
 
-import type { ShopCategory, ShopItem, MysteryBoxDefinition } from './shop-items/types.js';
-import { CONSUMABLES, BUFFS, INSURANCE } from './shop-items/consumables.js';
-import { UPGRADES, COSMETICS, RANK_LIMITED, CRAFT_ITEMS } from './shop-items/upgrades-cosmetics.js';
-import { MYSTERY_BOXES } from './shop-items/mystery-boxes.js';
-import { WORK_TOOLS } from './work-tools.js';
+import type {MysteryBoxDefinition, ShopCategory, ShopItem} from './shop-items/types.js';
+import {BUFFS, CONSUMABLES, INSURANCE} from './shop-items/consumables.js';
+import {COSMETICS, CRAFT_ITEMS, RANK_LIMITED, UPGRADES} from './shop-items/upgrades-cosmetics.js';
+import {MYSTERY_BOXES} from './shop-items/mystery-boxes.js';
+import {WORK_TOOLS} from './work-tools.js';
 
 // ── All items & lookup ──
 

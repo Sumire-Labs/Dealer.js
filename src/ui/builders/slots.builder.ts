@@ -1,17 +1,17 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { formatChips } from '../../utils/formatters.js';
-import type { SlotSymbol } from '../../games/slots/slots.symbols.js';
-import type { PaytableResult } from '../../games/slots/slots.paytable.js';
-import type { TodayStats } from '../../database/repositories/user.repository.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {formatChips} from '../../utils/formatters.js';
+import type {SlotSymbol} from '../../games/slots/slots.symbols.js';
+import type {PaytableResult} from '../../games/slots/slots.paytable.js';
+import type {TodayStats} from '../../database/repositories/user.repository.js';
 
 function renderReels(symbols: [string, string, string]): string {
   return `【 ${symbols[0]} 】【 ${symbols[1]} 】【 ${symbols[2]} 】`;

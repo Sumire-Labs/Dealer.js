@@ -1,17 +1,14 @@
-import { secureRandomInt } from '../../utils/random.js';
+import {secureRandomInt} from '../../utils/random.js';
+import {HEIST_SOLO_MIN_MULTIPLIER, HEIST_SOLO_MULTIPLIER_SCALE,} from '../../config/constants.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
 import {
-  HEIST_SOLO_MULTIPLIER_SCALE,
-  HEIST_SOLO_MIN_MULTIPLIER,
-} from '../../config/constants.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import {
-  HEIST_TARGET_MAP,
-  HEIST_RISK_MAP,
-  HEIST_APPROACH_MAP,
-  type HeistTarget,
-  type HeistRiskLevel,
-  type HeistApproach,
+    HEIST_APPROACH_MAP,
+    HEIST_RISK_MAP,
+    HEIST_TARGET_MAP,
+    type HeistApproach,
+    type HeistRiskLevel,
+    type HeistTarget,
 } from '../../config/heist.js';
 
 export interface HeistOutcome {

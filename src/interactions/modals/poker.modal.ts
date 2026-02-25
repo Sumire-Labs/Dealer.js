@@ -1,24 +1,15 @@
-import {
-  type ModalSubmitInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerModalHandler } from '../handler.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { removeChips } from '../../database/services/economy.service.js';
-import {
-  getActiveSession,
-  addPlayer,
-} from '../../games/poker/poker.session.js';
-import { processAction } from '../../games/poker/poker.engine.js';
-import { advanceGame } from '../../commands/casino/poker.command.js';
-import { formatChips } from '../../utils/formatters.js';
-import {
-  buildPokerLobbyView,
-  buildActionConfirmation,
-} from '../../ui/builders/poker.builder.js';
-import { logger } from '../../utils/logger.js';
+import {MessageFlags, type ModalSubmitInteraction,} from 'discord.js';
+import {registerModalHandler} from '../handler.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {removeChips} from '../../database/services/economy.service.js';
+import {addPlayer, getActiveSession,} from '../../games/poker/poker.session.js';
+import {processAction} from '../../games/poker/poker.engine.js';
+import {advanceGame} from '../../commands/casino/poker.command.js';
+import {formatChips} from '../../utils/formatters.js';
+import {buildActionConfirmation, buildPokerLobbyView,} from '../../ui/builders/poker.builder.js';
+import {logger} from '../../utils/logger.js';
 
 async function handlePokerModal(interaction: ModalSubmitInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

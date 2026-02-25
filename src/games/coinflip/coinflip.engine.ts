@@ -1,5 +1,5 @@
-import { secureRandomInt } from '../../utils/random.js';
-import { COINFLIP_CONFIG } from '../../config/games.js';
+import {secureRandomInt} from '../../utils/random.js';
+import {COINFLIP_CONFIG} from '../../config/games.js';
 
 export type CoinSide = 'heads' | 'tails';
 

@@ -1,28 +1,23 @@
 import {
-  type ButtonInteraction,
-  MessageFlags,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ActionRowBuilder,
+    ActionRowBuilder,
+    type ButtonInteraction,
+    MessageFlags,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { getOrCreateCurrentRound, buyTicket } from '../../database/services/lottery.service.js';
+import {registerButtonHandler} from '../handler.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {buyTicket, getOrCreateCurrentRound} from '../../database/services/lottery.service.js';
 import {
-  getUserTickets,
-  getRoundTicketCount,
-  getRecentCompletedRounds,
+    getRecentCompletedRounds,
+    getRoundTicketCount,
+    getUserTickets,
 } from '../../database/repositories/lottery.repository.js';
-import { buildLotteryView } from '../../ui/builders/lottery.builder.js';
-import { secureRandomInt } from '../../utils/random.js';
-import {
-  LOTTERY_NUMBER_MIN,
-  LOTTERY_NUMBER_MAX,
-  LOTTERY_NUMBERS_COUNT,
-} from '../../config/constants.js';
-import { checkAchievements } from '../../database/services/achievement.service.js';
-import { buildAchievementNotification } from '../../database/services/achievement.service.js';
+import {buildLotteryView} from '../../ui/builders/lottery.builder.js';
+import {secureRandomInt} from '../../utils/random.js';
+import {LOTTERY_NUMBER_MAX, LOTTERY_NUMBER_MIN, LOTTERY_NUMBERS_COUNT,} from '../../config/constants.js';
+import {buildAchievementNotification, checkAchievements} from '../../database/services/achievement.service.js';
 
 async function handleLotteryButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

@@ -1,25 +1,25 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import { formatChips } from '../../../utils/formatters.js';
-import type { PokerSessionState } from '../../../games/poker/poker.session.js';
-import type { PokerPlayer } from '../../../games/poker/poker.engine.js';
-import { canCheck } from '../../../games/poker/poker.engine.js';
-import { formatCard } from '../../../games/poker/poker.deck.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import {formatChips} from '../../../utils/formatters.js';
+import type {PokerSessionState} from '../../../games/poker/poker.session.js';
+import type {PokerPlayer} from '../../../games/poker/poker.engine.js';
+import {canCheck} from '../../../games/poker/poker.engine.js';
+import {formatCard} from '../../../games/poker/poker.deck.js';
 import {
-  PHASE_LABELS,
-  PHASE_PROGRESS,
-  positionTag,
-  buildCommunityLine,
-  getHandStrengthText,
-  getPotOddsText,
+    buildCommunityLine,
+    getHandStrengthText,
+    getPotOddsText,
+    PHASE_LABELS,
+    PHASE_PROGRESS,
+    positionTag,
 } from './helpers.js';
 
 export interface PlayerPanelData {

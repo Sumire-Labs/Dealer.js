@@ -1,17 +1,20 @@
 import {
-  type ButtonInteraction,
-  MessageFlags,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ActionRowBuilder,
+    ActionRowBuilder,
+    type ButtonInteraction,
+    MessageFlags,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js';
-import { buildBankViewData } from '../../../database/services/bank-view.service.js';
-import { buildBankMainView, buildFixedDepositWithdrawView } from '../../../ui/builders/bank.builder.js';
-import { getFixedDepositsForDisplay, earlyWithdrawFixedDeposit } from '../../../database/services/fixed-deposit.service.js';
-import { formatChips } from '../../../utils/formatters.js';
-import { configService } from '../../../config/config.service.js';
-import { S } from '../../../config/setting-defs.js';
+import {buildBankViewData} from '../../../database/services/bank-view.service.js';
+import {buildBankMainView, buildFixedDepositWithdrawView} from '../../../ui/builders/bank.builder.js';
+import {
+    earlyWithdrawFixedDeposit,
+    getFixedDepositsForDisplay
+} from '../../../database/services/fixed-deposit.service.js';
+import {formatChips} from '../../../utils/formatters.js';
+import {configService} from '../../../config/config.service.js';
+import {S} from '../../../config/setting-defs.js';
 
 export async function handleFixedCreate(interaction: ButtonInteraction, action: string): Promise<void> {
   const termDays = action === 'fixed_create_7' ? 7 : 30;

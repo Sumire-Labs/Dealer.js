@@ -1,9 +1,9 @@
-import type { MessageComponentInteraction, ChatInputCommandInteraction, ModalSubmitInteraction } from 'discord.js';
-import { MessageFlags } from 'discord.js';
-import { ROULETTE_CONFIG } from '../../config/games.js';
-import { getAnimationNumbers, type RouletteResult } from '../../games/roulette/roulette.engine.js';
-import { buildRouletteSpinningView, buildRouletteResultView } from '../builders/roulette.builder.js';
-import type { TodayStats } from '../../database/repositories/user.repository.js';
+import type {ChatInputCommandInteraction, MessageComponentInteraction, ModalSubmitInteraction} from 'discord.js';
+import {MessageFlags} from 'discord.js';
+import {ROULETTE_CONFIG} from '../../config/games.js';
+import {getAnimationNumbers, type RouletteResult} from '../../games/roulette/roulette.engine.js';
+import {buildRouletteResultView, buildRouletteSpinningView} from '../builders/roulette.builder.js';
+import type {TodayStats} from '../../database/repositories/user.repository.js';
 
 export async function playRouletteAnimation(
   interaction: ChatInputCommandInteraction | MessageComponentInteraction | ModalSubmitInteraction,

@@ -1,19 +1,19 @@
-import { type ButtonInteraction, MessageFlags } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { findOrCreateUser, getTodayStats } from '../../database/repositories/user.repository.js';
-import { processGameResult } from '../../database/services/economy.service.js';
-import { playCoinflip, type CoinSide } from '../../games/coinflip/coinflip.engine.js';
+import {type ButtonInteraction, MessageFlags} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {findOrCreateUser, getTodayStats} from '../../database/repositories/user.repository.js';
+import {processGameResult} from '../../database/services/economy.service.js';
+import {type CoinSide, playCoinflip} from '../../games/coinflip/coinflip.engine.js';
 import {
-  buildCoinflipFlippingView,
-  buildCoinflipResultView,
-  buildCoinflipIdleView,
+    buildCoinflipFlippingView,
+    buildCoinflipIdleView,
+    buildCoinflipResultView,
 } from '../../ui/builders/coinflip.builder.js';
-import { formatChips } from '../../utils/formatters.js';
-import { getEffectiveMax } from '../../utils/bet.js';
-import { buildAchievementNotification } from '../../database/services/achievement.service.js';
-import { buildMissionNotification } from '../../database/services/mission.service.js';
+import {formatChips} from '../../utils/formatters.js';
+import {getEffectiveMax} from '../../utils/bet.js';
+import {buildAchievementNotification} from '../../database/services/achievement.service.js';
+import {buildMissionNotification} from '../../database/services/mission.service.js';
 
 const BET_STEPS = [100n, 500n, 1_000n, 5_000n, 10_000n, 50_000n, 100_000n, 500_000n, 1_000_000n];
 

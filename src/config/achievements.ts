@@ -1,4 +1,6 @@
-import type { GameType } from '@prisma/client';
+import type {GameType} from '@prisma/client';
+import type {AchievementCategory, AchievementContext, AchievementDefinition} from './achievements/types.js';
+import {ACHIEVEMENTS} from './achievements/definitions.js';
 
 // ── Re-exports from sub-modules ──
 
@@ -6,9 +8,6 @@ export type { AchievementCategory, AchievementContext, AchievementDefinition } f
 export { ACHIEVEMENTS } from './achievements/definitions.js';
 
 // ── Imports for aggregation ──
-
-import type { AchievementCategory, AchievementContext, AchievementDefinition } from './achievements/types.js';
-import { ACHIEVEMENTS } from './achievements/definitions.js';
 
 // ── Lookup maps ──
 

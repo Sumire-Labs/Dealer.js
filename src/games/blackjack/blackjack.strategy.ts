@@ -1,6 +1,6 @@
-import { BLACKJACK_CONFIG } from '../../config/games.js';
-import type { Card } from './blackjack.deck.js';
-import { evaluateHand } from './blackjack.hand.js';
+import {BLACKJACK_CONFIG} from '../../config/games.js';
+import type {Card} from './blackjack.deck.js';
+import {evaluateHand} from './blackjack.hand.js';
 
 export type DealerAction = 'hit' | 'stand';
 

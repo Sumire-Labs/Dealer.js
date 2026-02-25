@@ -1,9 +1,4 @@
-import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-} from 'discord.js';
+import {ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, TextDisplayBuilder,} from 'discord.js';
 
 export function createContainer(accentColor: number): ContainerBuilder {
   return new ContainerBuilder().setAccentColor(accentColor);

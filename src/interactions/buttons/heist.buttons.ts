@@ -1,30 +1,19 @@
-import { type ButtonInteraction, MessageFlags, ContainerBuilder, TextDisplayBuilder } from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { removeChips } from '../../database/services/economy.service.js';
+import {type ButtonInteraction, ContainerBuilder, MessageFlags, TextDisplayBuilder} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {removeChips} from '../../database/services/economy.service.js';
 import {
-  getActiveHeistSession,
-  setActiveHeistSession,
-  addPlayerToHeist,
-  isPlayerInHeist,
-  type HeistSessionState,
+    addPlayerToHeist,
+    getActiveHeistSession,
+    type HeistSessionState,
+    isPlayerInHeist,
+    setActiveHeistSession,
 } from '../../games/heist/heist.session.js';
-import {
-  buildHeistLobbyView,
-  buildHeistApproachSelectView,
-} from '../../ui/builders/heist.builder.js';
-import { formatChips } from '../../utils/formatters.js';
-import {
-  HEIST_MAX_PLAYERS,
-  HEIST_LOBBY_DURATION_MS,
-} from '../../config/constants.js';
-import { runHeist, startLobbyCountdown } from '../../commands/casino/heist.command.js';
-import {
-  type HeistTarget,
-  type HeistRiskLevel,
-  type HeistApproach,
-  HEIST_TARGET_MAP,
-} from '../../config/heist.js';
+import {buildHeistApproachSelectView, buildHeistLobbyView,} from '../../ui/builders/heist.builder.js';
+import {formatChips} from '../../utils/formatters.js';
+import {HEIST_LOBBY_DURATION_MS, HEIST_MAX_PLAYERS,} from '../../config/constants.js';
+import {runHeist, startLobbyCountdown} from '../../commands/casino/heist.command.js';
+import {HEIST_TARGET_MAP, type HeistApproach, type HeistRiskLevel, type HeistTarget,} from '../../config/heist.js';
 
 async function handleHeistButton(interaction: ButtonInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

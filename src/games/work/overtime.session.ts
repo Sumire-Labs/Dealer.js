@@ -1,5 +1,5 @@
-import type { ShiftType } from '../../config/jobs.js';
-import { OVERTIME_SESSION_TTL_MS } from '../../config/constants.js';
+import type {ShiftType} from '../../config/jobs.js';
+import {OVERTIME_SESSION_TTL_MS} from '../../config/constants.js';
 
 export interface OvertimeSession {
   userId: string;

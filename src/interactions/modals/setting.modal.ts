@@ -1,13 +1,8 @@
-import {
-  type ModalSubmitInteraction,
-  MessageFlags,
-  ContainerBuilder,
-  TextDisplayBuilder,
-} from 'discord.js';
-import { registerModalHandler } from '../handler.js';
-import { configService } from '../../config/config.service.js';
-import { buildHorseNameSettingView, buildSettingCategoryView } from '../../ui/builders/setting.builder.js';
-import { SETTING_CATEGORIES } from '../../config/setting-defs.js';
+import {ContainerBuilder, MessageFlags, type ModalSubmitInteraction, TextDisplayBuilder,} from 'discord.js';
+import {registerModalHandler} from '../handler.js';
+import {configService} from '../../config/config.service.js';
+import {buildHorseNameSettingView, buildSettingCategoryView} from '../../ui/builders/setting.builder.js';
+import {SETTING_CATEGORIES} from '../../config/setting-defs.js';
 
 async function handleSettingModal(interaction: ModalSubmitInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

@@ -1,21 +1,16 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { formatChips } from '../../utils/formatters.js';
-import {
-  ITEM_MAP,
-  RARITY_EMOJI,
-  RARITY_LABELS,
-  type ItemRarity,
-} from '../../config/shop.js';
-import { buildTabRow } from './shop.builder.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {formatChips} from '../../utils/formatters.js';
+import {ITEM_MAP, type ItemRarity, RARITY_EMOJI, RARITY_LABELS,} from '../../config/shop.js';
+import {buildTabRow} from './shop.builder.js';
 
 export interface DailyRotationViewItem {
   itemId: string;

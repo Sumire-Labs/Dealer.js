@@ -1,15 +1,15 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import type { WorkResult } from '../../../database/services/work.service.js';
-import type { ScenarioChoice } from '../../../config/work-events.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import type {WorkResult} from '../../../database/services/work.service.js';
+import type {ScenarioChoice} from '../../../config/work-events.js';
 
 export function buildMultiStepEventView(
   userId: string,

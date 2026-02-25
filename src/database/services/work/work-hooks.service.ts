@@ -1,7 +1,7 @@
-import { checkAchievements } from '../achievement.service.js';
-import type { AchievementDefinition } from '../../../config/achievements.js';
-import { updateMissionProgress, type CompletedMission } from '../mission.service.js';
-import type { WorkResult } from './perform-work.service.js';
+import {checkAchievements} from '../achievement.service.js';
+import type {AchievementDefinition} from '../../../config/achievements.js';
+import {type CompletedMission, updateMissionProgress} from '../mission.service.js';
+import type {WorkResult} from './perform-work.service.js';
 
 export async function postWorkHooks(
   userId: string,

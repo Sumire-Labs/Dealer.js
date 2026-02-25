@@ -1,13 +1,8 @@
-import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-} from 'discord.js';
-import { CasinoTheme } from '../../themes/casino.theme.js';
-import { formatChips } from '../../../utils/formatters.js';
-import { HEIST_TARGET_MAP, type HeistTarget } from '../../../config/heist.js';
-import type { PhaseResult } from '../../../games/heist/heist.engine.js';
+import {ContainerBuilder, SeparatorBuilder, SeparatorSpacingSize, TextDisplayBuilder,} from 'discord.js';
+import {CasinoTheme} from '../../themes/casino.theme.js';
+import {formatChips} from '../../../utils/formatters.js';
+import {HEIST_TARGET_MAP, type HeistTarget} from '../../../config/heist.js';
+import type {PhaseResult} from '../../../games/heist/heist.engine.js';
 
 export function buildHeistPhaseView(
   completedPhases: PhaseResult[],

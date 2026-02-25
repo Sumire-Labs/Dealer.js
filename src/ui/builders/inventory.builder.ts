@@ -1,22 +1,18 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { formatChips } from '../../utils/formatters.js';
-import {
-  ITEM_MAP,
-  SHOP_EFFECTS,
-  type ShopItem,
-} from '../../config/shop.js';
-import type { UserInventory, ActiveBuff } from '@prisma/client';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {formatChips} from '../../utils/formatters.js';
+import {ITEM_MAP, SHOP_EFFECTS, type ShopItem,} from '../../config/shop.js';
+import type {ActiveBuff, UserInventory} from '@prisma/client';
 
 const ITEMS_PER_INV_PAGE = 5;
 

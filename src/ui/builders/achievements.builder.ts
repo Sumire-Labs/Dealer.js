@@ -1,18 +1,18 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
 import {
-  ACHIEVEMENTS,
-  ACHIEVEMENTS_BY_CATEGORY,
-  type AchievementCategory,
-  type AchievementDefinition,
+    type AchievementCategory,
+    type AchievementDefinition,
+    ACHIEVEMENTS,
+    ACHIEVEMENTS_BY_CATEGORY,
 } from '../../config/achievements.js';
 
 export type AchievementTab = 'all' | AchievementCategory;

@@ -1,4 +1,4 @@
-import type { Card } from './poker.deck.js';
+import type {Card} from './poker.deck.js';
 
 export enum HandRank {
   HighCard = 0,

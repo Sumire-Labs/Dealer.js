@@ -1,34 +1,22 @@
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder, type TextBasedChannel,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {RACE_BETTING_DURATION_MS, RACE_MIN_PLAYERS} from '../../config/constants.js';
+import {generateHorses} from '../../games/horse-race/race.horses.js';
+import {simulateRace} from '../../games/horse-race/race.engine.js';
+import {calculatePayouts} from '../../games/horse-race/race.betting.js';
 import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  type TextBasedChannel,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import { RACE_BETTING_DURATION_MS, RACE_MIN_PLAYERS } from '../../config/constants.js';
-import { generateHorses } from '../../games/horse-race/race.horses.js';
-import { simulateRace } from '../../games/horse-race/race.engine.js';
-import { calculatePayouts } from '../../games/horse-race/race.betting.js';
-import {
-  getActiveSession,
-  setActiveSession,
-  removeActiveSession,
-  type RaceSessionState,
+    getActiveSession,
+    type RaceSessionState,
+    removeActiveSession,
+    setActiveSession,
 } from '../../games/horse-race/race.session.js';
-import {
-  createRaceSession,
-  updateRaceStatus,
-} from '../../database/repositories/race.repository.js';
-import { addChips } from '../../database/services/economy.service.js';
-import { getBankruptcyPenaltyMultiplier, applyPenalty } from '../../database/services/loan.service.js';
-import { incrementGameStats } from '../../database/repositories/user.repository.js';
-import {
-  buildBettingView,
-  buildRaceResultView,
-  buildRaceCancelledView,
-} from '../../ui/builders/horse-race.builder.js';
-import { playRaceAnimation } from '../../ui/animations/race.animation.js';
-import { logger } from '../../utils/logger.js';
+import {createRaceSession, updateRaceStatus,} from '../../database/repositories/race.repository.js';
+import {addChips} from '../../database/services/economy.service.js';
+import {applyPenalty, getBankruptcyPenaltyMultiplier} from '../../database/services/loan.service.js';
+import {incrementGameStats} from '../../database/repositories/user.repository.js';
+import {buildBettingView, buildRaceCancelledView, buildRaceResultView,} from '../../ui/builders/horse-race.builder.js';
+import {playRaceAnimation} from '../../ui/animations/race.animation.js';
+import {logger} from '../../utils/logger.js';
 
 const data = new SlashCommandBuilder()
   .setName('race')

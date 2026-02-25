@@ -1,38 +1,30 @@
+import {type ButtonInteraction, ContainerBuilder, MessageFlags, TextDisplayBuilder,} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
 import {
-  type ButtonInteraction,
-  ContainerBuilder,
-  TextDisplayBuilder,
-  MessageFlags,
-} from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import {
-  type BlackjackState,
-  hit,
-  stand,
-  doubleDown,
-  split,
-  takeInsurance,
-  calculateTotalResult,
-  createGame,
+    type BlackjackState,
+    calculateTotalResult,
+    createGame,
+    doubleDown,
+    hit,
+    split,
+    stand,
+    takeInsurance,
 } from '../../games/blackjack/blackjack.engine.js';
+import {buildBlackjackPlayingView, buildBlackjackResultView,} from '../../ui/builders/blackjack.builder.js';
+import {buildBjTableLobbyView} from '../../ui/builders/blackjack-table.builder.js';
+import {findOrCreateUser, incrementGameStats} from '../../database/repositories/user.repository.js';
+import {addChips, removeChips} from '../../database/services/economy.service.js';
+import {applyPenalty, getBankruptcyPenaltyMultiplier} from '../../database/services/loan.service.js';
+import {formatChips} from '../../utils/formatters.js';
+import {buildMissionNotification, updateMissionProgress} from '../../database/services/mission.service.js';
 import {
-  buildBlackjackPlayingView,
-  buildBlackjackResultView,
-} from '../../ui/builders/blackjack.builder.js';
-import { buildBjTableLobbyView } from '../../ui/builders/blackjack-table.builder.js';
-import { findOrCreateUser, incrementGameStats } from '../../database/repositories/user.repository.js';
-import { removeChips, addChips } from '../../database/services/economy.service.js';
-import { getBankruptcyPenaltyMultiplier, applyPenalty } from '../../database/services/loan.service.js';
-import { formatChips } from '../../utils/formatters.js';
-import { updateMissionProgress, buildMissionNotification } from '../../database/services/mission.service.js';
-import {
-  getActiveTableSession,
-  setActiveTableSession,
-  type BlackjackTableSession,
+    type BlackjackTableSession,
+    getActiveTableSession,
+    setActiveTableSession,
 } from '../../games/blackjack/blackjack-table.session.js';
-import { Shoe } from '../../games/blackjack/blackjack.deck.js';
-import { BJ_TABLE_LOBBY_DURATION_MS } from '../../config/constants.js';
-import { startBjTableLobbyCountdown } from './blackjack-table.buttons.js';
+import {Shoe} from '../../games/blackjack/blackjack.deck.js';
+import {BJ_TABLE_LOBBY_DURATION_MS} from '../../config/constants.js';
+import {startBjTableLobbyCountdown} from './blackjack-table.buttons.js';
 
 // In-memory session storage: userId -> game state
 export const bjSessionManager = new Map<string, BlackjackState>();

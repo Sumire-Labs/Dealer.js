@@ -1,44 +1,36 @@
+import {type ButtonInteraction, MessageFlags, type TextBasedChannel,} from 'discord.js';
+import {registerButtonHandler} from '../handler.js';
 import {
-  type ButtonInteraction,
-  type TextBasedChannel,
-  MessageFlags,
-} from 'discord.js';
-import { registerButtonHandler } from '../handler.js';
-import {
-  getActiveTableSession,
-  removeActiveTableSession,
-  addPlayerToTable,
-  hasPlayerInTable,
-  type BlackjackTableSession,
+    addPlayerToTable,
+    type BlackjackTableSession,
+    getActiveTableSession,
+    hasPlayerInTable,
+    removeActiveTableSession,
 } from '../../games/blackjack/blackjack-table.session.js';
 import {
-  initializeTable,
-  tableHit,
-  tableStand,
-  tableDoubleDown,
-  tableSplit,
-  tableInsurance,
-  isPlayerDone,
-  advanceTableTurn,
-  calculatePlayerPayout,
+    advanceTableTurn,
+    calculatePlayerPayout,
+    initializeTable,
+    isPlayerDone,
+    tableDoubleDown,
+    tableHit,
+    tableInsurance,
+    tableSplit,
+    tableStand,
 } from '../../games/blackjack/blackjack-table.engine.js';
 import {
-  buildBjTableLobbyView,
-  buildBjTablePlayingView,
-  buildBjTableResultView,
-  buildBjTableCancelledView,
+    buildBjTableCancelledView,
+    buildBjTableLobbyView,
+    buildBjTablePlayingView,
+    buildBjTableResultView,
 } from '../../ui/builders/blackjack-table.builder.js';
-import { findOrCreateUser, incrementGameStats } from '../../database/repositories/user.repository.js';
-import { removeChips, addChips } from '../../database/services/economy.service.js';
-import { getBankruptcyPenaltyMultiplier, applyPenalty } from '../../database/services/loan.service.js';
-import { formatChips } from '../../utils/formatters.js';
-import { updateMissionProgress, buildMissionNotification } from '../../database/services/mission.service.js';
-import {
-  BJ_TABLE_MIN_PLAYERS,
-  BJ_TABLE_MAX_PLAYERS,
-  BJ_TABLE_TURN_TIMEOUT_MS,
-} from '../../config/constants.js';
-import { logger } from '../../utils/logger.js';
+import {findOrCreateUser, incrementGameStats} from '../../database/repositories/user.repository.js';
+import {addChips, removeChips} from '../../database/services/economy.service.js';
+import {applyPenalty, getBankruptcyPenaltyMultiplier} from '../../database/services/loan.service.js';
+import {formatChips} from '../../utils/formatters.js';
+import {buildMissionNotification, updateMissionProgress} from '../../database/services/mission.service.js';
+import {BJ_TABLE_MAX_PLAYERS, BJ_TABLE_MIN_PLAYERS, BJ_TABLE_TURN_TIMEOUT_MS,} from '../../config/constants.js';
+import {logger} from '../../utils/logger.js';
 
 // ─── Main handler ──────────────────────────────────────
 

@@ -1,6 +1,6 @@
-import { findOrCreateUser } from '../../repositories/user.repository.js';
-import { LEVEL_THRESHOLDS } from '../../../config/jobs.js';
-import { getAllMasteries } from '../../repositories/work-mastery.repository.js';
+import {findOrCreateUser} from '../../repositories/user.repository.js';
+import {LEVEL_THRESHOLDS} from '../../../config/jobs.js';
+import {getAllMasteries} from '../../repositories/work-mastery.repository.js';
 
 export interface WorkPanelData {
   workLevel: number;

@@ -1,5 +1,5 @@
-import type { ShopItem, ShopCategory } from './shop.js';
-import type { WorkBonuses } from '../games/work/work.engine.js';
+import type {ShopCategory, ShopItem} from './shop.js';
+import type {WorkBonuses} from '../games/work/work.engine.js';
 
 export interface WorkToolDefinition extends ShopItem {
   targetJobId: string | 'all';

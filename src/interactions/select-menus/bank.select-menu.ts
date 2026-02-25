@@ -1,12 +1,12 @@
 import {
-  type UserSelectMenuInteraction,
-  MessageFlags,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ActionRowBuilder,
+    ActionRowBuilder,
+    MessageFlags,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
+    type UserSelectMenuInteraction,
 } from 'discord.js';
-import { registerSelectMenuHandler } from '../handler.js';
+import {registerSelectMenuHandler} from '../handler.js';
 
 async function handleBankSelectMenu(interaction: UserSelectMenuInteraction): Promise<void> {
   const parts = interaction.customId.split(':');

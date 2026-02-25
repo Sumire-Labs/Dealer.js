@@ -1,49 +1,41 @@
+import {type ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder, type TextBasedChannel,} from 'discord.js';
+import {registerCommand} from '../registry.js';
+import {POKER_LOBBY_DURATION_MS, POKER_MIN_PLAYERS,} from '../../config/constants.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {POKER_CONFIG} from '../../config/games.js';
+import {createDeck} from '../../games/poker/poker.deck.js';
 import {
-  SlashCommandBuilder,
-  type ChatInputCommandInteraction,
-  type TextBasedChannel,
-  MessageFlags,
-} from 'discord.js';
-import { registerCommand } from '../registry.js';
-import {
-  POKER_LOBBY_DURATION_MS,
-  POKER_MIN_PLAYERS,
-} from '../../config/constants.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { POKER_CONFIG } from '../../config/games.js';
-import { createDeck } from '../../games/poker/poker.deck.js';
-import {
-  postBlinds,
-  getFirstToAct,
-  getNextActivePlayer,
-  getActivePlayers,
-  getActionablePlayers,
-  resetBettingRound,
-  isBettingRoundComplete,
-  processAction,
-  calculatePots,
-  determineWinners,
-  type PokerPhase,
+    calculatePots,
+    determineWinners,
+    getActionablePlayers,
+    getActivePlayers,
+    getFirstToAct,
+    getNextActivePlayer,
+    isBettingRoundComplete,
+    type PokerPhase,
+    postBlinds,
+    processAction,
+    resetBettingRound,
 } from '../../games/poker/poker.engine.js';
 import {
-  getActiveSession,
-  setActiveSession,
-  removeActiveSession,
-  type PokerSessionState,
+    getActiveSession,
+    type PokerSessionState,
+    removeActiveSession,
+    setActiveSession,
 } from '../../games/poker/poker.session.js';
-import { addChips } from '../../database/services/economy.service.js';
-import { getBankruptcyPenaltyMultiplier, applyPenalty } from '../../database/services/loan.service.js';
-import { incrementGameStats } from '../../database/repositories/user.repository.js';
+import {addChips} from '../../database/services/economy.service.js';
+import {applyPenalty, getBankruptcyPenaltyMultiplier} from '../../database/services/loan.service.js';
+import {incrementGameStats} from '../../database/repositories/user.repository.js';
 import {
-  buildPokerLobbyView,
-  buildPokerTableView,
-  buildPokerResultView,
-  buildPokerFoldWinView,
-  buildPokerCancelledView,
+    buildPokerCancelledView,
+    buildPokerFoldWinView,
+    buildPokerLobbyView,
+    buildPokerResultView,
+    buildPokerTableView,
 } from '../../ui/builders/poker.builder.js';
-import { logger } from '../../utils/logger.js';
-import { secureRandomInt } from '../../utils/random.js';
+import {logger} from '../../utils/logger.js';
+import {secureRandomInt} from '../../utils/random.js';
 
 const data = new SlashCommandBuilder()
   .setName('poker')

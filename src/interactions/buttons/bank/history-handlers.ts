@@ -1,7 +1,7 @@
-import { type ButtonInteraction, MessageFlags } from 'discord.js';
-import { buildBankViewData } from '../../../database/services/bank-view.service.js';
-import { buildBankMainView } from '../../../ui/builders/bank.builder.js';
-import { bankHistoryPage, setPageGuarded } from './page-state.js';
+import {type ButtonInteraction, MessageFlags} from 'discord.js';
+import {buildBankViewData} from '../../../database/services/bank-view.service.js';
+import {buildBankMainView} from '../../../ui/builders/bank.builder.js';
+import {bankHistoryPage, setPageGuarded} from './page-state.js';
 
 export async function handleHistoryPrev(interaction: ButtonInteraction, userId: string): Promise<void> {
   const current = bankHistoryPage.get(userId) ?? 1;

@@ -1,15 +1,15 @@
-import { prisma } from '../client.js';
-import { findOrCreateUser } from '../repositories/user.repository.js';
+import {prisma} from '../client.js';
+import {findOrCreateUser} from '../repositories/user.repository.js';
 import {
-  getInventoryItem,
-  upsertInventoryItem,
-  decrementInventoryItem,
-  markEverOwned,
+    decrementInventoryItem,
+    getInventoryItem,
+    markEverOwned,
+    upsertInventoryItem,
 } from '../repositories/shop.repository.js';
-import { checkAchievements } from './achievement.service.js';
-import { ITEM_MAP, SHOP_EFFECTS } from '../../config/shop.js';
-import type { AchievementDefinition } from '../../config/achievements.js';
-import { getSetting } from '../repositories/setting.repository.js';
+import {checkAchievements} from './achievement.service.js';
+import {ITEM_MAP, SHOP_EFFECTS} from '../../config/shop.js';
+import type {AchievementDefinition} from '../../config/achievements.js';
+import {getSetting} from '../repositories/setting.repository.js';
 
 const MAX_GIFTS_PER_DAY = 5;
 

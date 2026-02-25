@@ -1,15 +1,15 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { formatChips, formatTimeDelta } from '../../utils/formatters.js';
-import type { PrisonSession } from '../../games/prison/prison.session.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {formatChips, formatTimeDelta} from '../../utils/formatters.js';
+import type {PrisonSession} from '../../games/prison/prison.session.js';
 
 export function buildPrisonView(
   session: PrisonSession,

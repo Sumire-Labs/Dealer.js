@@ -1,17 +1,11 @@
-import {
-  type ModalSubmitInteraction,
-  MessageFlags,
-} from 'discord.js';
-import { registerModalHandler } from '../handler.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { findOrCreateUser } from '../../database/repositories/user.repository.js';
-import { removeChips } from '../../database/services/economy.service.js';
-import {
-  getActiveSession,
-  addBetToSession,
-} from '../../games/horse-race/race.session.js';
-import { formatChips } from '../../utils/formatters.js';
+import {MessageFlags, type ModalSubmitInteraction,} from 'discord.js';
+import {registerModalHandler} from '../handler.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {findOrCreateUser} from '../../database/repositories/user.repository.js';
+import {removeChips} from '../../database/services/economy.service.js';
+import {addBetToSession, getActiveSession,} from '../../games/horse-race/race.session.js';
+import {formatChips} from '../../utils/formatters.js';
 
 async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promise<void> {
   // customId format: racebet:<channelId>:<horseIndex>

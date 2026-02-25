@@ -1,40 +1,27 @@
-import { prisma } from '../client.js';
-import { findOrCreateUser } from '../repositories/user.repository.js';
+import {prisma} from '../client.js';
+import {findOrCreateUser} from '../repositories/user.repository.js';
+import {JOB_MAP, type JobDefinition, LEVEL_THRESHOLDS, SHIFT_MAP, type ShiftType,} from '../../config/jobs.js';
+import {WORK_STREAK_WINDOW_MS,} from '../../config/constants.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
 import {
-  type ShiftType,
-  JOB_MAP,
-  SHIFT_MAP,
-  LEVEL_THRESHOLDS,
-  type JobDefinition,
-} from '../../config/jobs.js';
-import {
-  WORK_STREAK_WINDOW_MS,
-} from '../../config/constants.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import {
-  rollWorkEvent,
-  rollBasePay,
-  rollTipAmount,
-  getStreakBonus,
-  calculateWorkPayout,
-  calculateXpGain,
-  getLevelForXp,
-  getEventFlavor,
-  type WorkBonuses,
+    calculateWorkPayout,
+    calculateXpGain,
+    getEventFlavor,
+    getLevelForXp,
+    getStreakBonus,
+    rollBasePay,
+    rollTipAmount,
+    rollWorkEvent,
+    type WorkBonuses,
 } from '../../games/work/work.engine.js';
-import {
-  isOnCooldown,
-  getRemainingCooldown,
-  setCooldown,
-  buildCooldownKey,
-} from '../../utils/cooldown.js';
-import { hasActiveBuff, hasInventoryItem } from './shop.service.js';
-import { SHOP_EFFECTS } from '../../config/shop.js';
-import { getMasteryTier, getMasteryLevelForShifts } from '../../config/work-mastery.js';
-import { getMastery, incrementShifts, updateMasteryLevel } from '../repositories/work-mastery.repository.js';
-import { PROMOTED_JOB_MAP, type PromotedJobDefinition } from '../../config/promoted-jobs.js';
-import { type WorkResult, getToolBonuses, postWorkHooks } from './work.service.js';
+import {buildCooldownKey, getRemainingCooldown, isOnCooldown, setCooldown,} from '../../utils/cooldown.js';
+import {hasActiveBuff, hasInventoryItem} from './shop.service.js';
+import {SHOP_EFFECTS} from '../../config/shop.js';
+import {getMasteryLevelForShifts, getMasteryTier} from '../../config/work-mastery.js';
+import {getMastery, incrementShifts, updateMasteryLevel} from '../repositories/work-mastery.repository.js';
+import {PROMOTED_JOB_MAP, type PromotedJobDefinition} from '../../config/promoted-jobs.js';
+import {getToolBonuses, postWorkHooks, type WorkResult} from './work.service.js';
 
 function getTeamCooldownMs(type: ShiftType): number {
   const map: Record<ShiftType, () => number> = {

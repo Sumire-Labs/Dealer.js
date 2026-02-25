@@ -1,5 +1,5 @@
-import type { BotSetting, Prisma } from '@prisma/client';
-import { prisma } from '../client.js';
+import type {BotSetting, Prisma} from '@prisma/client';
+import {prisma} from '../client.js';
 
 export async function getSetting(key: string): Promise<Prisma.JsonValue | null> {
   const setting = await prisma.botSetting.findUnique({ where: { key } });

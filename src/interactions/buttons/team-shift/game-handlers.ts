@@ -1,33 +1,28 @@
+import {type ButtonInteraction, ContainerBuilder, MessageFlags, TextDisplayBuilder,} from 'discord.js';
+import {logger} from '../../../utils/logger.js';
+import {findOrCreateUser} from '../../../database/repositories/user.repository.js';
+import type {TeamShiftSession} from '../../../games/work/team-shift.session.js';
 import {
-  type ButtonInteraction,
-  MessageFlags,
-  ContainerBuilder,
-  TextDisplayBuilder,
-} from 'discord.js';
-import { logger } from '../../../utils/logger.js';
-import { findOrCreateUser } from '../../../database/repositories/user.repository.js';
-import {
-  getTeamSession,
-  isPlayerInTeam,
-  setPlayerJob,
-  allPlayersReady,
-  removeTeamSession,
+    allPlayersReady,
+    getTeamSession,
+    isPlayerInTeam,
+    removeTeamSession,
+    setPlayerJob,
 } from '../../../games/work/team-shift.session.js';
 import {
-  buildTeamShiftLobbyView,
-  buildTeamShiftJobSelectView,
-  buildTeamShiftResultView,
+    buildTeamShiftJobSelectView,
+    buildTeamShiftLobbyView,
+    buildTeamShiftResultView,
 } from '../../../ui/builders/team-shift.builder.js';
-import { configService } from '../../../config/config.service.js';
-import { S } from '../../../config/setting-defs.js';
-import { performTeamWork } from '../../../database/services/team-work.service.js';
-import type { WorkResult } from '../../../database/services/work.service.js';
-import { JOB_MAP } from '../../../config/jobs.js';
-import { TEAM_EVENTS, type TeamEvent } from '../../../config/team-events.js';
-import { weightedRandom } from '../../../utils/random.js';
-import { buildAchievementNotification } from '../../../database/services/achievement.service.js';
-import { buildMissionNotification } from '../../../database/services/mission.service.js';
-import type { TeamShiftSession } from '../../../games/work/team-shift.session.js';
+import {configService} from '../../../config/config.service.js';
+import {S} from '../../../config/setting-defs.js';
+import {performTeamWork} from '../../../database/services/team-work.service.js';
+import type {WorkResult} from '../../../database/services/work.service.js';
+import {JOB_MAP} from '../../../config/jobs.js';
+import {TEAM_EVENTS, type TeamEvent} from '../../../config/team-events.js';
+import {weightedRandom} from '../../../utils/random.js';
+import {buildAchievementNotification} from '../../../database/services/achievement.service.js';
+import {buildMissionNotification} from '../../../database/services/mission.service.js';
 
 function rollTeamEvent(): TeamEvent | undefined {
   // 55% chance of no event

@@ -1,19 +1,19 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
-import { formatChips } from '../../utils/formatters.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import { getEffectiveMax } from '../../utils/bet.js';
-import type { CoinSide } from '../../games/coinflip/coinflip.engine.js';
-import type { TodayStats } from '../../database/repositories/user.repository.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
+import {formatChips} from '../../utils/formatters.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import {getEffectiveMax} from '../../utils/bet.js';
+import type {CoinSide} from '../../games/coinflip/coinflip.engine.js';
+import type {TodayStats} from '../../database/repositories/user.repository.js';
 
 const SIDE_DISPLAY: Record<CoinSide, { emoji: string; label: string }> = {
   heads: { emoji: '👑', label: 'オモテ' },

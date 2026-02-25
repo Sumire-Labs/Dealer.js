@@ -1,14 +1,10 @@
-import { findOrCreateUser } from '../repositories/user.repository.js';
-import {
-  getLoanSummary,
-  getLoanDetails,
-  getBankruptcyPenaltyRemaining,
-} from './loan.service.js';
-import { getBankAccountSummary, getBankTransactionHistory } from './bank-account.service.js';
-import { getFixedDepositsForDisplay } from './fixed-deposit.service.js';
-import { configService } from '../../config/config.service.js';
-import { S } from '../../config/setting-defs.js';
-import type { BankViewData } from '../../ui/builders/bank.builder.js';
+import {findOrCreateUser} from '../repositories/user.repository.js';
+import {getBankruptcyPenaltyRemaining, getLoanDetails, getLoanSummary,} from './loan.service.js';
+import {getBankAccountSummary, getBankTransactionHistory} from './bank-account.service.js';
+import {getFixedDepositsForDisplay} from './fixed-deposit.service.js';
+import {configService} from '../../config/config.service.js';
+import {S} from '../../config/setting-defs.js';
+import type {BankViewData} from '../../ui/builders/bank.builder.js';
 
 export async function buildBankViewData(
   userId: string,

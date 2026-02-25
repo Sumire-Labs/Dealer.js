@@ -1,9 +1,5 @@
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} from 'discord.js';
-import { formatChips } from '../../utils/formatters.js';
+import {ActionRowBuilder, ButtonBuilder, ButtonStyle,} from 'discord.js';
+import {formatChips} from '../../utils/formatters.js';
 
 export interface BetSelectorOptions {
   currentBet: bigint;

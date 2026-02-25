@@ -1,19 +1,19 @@
 import {
-  type ButtonInteraction,
-  MessageFlags,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ActionRowBuilder,
+    ActionRowBuilder,
+    type ButtonInteraction,
+    MessageFlags,
+    ModalBuilder,
+    TextInputBuilder,
+    TextInputStyle,
 } from 'discord.js';
-import { findOrCreateUser } from '../../../database/repositories/user.repository.js';
-import { getLoanSummary, declareBankruptcy } from '../../../database/services/loan.service.js';
-import { buildBankViewData } from '../../../database/services/bank-view.service.js';
-import { buildBankMainView, buildBankruptcyConfirmView } from '../../../ui/builders/bank.builder.js';
-import { formatChips } from '../../../utils/formatters.js';
-import { configService } from '../../../config/config.service.js';
-import { S } from '../../../config/setting-defs.js';
-import { bankLoanPage, setPageGuarded } from './page-state.js';
+import {findOrCreateUser} from '../../../database/repositories/user.repository.js';
+import {declareBankruptcy, getLoanSummary} from '../../../database/services/loan.service.js';
+import {buildBankViewData} from '../../../database/services/bank-view.service.js';
+import {buildBankMainView, buildBankruptcyConfirmView} from '../../../ui/builders/bank.builder.js';
+import {formatChips} from '../../../utils/formatters.js';
+import {configService} from '../../../config/config.service.js';
+import {S} from '../../../config/setting-defs.js';
+import {bankLoanPage, setPageGuarded} from './page-state.js';
 
 export async function handleBorrow(interaction: ButtonInteraction): Promise<void> {
   const modal = new ModalBuilder()

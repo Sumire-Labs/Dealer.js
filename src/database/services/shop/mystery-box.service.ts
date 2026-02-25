@@ -1,24 +1,24 @@
 import {
-  upsertInventoryItem,
-  decrementInventoryItem,
-  createActiveBuff,
-  markEverOwned,
+    createActiveBuff,
+    decrementInventoryItem,
+    markEverOwned,
+    upsertInventoryItem,
 } from '../../repositories/shop.repository.js';
-import { addChips } from '../economy.service.js';
-import { checkAchievements } from '../achievement.service.js';
-import type { AchievementDefinition } from '../../../config/achievements.js';
+import {addChips} from '../economy.service.js';
+import {checkAchievements} from '../achievement.service.js';
+import type {AchievementDefinition} from '../../../config/achievements.js';
 import {
-  ITEM_MAP,
-  MYSTERY_BOX_MAP,
-  GOLDEN_BOX_LOOT,
-  RARITY_LABELS,
-  RARITY_EMOJI,
-  type ShopItem,
-  type MysteryBoxLoot,
-  type ItemRarity,
+    GOLDEN_BOX_LOOT,
+    ITEM_MAP,
+    type ItemRarity,
+    MYSTERY_BOX_MAP,
+    type MysteryBoxLoot,
+    RARITY_EMOJI,
+    RARITY_LABELS,
+    type ShopItem,
 } from '../../../config/shop.js';
-import { weightedRandom, secureRandomInt } from '../../../utils/random.js';
-import { checkAndCompleteCollections } from '../collection.service.js';
+import {secureRandomInt, weightedRandom} from '../../../utils/random.js';
+import {checkAndCompleteCollections} from '../collection.service.js';
 
 export interface OpenBoxResult {
   success: boolean;

@@ -1,35 +1,35 @@
 import {
-  ContainerBuilder,
-  TextDisplayBuilder,
-  SeparatorBuilder,
-  SeparatorSpacingSize,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    ContainerBuilder,
+    SeparatorBuilder,
+    SeparatorSpacingSize,
+    StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
+    TextDisplayBuilder,
 } from 'discord.js';
-import { CasinoTheme } from '../themes/casino.theme.js';
+import {CasinoTheme} from '../themes/casino.theme.js';
 import {
-  WIKI_CATEGORIES,
-  WIKI_CATEGORY_MAP,
-  getItemsByCategory,
-  getCollectionsForItem,
-  getRecipeForItem,
-  getRecipesUsingItem,
+    getCollectionsForItem,
+    getItemsByCategory,
+    getRecipeForItem,
+    getRecipesUsingItem,
+    WIKI_CATEGORIES,
+    WIKI_CATEGORY_MAP,
 } from '../../config/wiki.js';
 import {
-  ITEM_MAP,
-  MYSTERY_BOX_MAP,
-  RARITY_LABELS,
-  RARITY_EMOJI,
-  type MysteryBoxLoot,
-  GOLDEN_BOX_LOOT,
+    GOLDEN_BOX_LOOT,
+    ITEM_MAP,
+    MYSTERY_BOX_MAP,
+    type MysteryBoxLoot,
+    RARITY_EMOJI,
+    RARITY_LABELS,
 } from '../../config/shop.js';
-import { WORK_TOOL_MAP } from '../../config/work-tools.js';
-import { JOBS } from '../../config/jobs.js';
-import { SHOP_RANKS } from '../../config/shop-ranks.js';
-import { formatChips } from '../../utils/formatters.js';
+import {WORK_TOOL_MAP} from '../../config/work-tools.js';
+import {JOBS} from '../../config/jobs.js';
+import {SHOP_RANKS} from '../../config/shop-ranks.js';
+import {formatChips} from '../../utils/formatters.js';
 
 const ITEMS_PER_PAGE = 4;
 
