@@ -25,6 +25,7 @@ async function handleShopSelectMenu(interaction: StringSelectMenuInteraction): P
     if (!isNaN(catIdx) && catIdx >= 0 && catIdx < SHOP_CATEGORIES.length) {
         state.category = catIdx;
         state.page = 0;
+        state.selected = 0;
     }
 
     const [balance, rankInfo, flashSale] = await Promise.all([
@@ -32,7 +33,7 @@ async function handleShopSelectMenu(interaction: StringSelectMenuInteraction): P
         getRankInfo(userId),
         getFlashSale(),
     ]);
-    const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale);
+    const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale, state.selected);
     await interaction.update({components: [view], flags: MessageFlags.IsComponentsV2});
 }
 

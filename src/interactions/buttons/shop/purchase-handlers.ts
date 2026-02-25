@@ -98,7 +98,7 @@ export async function handleConfirmBuy(interaction: ButtonInteraction, userId: s
 export async function handleCancelBuy(interaction: ButtonInteraction, userId: string): Promise<void> {
     const state = getState(userId);
     const [balance, rankInfo, flashSale] = await Promise.all([getBalance(userId), getRankInfo(userId), getFlashSale()]);
-    const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale);
+    const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale, state.selected);
     await interaction.update({components: [view], flags: MessageFlags.IsComponentsV2});
 }
 

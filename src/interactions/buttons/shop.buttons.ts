@@ -3,6 +3,8 @@ import {registerButtonHandler} from '../handler.js';
 import {
   handlePageNext,
   handlePagePrev,
+  handleSelDown,
+  handleSelUp,
   handleTabCollection,
   handleTabCraft,
   handleTabDaily,
@@ -58,6 +60,12 @@ async function handleShopButton(interaction: ButtonInteraction): Promise<void> {
             return handlePagePrev(interaction, userId);
         case 'page_next':
             return handlePageNext(interaction, userId);
+
+        // Cursor navigation
+        case 'sel_up':
+            return handleSelUp(interaction, userId);
+        case 'sel_down':
+            return handleSelDown(interaction, userId);
 
         // Purchase flow
         case 'buy':

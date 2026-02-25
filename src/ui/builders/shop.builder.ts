@@ -16,7 +16,7 @@ import type {ShopRankDef} from '../../config/shop-ranks.js';
 import type {FlashSale} from '../../database/services/shop.service.js';
 
 export type ShopTab = 'shop' | 'daily' | 'craft' | 'collection';
-const ITEMS_PER_PAGE = 4;
+export const ITEMS_PER_PAGE = 4;
 
 // ── Main tab buttons (4 tabs) ──
 
@@ -76,11 +76,13 @@ export function buildShopView(
     balance: bigint,
     rankInfo?: { rank: ShopRankDef; nextRank: ShopRankDef | null; lifetimeSpend: bigint },
     flashSale?: FlashSale | null,
+    selectedIndex: number = 0,
 ): ContainerBuilder {
     const cat = SHOP_CATEGORIES[categoryIndex];
     const totalPages = Math.ceil(cat.items.length / ITEMS_PER_PAGE);
     const start = page * ITEMS_PER_PAGE;
     const pageItems = cat.items.slice(start, start + ITEMS_PER_PAGE);
+    const safeSelected = pageItems.length > 0 ? Math.min(selectedIndex, pageItems.length - 1) : 0;
 
     const container = new ContainerBuilder()
         .setAccentColor(CasinoTheme.colors.gold);
@@ -134,15 +136,17 @@ export function buildShopView(
 
     // Category header + items
     const lines: string[] = [...rankLines, `${cat.emoji} **${cat.label}**`, ''];
-    for (const item of pageItems) {
+    for (let i = 0; i < pageItems.length; i++) {
+        const item = pageItems[i];
+        const cursor = i === safeSelected ? '▶' : '　';
         let priceLabel = formatChips(item.price);
         if (rankInfo && rankInfo.rank.discountPercent > 0 && item.price > 0n) {
             const discounted = item.price - (item.price * BigInt(rankInfo.rank.discountPercent)) / 100n;
             priceLabel = `~~${formatChips(item.price)}~~ ${formatChips(discounted)}`;
         }
         const rankTag = item.rankRequired ? ` [${item.rankRequired.toUpperCase()}]` : '';
-        lines.push(`${item.emoji} **${item.name}** — ${priceLabel}${rankTag}`);
-        lines.push(`  ${item.description}`);
+        lines.push(`${cursor} ${item.emoji} **${item.name}** — ${priceLabel}${rankTag}`);
+        lines.push(`　 ${item.description}`);
     }
     lines.push('');
     lines.push(`💰 残高: ${formatChips(balance)}`);
@@ -155,22 +159,29 @@ export function buildShopView(
         new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     );
 
-    // Buy buttons for page items
+    // Cursor navigation + buy button for selected item
     if (pageItems.length > 0) {
-        const buyRow = new ActionRowBuilder<ButtonBuilder>();
-        for (const item of pageItems) {
-            let displayPrice = item.price;
-            if (rankInfo && rankInfo.rank.discountPercent > 0 && item.price > 0n) {
-                displayPrice = item.price - (item.price * BigInt(rankInfo.rank.discountPercent)) / 100n;
-            }
-            buyRow.addComponents(
-                new ButtonBuilder()
-                    .setCustomId(`shop:buy:${userId}:${item.id}`)
-                    .setLabel(`${item.emoji} ${formatChips(displayPrice)}`)
-                    .setStyle(ButtonStyle.Success),
-            );
+        const selectedItem = pageItems[safeSelected];
+        let displayPrice = selectedItem.price;
+        if (rankInfo && rankInfo.rank.discountPercent > 0 && selectedItem.price > 0n) {
+            displayPrice = selectedItem.price - (selectedItem.price * BigInt(rankInfo.rank.discountPercent)) / 100n;
         }
-        container.addActionRowComponents(buyRow);
+        container.addActionRowComponents(
+            new ActionRowBuilder<ButtonBuilder>().addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`shop:sel_up:${userId}`)
+                    .setLabel('▲')
+                    .setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder()
+                    .setCustomId(`shop:sel_down:${userId}`)
+                    .setLabel('▼')
+                    .setStyle(ButtonStyle.Secondary),
+                new ButtonBuilder()
+                    .setCustomId(`shop:buy:${userId}:${selectedItem.id}`)
+                    .setLabel(`${selectedItem.emoji} ${formatChips(displayPrice)} 購入`)
+                    .setStyle(ButtonStyle.Success),
+            ),
+        );
     }
 
     // Page navigation row

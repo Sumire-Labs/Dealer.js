@@ -3,7 +3,8 @@ import {getBalance} from '../../../database/services/economy.service.js';
 import {getDailyRotation, getFlashSale} from '../../../database/services/shop.service.js';
 import {getCollectionProgress} from '../../../database/services/collection.service.js';
 import {CRAFT_RECIPES} from '../../../config/crafting.js';
-import {buildShopView} from '../../../ui/builders/shop.builder.js';
+import {SHOP_CATEGORIES} from '../../../config/shop.js';
+import {buildShopView, ITEMS_PER_PAGE} from '../../../ui/builders/shop.builder.js';
 import {buildDailyRotationView} from '../../../ui/builders/daily-shop.builder.js';
 import {buildCraftListView} from '../../../ui/builders/craft.builder.js';
 import {buildCollectionListView} from '../../../ui/builders/collection.builder.js';
@@ -12,12 +13,13 @@ import {getRankInfo, getState} from './state.js';
 
 export async function handleTabShop(interaction: ButtonInteraction, userId: string): Promise<void> {
     const state = getState(userId);
+    state.selected = 0;
     const [balance, rankInfo, flashSale] = await Promise.all([
         getBalance(userId),
         getRankInfo(userId),
         getFlashSale(),
     ]);
-    const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale);
+    const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale, state.selected);
     await interaction.update({components: [view], flags: MessageFlags.IsComponentsV2});
 }
 
@@ -48,23 +50,53 @@ export async function handleTabCollection(interaction: ButtonInteraction, userId
 export async function handlePagePrev(interaction: ButtonInteraction, userId: string): Promise<void> {
     const state = getState(userId);
     state.page = Math.max(0, state.page - 1);
+    state.selected = 0;
     const [balance, rankInfo, flashSale] = await Promise.all([
         getBalance(userId),
         getRankInfo(userId),
         getFlashSale(),
     ]);
-    const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale);
+    const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale, state.selected);
     await interaction.update({components: [view], flags: MessageFlags.IsComponentsV2});
 }
 
 export async function handlePageNext(interaction: ButtonInteraction, userId: string): Promise<void> {
     const state = getState(userId);
     state.page += 1;
+    state.selected = 0;
     const [balance, rankInfo, flashSale] = await Promise.all([
         getBalance(userId),
         getRankInfo(userId),
         getFlashSale(),
     ]);
-    const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale);
+    const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale, state.selected);
+    await interaction.update({components: [view], flags: MessageFlags.IsComponentsV2});
+}
+
+export async function handleSelUp(interaction: ButtonInteraction, userId: string): Promise<void> {
+    const state = getState(userId);
+    const cat = SHOP_CATEGORIES[state.category];
+    const count = Math.min(ITEMS_PER_PAGE, cat.items.length - state.page * ITEMS_PER_PAGE);
+    state.selected = (state.selected - 1 + count) % count;
+    const [balance, rankInfo, flashSale] = await Promise.all([
+        getBalance(userId),
+        getRankInfo(userId),
+        getFlashSale(),
+    ]);
+    const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale, state.selected);
+    await interaction.update({components: [view], flags: MessageFlags.IsComponentsV2});
+}
+
+export async function handleSelDown(interaction: ButtonInteraction, userId: string): Promise<void> {
+    const state = getState(userId);
+    const cat = SHOP_CATEGORIES[state.category];
+    const count = Math.min(ITEMS_PER_PAGE, cat.items.length - state.page * ITEMS_PER_PAGE);
+    state.selected = (state.selected + 1) % count;
+    const [balance, rankInfo, flashSale] = await Promise.all([
+        getBalance(userId),
+        getRankInfo(userId),
+        getFlashSale(),
+    ]);
+    const view = buildShopView(userId, state.category, state.page, balance, rankInfo, flashSale, state.selected);
     await interaction.update({components: [view], flags: MessageFlags.IsComponentsV2});
 }
