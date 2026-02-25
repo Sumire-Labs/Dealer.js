@@ -1,4 +1,4 @@
-import {MessageFlags, type ModalSubmitInteraction,} from 'discord.js';
+import {MessageFlags, type ModalSubmitInteraction, SeparatorBuilder, SeparatorSpacingSize, TextDisplayBuilder,} from 'discord.js';
 import {registerModalHandler} from '../handler.js';
 import {findOrCreateUser} from '../../database/repositories/user.repository.js';
 import {addChips} from '../../database/services/economy.service.js';
@@ -7,6 +7,15 @@ import {prisma} from '../../database/client.js';
 import {formatChips} from '../../utils/formatters.js';
 import {loadDebugViewData} from '../buttons/debug.buttons.js';
 import {buildDebugTabView} from '../../ui/builders/debug.builder.js';
+
+function appendSuccessMessage(view: ReturnType<typeof buildDebugTabView>, message: string): void {
+    view.addSeparatorComponents(
+        new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    );
+    view.addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(message),
+    );
+}
 
 function parseInput(interaction: ModalSubmitInteraction): number | null {
     const raw = interaction.fields.getTextInputValue('value').trim();
@@ -41,8 +50,8 @@ async function handleDebugModal(interaction: ModalSubmitInteraction): Promise<vo
 
             const data = await loadDebugViewData(targetId);
             const view = buildDebugTabView(data, interaction.user.id, 'economy');
+            appendSuccessMessage(view, `✅ <@${targetId}> に **${formatChips(BigInt(value))}** を付与 (${formatChips(before.chips)} → ${formatChips(newBalance)})`);
             await interaction.reply({
-                content: `✅ <@${targetId}> に **${formatChips(BigInt(value))}** を付与 (${formatChips(before.chips)} → ${formatChips(newBalance)})`,
                 components: [view],
                 flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
             });
@@ -62,8 +71,8 @@ async function handleDebugModal(interaction: ModalSubmitInteraction): Promise<vo
 
             const data = await loadDebugViewData(targetId);
             const view = buildDebugTabView(data, interaction.user.id, 'economy');
+            appendSuccessMessage(view, `✅ <@${targetId}> のチップを設定 (${formatChips(before.chips)} → ${formatChips(BigInt(value))})`);
             await interaction.reply({
-                content: `✅ <@${targetId}> のチップを設定 (${formatChips(before.chips)} → ${formatChips(BigInt(value))})`,
                 components: [view],
                 flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
             });
@@ -83,8 +92,8 @@ async function handleDebugModal(interaction: ModalSubmitInteraction): Promise<vo
 
             const data = await loadDebugViewData(targetId);
             const view = buildDebugTabView(data, interaction.user.id, 'economy');
+            appendSuccessMessage(view, `✅ <@${targetId}> の銀行残高を設定 (${formatChips(before.bankBalance)} → ${formatChips(BigInt(value))})`);
             await interaction.reply({
-                content: `✅ <@${targetId}> の銀行残高を設定 (${formatChips(before.bankBalance)} → ${formatChips(BigInt(value))})`,
                 components: [view],
                 flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
             });
@@ -108,8 +117,8 @@ async function handleDebugModal(interaction: ModalSubmitInteraction): Promise<vo
 
             const data = await loadDebugViewData(targetId);
             const view = buildDebugTabView(data, interaction.user.id, 'work');
+            appendSuccessMessage(view, `✅ <@${targetId}> の労働レベルを設定 (${before.workLevel} → ${value})`);
             await interaction.reply({
-                content: `✅ <@${targetId}> の労働レベルを設定 (${before.workLevel} → ${value})`,
                 components: [view],
                 flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
             });
@@ -129,8 +138,8 @@ async function handleDebugModal(interaction: ModalSubmitInteraction): Promise<vo
 
             const data = await loadDebugViewData(targetId);
             const view = buildDebugTabView(data, interaction.user.id, 'work');
+            appendSuccessMessage(view, `✅ <@${targetId}> のXPを設定 (${before.workXp} → ${value})`);
             await interaction.reply({
-                content: `✅ <@${targetId}> のXPを設定 (${before.workXp} → ${value})`,
                 components: [view],
                 flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
             });
@@ -150,8 +159,8 @@ async function handleDebugModal(interaction: ModalSubmitInteraction): Promise<vo
 
             const data = await loadDebugViewData(targetId);
             const view = buildDebugTabView(data, interaction.user.id, 'work');
+            appendSuccessMessage(view, `✅ <@${targetId}> の労働連続を設定 (${before.workStreak} → ${value})`);
             await interaction.reply({
-                content: `✅ <@${targetId}> の労働連続を設定 (${before.workStreak} → ${value})`,
                 components: [view],
                 flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
             });
@@ -171,8 +180,8 @@ async function handleDebugModal(interaction: ModalSubmitInteraction): Promise<vo
 
             const data = await loadDebugViewData(targetId);
             const view = buildDebugTabView(data, interaction.user.id, 'work');
+            appendSuccessMessage(view, `✅ <@${targetId}> のログイン連続を設定 (${before.dailyStreak} → ${value})`);
             await interaction.reply({
-                content: `✅ <@${targetId}> のログイン連続を設定 (${before.dailyStreak} → ${value})`,
                 components: [view],
                 flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
             });
@@ -204,8 +213,8 @@ async function handleDebugModal(interaction: ModalSubmitInteraction): Promise<vo
 
             const data = await loadDebugViewData(targetId);
             const view = buildDebugTabView(data, interaction.user.id, 'business');
+            appendSuccessMessage(view, `✅ <@${targetId}> のビジネスレベルを設定 (${beforeLevel} → ${value})`);
             await interaction.reply({
-                content: `✅ <@${targetId}> のビジネスレベルを設定 (${beforeLevel} → ${value})`,
                 components: [view],
                 flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
             });
