@@ -19,7 +19,7 @@ import {checkAchievements} from './achievement.service.js';
 import type {AchievementDefinition} from '../../config/achievements.js';
 import {shuffleArray} from '../../utils/random.js';
 import {logger} from '../../utils/logger.js';
-import {getInventoryQuantity, hasInventoryItem} from './shop.service.js';
+import {getInventoryQuantity, getStackedBonus} from './shop.service.js';
 import {SHOP_EFFECTS} from '../../config/shop.js';
 
 export type {CompletedMission} from '../../config/missions.js';
@@ -107,11 +107,12 @@ export async function updateMissionProgress(
             if (updated.progress >= updated.target && !updated.completed) {
                 await markCompleted(userId, mission.missionKey, date);
 
-                // Grant reward (with GOLDEN_DICE bonus)
+                // Grant reward (with GOLDEN_DICE bonus, stacks up to 3x)
                 let reward = def.reward;
                 try {
-                    if (await hasInventoryItem(userId, 'GOLDEN_DICE')) {
-                        reward += (reward * SHOP_EFFECTS.GOLDEN_DICE_PERCENT) / 100n;
+                    const diceBonus = await getStackedBonus(userId, 'GOLDEN_DICE', Number(SHOP_EFFECTS.GOLDEN_DICE_PERCENT), SHOP_EFFECTS.MAX_STACK_MULTIPLIER);
+                    if (diceBonus > 0) {
+                        reward += (reward * BigInt(diceBonus)) / 100n;
                     }
                 } catch {
                     // Never block reward

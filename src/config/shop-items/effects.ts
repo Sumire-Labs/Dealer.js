@@ -26,6 +26,7 @@ export const SHOP_EFFECTS = {
     RECYCLE_REFUND_RATE: 30,     // 30% refund
     GIFT_FEE_RATE: 5,            // 5% fee on chip gifts
     MASTER_TOOL_PERCENT: 10,     // +10% all job pay
+    MAX_STACK_MULTIPLIER: 3,     // max stacking cap for permanent items
 } as const;
 
 // ── Rarity display ──

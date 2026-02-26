@@ -12,7 +12,7 @@ export {
     getDailyRotation, generateDailyRotation, checkAndRefreshRotation, type DailyRotation
 } from './shop/daily-rotation.service.js';
 export {
-    hasActiveBuff, hasInventoryItem, getInventoryQuantity, consumeInventoryItem, getUserInventorySummary
+    hasActiveBuff, hasInventoryItem, getInventoryQuantity, getStackedBonus, consumeInventoryItem, getUserInventorySummary
 } from './shop/inventory-query.service.js';
 export {
     loadUserItemsSnapshot, snapshotHasItem, snapshotHasBuff, type InventorySnapshot

@@ -3,7 +3,7 @@ import {findOrCreateUser} from '../repositories/user.repository.js';
 import {BANK_INTEREST_PERIOD_MS, BANK_MIN_BALANCE_FOR_INTEREST,} from '../../config/constants.js';
 import {configService} from '../../config/config.service.js';
 import {S} from '../../config/setting-defs.js';
-import {getInventoryQuantity, hasActiveBuff, hasInventoryItem} from './shop.service.js';
+import {getInventoryQuantity, hasActiveBuff} from './shop.service.js';
 import {SHOP_EFFECTS} from '../../config/shop.js';
 
 export interface BankAccountSummary {
@@ -34,8 +34,10 @@ export async function getBankAccountSummary(userId: string, existingUser?: {
     }
 
     try {
-        if (await hasInventoryItem(userId, 'COLLECTION_REWARD_ROYAL')) {
-            effectiveRate += SHOP_EFFECTS.COLLECTION_ROYAL_RATE;
+        const royalCount = await getInventoryQuantity(userId, 'COLLECTION_REWARD_ROYAL');
+        if (royalCount > 0) {
+            const capped = Math.min(royalCount, SHOP_EFFECTS.MAX_STACK_MULTIPLIER);
+            effectiveRate += SHOP_EFFECTS.COLLECTION_ROYAL_RATE * BigInt(capped);
         }
     } catch { /* never block */
     }
@@ -223,10 +225,12 @@ export async function applyInterest(userId: string): Promise<bigint | null> {
             // Never block interest
         }
 
-        // Royal Collection bonus: +1% interest rate
+        // Royal Collection bonus: +1% per stack (max 3)
         try {
-            if (await hasInventoryItem(userId, 'COLLECTION_REWARD_ROYAL')) {
-                effectiveRate += SHOP_EFFECTS.COLLECTION_ROYAL_RATE;
+            const royalCount = await getInventoryQuantity(userId, 'COLLECTION_REWARD_ROYAL');
+            if (royalCount > 0) {
+                const capped = Math.min(royalCount, SHOP_EFFECTS.MAX_STACK_MULTIPLIER);
+                effectiveRate += SHOP_EFFECTS.COLLECTION_ROYAL_RATE * BigInt(capped);
             }
         } catch {
             // Never block interest

@@ -24,6 +24,14 @@ export async function getInventoryQuantity(userId: string, itemId: string): Prom
     return item?.quantity ?? 0;
 }
 
+export async function getStackedBonus(
+    userId: string, itemId: string, basePercent: number, maxMultiplier = 3,
+): Promise<number> {
+    const qty = await getInventoryQuantity(userId, itemId);
+    const capped = Math.min(qty, maxMultiplier);
+    return capped * basePercent;
+}
+
 export async function consumeInventoryItem(
     userId: string,
     itemId: string,

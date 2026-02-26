@@ -25,7 +25,7 @@ import {
 import type {AchievementDefinition} from '../../../config/achievements.js';
 import type {CompletedMission} from '../mission.service.js';
 import {buildCooldownKey, getRemainingCooldown, isOnCooldown, setCooldown,} from '../../../utils/cooldown.js';
-import {hasActiveBuff, hasInventoryItem} from '../shop.service.js';
+import {hasActiveBuff, getStackedBonus} from '../shop.service.js';
 import {SHOP_EFFECTS} from '../../../config/shop.js';
 import {getMasteryLevelForShifts, getMasteryTier, type MasteryTier} from '../../../config/work-mastery.js';
 import {getMastery, incrementShifts, updateMasteryLevel} from '../../repositories/work-mastery.repository.js';
@@ -270,19 +270,21 @@ export async function performWork(
             // Buff check should never block work
         }
 
-        // Worker Collection bonus: +5% work pay
+        // Worker Collection bonus: +5% per stack (max 3)
         try {
-            if (await hasInventoryItem(userId, 'COLLECTION_REWARD_WORKER')) {
-                finalPay = BigInt(Math.round(Number(finalPay) * (1 + SHOP_EFFECTS.COLLECTION_WORKER_PERCENT / 100)));
+            const workerBonus = await getStackedBonus(userId, 'COLLECTION_REWARD_WORKER', SHOP_EFFECTS.COLLECTION_WORKER_PERCENT, SHOP_EFFECTS.MAX_STACK_MULTIPLIER);
+            if (workerBonus > 0) {
+                finalPay = BigInt(Math.round(Number(finalPay) * (1 + workerBonus / 100)));
             }
         } catch {
             // Collection check should never block work
         }
 
-        // MASTER_TOOL: +10% all job pay
+        // MASTER_TOOL: +10% per stack (max 3)
         try {
-            if (await hasInventoryItem(userId, 'MASTER_TOOL')) {
-                finalPay = BigInt(Math.round(Number(finalPay) * (1 + SHOP_EFFECTS.MASTER_TOOL_PERCENT / 100)));
+            const masterBonus = await getStackedBonus(userId, 'MASTER_TOOL', SHOP_EFFECTS.MASTER_TOOL_PERCENT, SHOP_EFFECTS.MAX_STACK_MULTIPLIER);
+            if (masterBonus > 0) {
+                finalPay = BigInt(Math.round(Number(finalPay) * (1 + masterBonus / 100)));
             }
         } catch {
             // Tool check should never block work
@@ -478,18 +480,20 @@ export async function resolveMultiStepWork(
         } catch { /* ignore */
         }
 
-        // Worker Collection bonus: +5% work pay
+        // Worker Collection bonus: +5% per stack (max 3)
         try {
-            if (await hasInventoryItem(userId, 'COLLECTION_REWARD_WORKER')) {
-                finalPay = BigInt(Math.round(Number(finalPay) * (1 + SHOP_EFFECTS.COLLECTION_WORKER_PERCENT / 100)));
+            const workerBonus = await getStackedBonus(userId, 'COLLECTION_REWARD_WORKER', SHOP_EFFECTS.COLLECTION_WORKER_PERCENT, SHOP_EFFECTS.MAX_STACK_MULTIPLIER);
+            if (workerBonus > 0) {
+                finalPay = BigInt(Math.round(Number(finalPay) * (1 + workerBonus / 100)));
             }
         } catch { /* ignore */
         }
 
-        // MASTER_TOOL: +10% all job pay
+        // MASTER_TOOL: +10% per stack (max 3)
         try {
-            if (await hasInventoryItem(userId, 'MASTER_TOOL')) {
-                finalPay = BigInt(Math.round(Number(finalPay) * (1 + SHOP_EFFECTS.MASTER_TOOL_PERCENT / 100)));
+            const masterBonus = await getStackedBonus(userId, 'MASTER_TOOL', SHOP_EFFECTS.MASTER_TOOL_PERCENT, SHOP_EFFECTS.MAX_STACK_MULTIPLIER);
+            if (masterBonus > 0) {
+                finalPay = BigInt(Math.round(Number(finalPay) * (1 + masterBonus / 100)));
             }
         } catch { /* ignore */
         }
