@@ -58,7 +58,7 @@ export function buildInventoryView(
     filter: string = 'all',
     selectedIndex: number = 0,
 ): ContainerBuilder {
-    const allEntries: { label: string; actionId?: string; actionLabel?: string; recycleId?: string }[] = [];
+    const allEntries: { label: string; actionId?: string; actionLabel?: string; bulkActionId?: string; bulkActionLabel?: string; recycleId?: string }[] = [];
 
     // Active buffs (always show regardless of filter)
     if (filter === 'all' || filter === 'buff') {
@@ -95,6 +95,8 @@ export function buildInventoryView(
 
         let actionId: string | undefined;
         let actionLabel: string | undefined;
+        let bulkActionId: string | undefined;
+        let bulkActionLabel: string | undefined;
         let recycleId: string | undefined;
 
         if (item.category === 'cosmetic') {
@@ -105,6 +107,10 @@ export function buildInventoryView(
         } else if (item.category === 'mystery' || inv.itemId === 'GOLDEN_BOX') {
             actionId = `inv:open_box:${userId}:${inv.itemId}`;
             actionLabel = '開封';
+            if (inv.quantity > 1) {
+                bulkActionId = `inv:open_box_qty:${userId}:${inv.itemId}`;
+                bulkActionLabel = '📦 複数開封';
+            }
         } else if (item.category === 'consumable' && (inv.itemId === 'MISSION_REROLL' || inv.itemId === 'WORK_COOLDOWN_SKIP')) {
             actionId = `inv:use:${userId}:${inv.itemId}`;
             actionLabel = '使う';
@@ -115,7 +121,7 @@ export function buildInventoryView(
             recycleId = `inv:recycle:${userId}:${inv.itemId}`;
         }
 
-        allEntries.push({label, actionId, actionLabel, recycleId});
+        allEntries.push({label, actionId, actionLabel, bulkActionId, bulkActionLabel, recycleId});
     }
 
     const totalPages = Math.max(1, Math.ceil(allEntries.length / ITEMS_PER_INV_PAGE));
@@ -173,6 +179,15 @@ export function buildInventoryView(
                 new ButtonBuilder()
                     .setCustomId(selected.actionId)
                     .setLabel(selected.actionLabel!)
+                    .setStyle(ButtonStyle.Primary),
+            );
+        }
+
+        if (selected?.bulkActionId) {
+            navActionRow.addComponents(
+                new ButtonBuilder()
+                    .setCustomId(selected.bulkActionId)
+                    .setLabel(selected.bulkActionLabel!)
                     .setStyle(ButtonStyle.Primary),
             );
         }

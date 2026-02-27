@@ -1,6 +1,10 @@
 import {type ButtonInteraction, MessageFlags} from 'discord.js';
 import {registerButtonHandler} from '../handler.js';
 import {
+  handleCraftSelDown,
+  handleCraftSelUp,
+  handleDailySelDown,
+  handleDailySelUp,
   handlePageNext,
   handlePagePrev,
   handleSelDown,
@@ -23,7 +27,8 @@ import {
   handleConfirmCraft,
   handleCraft,
   handleCraftNext,
-  handleCraftPrev
+  handleCraftPrev,
+  handleCraftQty
 } from './shop/craft-collection-handlers.js';
 
 // Re-export externally referenced state
@@ -61,11 +66,23 @@ async function handleShopButton(interaction: ButtonInteraction): Promise<void> {
         case 'page_next':
             return handlePageNext(interaction, userId);
 
-        // Cursor navigation
+        // Cursor navigation (shop)
         case 'sel_up':
             return handleSelUp(interaction, userId);
         case 'sel_down':
             return handleSelDown(interaction, userId);
+
+        // Cursor navigation (craft)
+        case 'craft_sel_up':
+            return handleCraftSelUp(interaction, userId);
+        case 'craft_sel_down':
+            return handleCraftSelDown(interaction, userId);
+
+        // Cursor navigation (daily)
+        case 'daily_sel_up':
+            return handleDailySelUp(interaction, userId);
+        case 'daily_sel_down':
+            return handleDailySelDown(interaction, userId);
 
         // Purchase flow
         case 'buy':
@@ -90,6 +107,8 @@ async function handleShopButton(interaction: ButtonInteraction): Promise<void> {
             return handleCraftPrev(interaction, userId);
         case 'craft_next':
             return handleCraftNext(interaction, userId);
+        case 'craft_qty':
+            return handleCraftQty(interaction, userId, parts);
         case 'collection_detail':
             return handleCollectionDetail(interaction, userId, parts);
     }

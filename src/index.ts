@@ -78,6 +78,8 @@ async function loadModules(): Promise<void> {
     await import('./interactions/modals/shop.modal.js');
     await import('./interactions/modals/gift.modal.js');
     await import('./interactions/modals/business.modal.js');
+    await import('./interactions/modals/craft.modal.js');
+    await import('./interactions/modals/inventory.modal.js');
 
     // Admin commands
     await import('./commands/admin/debug.command.js');

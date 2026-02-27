@@ -1,4 +1,14 @@
-import {type ButtonInteraction, ContainerBuilder, MessageFlags, TextDisplayBuilder,} from 'discord.js';
+import {
+  ActionRowBuilder,
+  type ButtonInteraction,
+  ContainerBuilder,
+  MessageFlags,
+  type ModalActionRowComponentBuilder,
+  ModalBuilder,
+  TextDisplayBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+} from 'discord.js';
 import {craftItem} from '../../../database/services/shop.service.js';
 import {getCollectionProgress} from '../../../database/services/collection.service.js';
 import {CRAFT_RECIPES} from '../../../config/crafting.js';
@@ -56,17 +66,44 @@ export async function handleConfirmCraft(interaction: ButtonInteraction, userId:
 export async function handleCraftPrev(interaction: ButtonInteraction, userId: string): Promise<void> {
     const state = getState(userId);
     state.craftPage = Math.max(0, state.craftPage - 1);
+    state.craftSelected = 0;
     const inventory = await getInventory(userId);
-    const view = buildCraftListView(userId, CRAFT_RECIPES, inventory, state.craftPage);
+    const view = buildCraftListView(userId, CRAFT_RECIPES, inventory, state.craftPage, state.craftSelected);
     await interaction.update({components: [view], flags: MessageFlags.IsComponentsV2});
 }
 
 export async function handleCraftNext(interaction: ButtonInteraction, userId: string): Promise<void> {
     const state = getState(userId);
     state.craftPage += 1;
+    state.craftSelected = 0;
     const inventory = await getInventory(userId);
-    const view = buildCraftListView(userId, CRAFT_RECIPES, inventory, state.craftPage);
+    const view = buildCraftListView(userId, CRAFT_RECIPES, inventory, state.craftPage, state.craftSelected);
     await interaction.update({components: [view], flags: MessageFlags.IsComponentsV2});
+}
+
+export async function handleCraftQty(interaction: ButtonInteraction, userId: string, parts: string[]): Promise<void> {
+    const recipeId = parts[3];
+    const recipe = CRAFT_RECIPES.find(r => r.id === recipeId);
+    if (!recipe) return;
+
+    const modal = new ModalBuilder()
+        .setCustomId(`craft_modal:craft_qty:${userId}:${recipeId}`)
+        .setTitle(`${recipe.name} を複数合成`);
+
+    const qtyInput = new TextInputBuilder()
+        .setCustomId('quantity')
+        .setLabel('合成回数 (1〜10)')
+        .setStyle(TextInputStyle.Short)
+        .setMinLength(1)
+        .setMaxLength(2)
+        .setPlaceholder('1〜10')
+        .setRequired(true);
+
+    modal.addComponents(
+        new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(qtyInput),
+    );
+
+    await interaction.showModal(modal);
 }
 
 export async function handleCollectionDetail(interaction: ButtonInteraction, userId: string, parts: string[]): Promise<void> {

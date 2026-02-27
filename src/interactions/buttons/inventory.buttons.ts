@@ -1,4 +1,14 @@
-import {type ButtonInteraction, ContainerBuilder, MessageFlags, TextDisplayBuilder} from 'discord.js';
+import {
+  ActionRowBuilder,
+  type ButtonInteraction,
+  ContainerBuilder,
+  MessageFlags,
+  type ModalActionRowComponentBuilder,
+  ModalBuilder,
+  TextDisplayBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+} from 'discord.js';
 import {registerButtonHandler} from '../handler.js';
 import {getBalance} from '../../database/services/economy.service.js';
 import {
@@ -246,6 +256,33 @@ async function handleInventoryButton(interaction: ButtonInteraction): Promise<vo
                     flags: MessageFlags.Ephemeral,
                 });
             }
+            break;
+        }
+
+        // ── Open mystery box bulk (show modal) ──
+        case 'open_box_qty': {
+            const boxId = parts[3];
+            const box = ITEM_MAP.get(boxId);
+            if (!box) return;
+
+            const modal = new ModalBuilder()
+                .setCustomId(`inv_modal:open_qty:${userId}:${boxId}`)
+                .setTitle(`${box.name} を複数開封`);
+
+            const qtyInput = new TextInputBuilder()
+                .setCustomId('quantity')
+                .setLabel('開封数量 (1〜10)')
+                .setStyle(TextInputStyle.Short)
+                .setMinLength(1)
+                .setMaxLength(2)
+                .setPlaceholder('1〜10')
+                .setRequired(true);
+
+            modal.addComponents(
+                new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(qtyInput),
+            );
+
+            await interaction.showModal(modal);
             break;
         }
 

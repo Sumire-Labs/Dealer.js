@@ -115,6 +115,81 @@ export async function openMysteryBox(
     };
 }
 
+export interface BulkOpenBoxResult {
+    success: boolean;
+    boxesOpened: number;
+    lootSummary: { name: string; emoji: string; rarity: ItemRarity; count: number }[];
+    totalChipsAwarded: bigint;
+    finalBalance: bigint;
+    error?: string;
+    newlyUnlocked: AchievementDefinition[];
+}
+
+export async function openMysteryBoxBulk(
+    userId: string,
+    boxId: string,
+    count: number,
+): Promise<BulkOpenBoxResult> {
+    const lootMap = new Map<string, { name: string; emoji: string; rarity: ItemRarity; count: number }>();
+    let totalChipsAwarded = 0n;
+    let finalBalance = 0n;
+    let boxesOpened = 0;
+    const allUnlocked: AchievementDefinition[] = [];
+
+    for (let i = 0; i < count; i++) {
+        const result = await openMysteryBox(userId, boxId);
+        if (!result.success) {
+            return {
+                success: boxesOpened > 0,
+                boxesOpened,
+                lootSummary: [...lootMap.values()],
+                totalChipsAwarded,
+                finalBalance,
+                error: result.error,
+                newlyUnlocked: allUnlocked,
+            };
+        }
+        boxesOpened++;
+
+        if (result.chipsAwarded && result.chipsAwarded > 0n) {
+            totalChipsAwarded += result.chipsAwarded;
+        }
+        if (result.newBalance !== undefined) {
+            finalBalance = result.newBalance;
+        }
+
+        // Build loot summary key
+        const lootName = result.loot!.type === 'chips'
+            ? 'チップ'
+            : (result.lootItem?.name ?? '不明なアイテム');
+        const lootEmoji = result.loot!.type === 'chips'
+            ? '💰'
+            : (result.lootItem?.emoji ?? '❓');
+        const rarity = result.rarity!;
+        const key = result.loot!.type === 'chips' ? `chips_${rarity}` : (result.loot!.itemId ?? lootName);
+
+        const existing = lootMap.get(key);
+        if (existing) {
+            existing.count++;
+        } else {
+            lootMap.set(key, {name: lootName, emoji: lootEmoji, rarity, count: 1});
+        }
+
+        if (result.newlyUnlocked) {
+            allUnlocked.push(...result.newlyUnlocked);
+        }
+    }
+
+    return {
+        success: true,
+        boxesOpened,
+        lootSummary: [...lootMap.values()],
+        totalChipsAwarded,
+        finalBalance,
+        newlyUnlocked: allUnlocked,
+    };
+}
+
 async function openGoldenBox(userId: string): Promise<OpenBoxResult> {
     const consumed = await decrementInventoryItem(userId, 'GOLDEN_BOX');
     if (!consumed) return {success: false, error: 'ボックスを所持していません。'};

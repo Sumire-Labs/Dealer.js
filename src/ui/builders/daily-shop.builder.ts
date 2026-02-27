@@ -23,6 +23,7 @@ export function buildDailyRotationView(
     items: DailyRotationViewItem[],
     balance: bigint,
     nextResetTimestamp: number,
+    selectedIndex: number = 0,
 ): ContainerBuilder {
     const container = new ContainerBuilder()
         .setAccentColor(CasinoTheme.colors.diamondBlue);
@@ -34,16 +35,20 @@ export function buildDailyRotationView(
         new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     );
 
+    const validItems = items.filter(e => ITEM_MAP.has(e.itemId));
+    const safeSelected = validItems.length > 0 ? Math.min(selectedIndex, validItems.length - 1) : 0;
+
     const lines: string[] = [
         `🔥 **20% OFF!**  次の更新: <t:${nextResetTimestamp}:R>`,
         '',
     ];
 
-    for (const entry of items) {
-        const item = ITEM_MAP.get(entry.itemId);
-        if (!item) continue;
+    for (let i = 0; i < validItems.length; i++) {
+        const entry = validItems[i];
+        const item = ITEM_MAP.get(entry.itemId)!;
+        const cursor = i === safeSelected ? '▶' : '　';
         lines.push(
-            `${item.emoji} **${item.name}** — ~~${formatChips(entry.originalPrice)}~~ → ${formatChips(entry.discountedPrice)}`,
+            `${cursor} ${item.emoji} **${item.name}** — ~~${formatChips(entry.originalPrice)}~~ → ${formatChips(entry.discountedPrice)}`,
         );
         lines.push(`  ${item.description}`);
     }
@@ -58,20 +63,28 @@ export function buildDailyRotationView(
         new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     );
 
-    // Buy buttons
-    if (items.length > 0) {
-        const buyRow = new ActionRowBuilder<ButtonBuilder>();
-        for (let i = 0; i < items.length; i++) {
-            const item = ITEM_MAP.get(items[i].itemId);
-            if (!item) continue;
-            buyRow.addComponents(
-                new ButtonBuilder()
-                    .setCustomId(`shop:daily_buy:${userId}:${i}`)
-                    .setLabel(`${item.emoji} ${formatChips(items[i].discountedPrice)}`)
-                    .setStyle(ButtonStyle.Success),
-            );
-        }
-        container.addActionRowComponents(buyRow);
+    // Cursor navigation + buy button for selected item
+    if (validItems.length > 0) {
+        const selectedEntry = validItems[safeSelected];
+        const selectedItem = ITEM_MAP.get(selectedEntry.itemId)!;
+        // Find the original index in items array for daily_buy
+        const originalIndex = items.indexOf(selectedEntry);
+
+        const navRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder()
+                .setCustomId(`shop:daily_sel_up:${userId}`)
+                .setLabel('▲')
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId(`shop:daily_sel_down:${userId}`)
+                .setLabel('▼')
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId(`shop:daily_buy:${userId}:${originalIndex}`)
+                .setLabel(`${selectedItem.emoji} ${formatChips(selectedEntry.discountedPrice)} 購入`)
+                .setStyle(ButtonStyle.Success),
+        );
+        container.addActionRowComponents(navRow);
     }
 
     // Tab row
@@ -110,6 +123,67 @@ export function buildMysteryBoxResultView(
     if (newBalance !== undefined) {
         lines.push(`💰 残高: ${formatChips(newBalance)}`);
     }
+
+    container.addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(lines.join('\n')),
+    );
+    container.addSeparatorComponents(
+        new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    );
+
+    container.addActionRowComponents(
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder()
+                .setCustomId(`inv:back:${userId}`)
+                .setLabel('🎒 インベントリに戻る')
+                .setStyle(ButtonStyle.Primary),
+        ),
+    );
+
+    return container;
+}
+
+export interface BulkOpenLootEntry {
+    name: string;
+    emoji: string;
+    rarity: ItemRarity;
+    count: number;
+}
+
+export function buildBulkMysteryBoxResultView(
+    userId: string,
+    boxName: string,
+    boxesOpened: number,
+    lootSummary: BulkOpenLootEntry[],
+    totalChipsAwarded: bigint,
+    finalBalance: bigint,
+): ContainerBuilder {
+    const container = new ContainerBuilder()
+        .setAccentColor(CasinoTheme.colors.purple);
+
+    container.addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(CasinoTheme.prefixes.mystery),
+    );
+    container.addSeparatorComponents(
+        new SeparatorBuilder().setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    );
+
+    const lines: string[] = [
+        `✨ **${boxName} x${boxesOpened} 開封結果！**`,
+        '',
+    ];
+
+    for (const entry of lootSummary) {
+        lines.push(`${RARITY_EMOJI[entry.rarity]} ${entry.emoji} **${entry.name}** x${entry.count} (${RARITY_LABELS[entry.rarity]})`);
+    }
+
+    if (totalChipsAwarded > 0n) {
+        lines.push('');
+        lines.push(`💰 チップ合計: +${formatChips(totalChipsAwarded)}`);
+    }
+
+    lines.push('');
+    lines.push(`💰 残高: ${formatChips(finalBalance)}`);
 
     container.addTextDisplayComponents(
         new TextDisplayBuilder().setContent(lines.join('\n')),

@@ -9,7 +9,7 @@ import {
 import {checkAchievements} from '../achievement.service.js';
 import type {AchievementDefinition} from '../../../config/achievements.js';
 import {ITEM_MAP, type ShopItem} from '../../../config/shop.js';
-import {RECIPE_MAP} from '../../../config/crafting.js';
+import {RECIPE_MAP, type CraftRecipe} from '../../../config/crafting.js';
 import {checkAndCompleteCollections} from '../collection.service.js';
 
 export interface CraftResult {
@@ -95,4 +95,53 @@ export async function craftItem(
 
         return {success: true, resultItem, newlyUnlocked};
     });
+}
+
+export interface BulkCraftResult {
+    success: boolean;
+    crafted: number;
+    results: { resultItem: ShopItem; recipe: CraftRecipe }[];
+    failedAtIndex?: number;
+    error?: string;
+    newlyUnlocked: AchievementDefinition[];
+}
+
+export async function craftItemBulk(
+    userId: string,
+    recipeId: string,
+    count: number,
+): Promise<BulkCraftResult> {
+    const recipe = RECIPE_MAP.get(recipeId);
+    if (!recipe) return {success: false, crafted: 0, results: [], error: 'レシピが見つかりません。', newlyUnlocked: []};
+
+    const resultItem = ITEM_MAP.get(recipe.resultItemId);
+    if (!resultItem) return {success: false, crafted: 0, results: [], error: '成果物が見つかりません。', newlyUnlocked: []};
+
+    const results: { resultItem: ShopItem; recipe: CraftRecipe }[] = [];
+    const allUnlocked: AchievementDefinition[] = [];
+
+    for (let i = 0; i < count; i++) {
+        const result = await craftItem(userId, recipeId);
+        if (!result.success) {
+            return {
+                success: results.length > 0,
+                crafted: results.length,
+                results,
+                failedAtIndex: i,
+                error: result.error,
+                newlyUnlocked: allUnlocked,
+            };
+        }
+        results.push({resultItem: result.resultItem!, recipe});
+        if (result.newlyUnlocked) {
+            allUnlocked.push(...result.newlyUnlocked);
+        }
+    }
+
+    return {
+        success: true,
+        crafted: results.length,
+        results,
+        newlyUnlocked: allUnlocked,
+    };
 }
