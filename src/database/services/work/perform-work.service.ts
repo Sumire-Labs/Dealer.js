@@ -24,7 +24,7 @@ import {
 } from '../../../games/work/work.engine.js';
 import type {AchievementDefinition} from '../../../config/achievements.js';
 import type {CompletedMission} from '../mission.service.js';
-import {buildCooldownKey, getRemainingCooldown, isOnCooldown, setCooldown,} from '../../../utils/cooldown.js';
+import {buildCooldownKey, deleteCooldown, getRemainingCooldown, isOnCooldown, setCooldown,} from '../../../utils/cooldown.js';
 import {hasActiveBuff, getStackedBonus} from '../shop.service.js';
 import {SHOP_EFFECTS} from '../../../config/shop.js';
 import {getMasteryLevelForShifts, getMasteryTier, type MasteryTier} from '../../../config/work-mastery.js';
@@ -162,6 +162,10 @@ export async function performWork(
         };
     }
 
+    // Set cooldown optimistically BEFORE transaction to prevent race conditions from rapid clicks
+    const effectiveCooldownMs = getEffectiveCooldownMs(shiftType, specialShift);
+    setCooldown(cooldownKey, effectiveCooldownMs);
+
     await findOrCreateUser(userId);
 
     // Get mastery data
@@ -207,7 +211,7 @@ export async function performWork(
                 createdAt: Date.now(),
             };
             setWorkSession(userId, session);
-            setCooldown(cooldownKey, getEffectiveCooldownMs(shiftType, specialShift));
+            // Cooldown already set optimistically above
 
             return {
                 success: true,
@@ -394,10 +398,12 @@ export async function performWork(
         };
     });
 
-    if (!result.success) return result;
+    if (!result.success) {
+        deleteCooldown(cooldownKey); // Roll back optimistic cooldown on failure
+        return result;
+    }
 
-    // Set cooldown after successful work
-    setCooldown(cooldownKey, getEffectiveCooldownMs(shiftType, specialShift));
+    // Cooldown already set optimistically before transaction
 
     // Mark VIP event used
     if (specialShift?.type === 'vip_event') {

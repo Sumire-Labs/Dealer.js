@@ -41,6 +41,7 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
 
     switch (action) {
         case 'panel': {
+            await interaction.deferUpdate();
             const userId = ownerId;
             const panelData = await getWorkPanelData(userId);
 
@@ -73,14 +74,14 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
                 weeklyChallenges,
             });
 
-            await interaction.update({
+            await interaction.editReply({
                 components: [view],
-                flags: MessageFlags.IsComponentsV2,
             });
             break;
         }
 
         case 'shift': {
+            await interaction.deferUpdate();
             const jobId = parts[3];
             const shiftType = parts[4] as ShiftType;
 
@@ -100,12 +101,14 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
                 return;
             }
 
+            await interaction.deferUpdate();
             const result = await performWork(ownerId, jobId, 'normal', specialType);
             await handleWorkResult(interaction, result);
             break;
         }
 
         case 'choice': {
+            await interaction.deferUpdate();
             const choiceId = parts[3];
 
             const result = await resolveMultiStepWork(ownerId, choiceId);
@@ -120,16 +123,17 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
             break;
 
         case 'team_select': {
+            await interaction.deferUpdate();
             const {buildTeamShiftTypeSelectView} = await import('../../ui/builders/team-shift.builder.js');
             const teamView = buildTeamShiftTypeSelectView(ownerId);
-            await interaction.update({
+            await interaction.editReply({
                 components: [teamView],
-                flags: MessageFlags.IsComponentsV2,
             });
             break;
         }
 
         case 'weekly': {
+            await interaction.deferUpdate();
             try {
                 const {getWeeklyChallenges} = await import('../../database/services/weekly-challenge.service.js');
                 const {WEEKLY_CHALLENGE_POOL} = await import('../../config/weekly-challenges.js');
@@ -156,12 +160,11 @@ async function handleWorkButton(interaction: ButtonInteraction): Promise<void> {
                     allCompletedBonus: configService.getBigInt(S.weeklyAllBonus),
                 });
 
-                await interaction.update({
+                await interaction.editReply({
                     components: [view],
-                    flags: MessageFlags.IsComponentsV2,
                 });
             } catch {
-                await interaction.reply({
+                await interaction.followUp({
                     content: 'チャレンジの読み込みに失敗しました。',
                     flags: MessageFlags.Ephemeral
                 });
@@ -191,12 +194,11 @@ async function handleWorkResult(
                     ),
                 );
 
-            await interaction.update({
+            await interaction.editReply({
                 components: [container],
-                flags: MessageFlags.IsComponentsV2,
             });
         } else {
-            await interaction.reply({
+            await interaction.followUp({
                 content: result.error ?? 'エラーが発生しました。',
                 flags: MessageFlags.Ephemeral,
             });
@@ -207,9 +209,8 @@ async function handleWorkResult(
     // Multi-step event pending — show choices
     if (result.multiStepPending) {
         const view = buildMultiStepEventView(interaction.user.id, result);
-        await interaction.update({
+        await interaction.editReply({
             components: [view],
-            flags: MessageFlags.IsComponentsV2,
         });
         return;
     }
@@ -233,9 +234,8 @@ async function handleWorkResult(
         }
     }
 
-    await interaction.update({
+    await interaction.editReply({
         components: [view],
-        flags: MessageFlags.IsComponentsV2,
     });
 
     // Achievement notification

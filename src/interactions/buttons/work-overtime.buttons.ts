@@ -91,6 +91,8 @@ export async function handleOvertimeAction(
                 return;
             }
 
+            await interaction.deferUpdate();
+
             const round = session.currentRound;
             const event = rollOvertimeEvent(session.baseRiskRate, round);
             const roundBonus = calculateOvertimePay(session.baseShiftPay, round);
@@ -121,9 +123,8 @@ export async function handleOvertimeAction(
                     canContinue: false,
                 });
 
-                await interaction.update({
+                await interaction.editReply({
                     components: [view],
-                    flags: MessageFlags.IsComponentsV2,
                 });
             } else {
                 // Success — add bonus
@@ -148,9 +149,8 @@ export async function handleOvertimeAction(
                     canContinue,
                 });
 
-                await interaction.update({
+                await interaction.editReply({
                     components: [view],
-                    flags: MessageFlags.IsComponentsV2,
                 });
             }
             break;
@@ -167,6 +167,8 @@ export async function handleOvertimeAction(
                 return;
             }
 
+            await interaction.deferUpdate();
+
             const session = getOvertimeSession(ownerId);
             const bonus = session?.accumulatedBonus ?? 0n;
             removeOvertimeSession(ownerId);
@@ -175,9 +177,8 @@ export async function handleOvertimeAction(
             const balance = await getBalance(ownerId);
 
             const view = buildOvertimeStopView(ownerId, bonus, balance);
-            await interaction.update({
+            await interaction.editReply({
                 components: [view],
-                flags: MessageFlags.IsComponentsV2,
             });
             break;
         }

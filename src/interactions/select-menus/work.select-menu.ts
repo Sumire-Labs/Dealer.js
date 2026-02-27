@@ -30,6 +30,8 @@ async function handleWorkSelectMenu(interaction: StringSelectMenuInteraction): P
                 return;
             }
 
+            await interaction.deferUpdate();
+
             const specialShifts = rollSpecialShifts(ownerId);
 
             const view = buildShiftSelectView({
@@ -41,9 +43,8 @@ async function handleWorkSelectMenu(interaction: StringSelectMenuInteraction): P
                 specialShifts,
             });
 
-            await interaction.update({
+            await interaction.editReply({
                 components: [view],
-                flags: MessageFlags.IsComponentsV2,
             });
             break;
         }
