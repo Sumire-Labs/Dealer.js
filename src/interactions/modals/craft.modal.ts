@@ -1,4 +1,4 @@
-import {MessageFlags, type ModalSubmitInteraction} from 'discord.js';
+import {ContainerBuilder, MessageFlags, type ModalSubmitInteraction, TextDisplayBuilder} from 'discord.js';
 import {registerModalHandler} from '../handler.js';
 import {craftItemBulk} from '../../database/services/shop.service.js';
 import {CRAFT_RECIPES} from '../../config/crafting.js';
@@ -42,14 +42,21 @@ async function handleCraftModal(interaction: ModalSubmitInteraction): Promise<vo
             return;
         }
 
-        await interaction.deferReply();
+        const loadingView = new ContainerBuilder().addTextDisplayComponents(
+            new TextDisplayBuilder().setContent('⏳ 合成中...'),
+        );
+        await interaction.reply({
+            components: [loadingView],
+            flags: MessageFlags.IsComponentsV2,
+        });
 
         const result = await craftItemBulk(userId, recipeId, quantity);
 
         if (result.crafted === 0) {
-            await interaction.editReply({
-                content: result.error ?? '合成に失敗しました。',
-            });
+            const errorView = new ContainerBuilder().addTextDisplayComponents(
+                new TextDisplayBuilder().setContent(result.error ?? '❌ 合成に失敗しました。'),
+            );
+            await interaction.editReply({components: [errorView]});
             return;
         }
 

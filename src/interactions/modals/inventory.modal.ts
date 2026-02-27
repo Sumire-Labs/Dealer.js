@@ -1,4 +1,4 @@
-import {MessageFlags, type ModalSubmitInteraction} from 'discord.js';
+import {ContainerBuilder, MessageFlags, type ModalSubmitInteraction, TextDisplayBuilder} from 'discord.js';
 import {registerModalHandler} from '../handler.js';
 import {openMysteryBoxBulk} from '../../database/services/shop.service.js';
 import {getBalance} from '../../database/services/economy.service.js';
@@ -43,14 +43,21 @@ async function handleInventoryModal(interaction: ModalSubmitInteraction): Promis
             return;
         }
 
-        await interaction.deferReply();
+        const loadingView = new ContainerBuilder().addTextDisplayComponents(
+            new TextDisplayBuilder().setContent('⏳ 開封中...'),
+        );
+        await interaction.reply({
+            components: [loadingView],
+            flags: MessageFlags.IsComponentsV2,
+        });
 
         const result = await openMysteryBoxBulk(userId, boxId, quantity);
 
         if (result.boxesOpened === 0) {
-            await interaction.editReply({
-                content: result.error ?? '開封に失敗しました。',
-            });
+            const errorView = new ContainerBuilder().addTextDisplayComponents(
+                new TextDisplayBuilder().setContent(result.error ?? '❌ 開封に失敗しました。'),
+            );
+            await interaction.editReply({components: [errorView]});
             return;
         }
 
