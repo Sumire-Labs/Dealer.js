@@ -21,7 +21,7 @@ export async function handleDeposit(interaction: ButtonInteraction): Promise<voi
                     .setCustomId('amount')
                     .setLabel('入金額（ウォレットから口座へ）')
                     .setStyle(TextInputStyle.Short)
-                    .setPlaceholder('例: 10000')
+                    .setPlaceholder('例: 10000, 2k, 1.5m')
                     .setRequired(true),
             ),
         );
@@ -38,7 +38,7 @@ export async function handleWithdraw(interaction: ButtonInteraction): Promise<vo
                     .setCustomId('amount')
                     .setLabel('出金額（口座からウォレットへ）')
                     .setStyle(TextInputStyle.Short)
-                    .setPlaceholder('例: 10000')
+                    .setPlaceholder('例: 10000, 2k, 1.5m')
                     .setRequired(true),
             ),
         );

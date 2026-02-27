@@ -25,7 +25,7 @@ export async function handleBorrow(interaction: ButtonInteraction): Promise<void
                     .setCustomId('amount')
                     .setLabel(`金額（${Number(configService.getBigInt(S.loanMinAmount)).toLocaleString()}〜${Number(configService.getBigInt(S.loanMaxAmount)).toLocaleString()}）`)
                     .setStyle(TextInputStyle.Short)
-                    .setPlaceholder('例: 10000')
+                    .setPlaceholder('例: 10000, 10k, 1m')
                     .setRequired(true),
             ),
         );
@@ -43,7 +43,7 @@ export async function handleRepay(interaction: ButtonInteraction, userId: string
                     .setCustomId('amount')
                     .setLabel(`返済額（総返済額: ${formatChips(summary.totalOwed)}）`)
                     .setStyle(TextInputStyle.Short)
-                    .setPlaceholder('例: 5000')
+                    .setPlaceholder('例: 5000, 5k')
                     .setRequired(true),
             ),
         );

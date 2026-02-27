@@ -43,7 +43,7 @@ async function handleBankSelectMenu(interaction: UserSelectMenuInteraction): Pro
                             .setCustomId('amount')
                             .setLabel(`送金先: ${interaction.users.first()?.username ?? selectedUserId}`)
                             .setStyle(TextInputStyle.Short)
-                            .setPlaceholder('例: 10000')
+                            .setPlaceholder('例: 10000, 2k, 1.5m')
                             .setRequired(true),
                     ),
                 );

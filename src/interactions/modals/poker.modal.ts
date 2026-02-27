@@ -7,7 +7,7 @@ import {removeChips} from '../../database/services/economy.service.js';
 import {addPlayer, getActiveSession,} from '../../games/poker/poker.session.js';
 import {processAction} from '../../games/poker/poker.engine.js';
 import {advanceGame} from '../../commands/casino/poker.command.js';
-import {formatChips} from '../../utils/formatters.js';
+import {formatChips, parseChipAmount} from '../../utils/formatters.js';
 import {buildActionConfirmation, buildPokerLobbyView,} from '../../ui/builders/poker.builder.js';
 import {logger} from '../../utils/logger.js';
 
@@ -37,7 +37,7 @@ async function handleBuyIn(
     }
 
     const amountStr = interaction.fields.getTextInputValue('buyin_amount').trim();
-    const parsed = parseInt(amountStr);
+    const parsed = parseChipAmount(amountStr);
     if (isNaN(parsed) || parsed <= 0) {
         await interaction.reply({
             content: '有効な数値を入力してください。',
@@ -129,7 +129,7 @@ async function handleRaise(
     }
 
     const amountStr = interaction.fields.getTextInputValue('raise_amount').trim();
-    const parsed = parseInt(amountStr);
+    const parsed = parseChipAmount(amountStr);
     if (isNaN(parsed) || parsed <= 0) {
         await interaction.reply({
             content: '有効な数値を入力してください。',

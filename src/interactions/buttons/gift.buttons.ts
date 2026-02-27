@@ -60,7 +60,7 @@ async function handleGiftButton(interaction: ButtonInteraction): Promise<void> {
                         new TextInputBuilder()
                             .setCustomId('amount')
                             .setLabel('送金額')
-                            .setPlaceholder('例: 10000')
+                            .setPlaceholder('例: 10000, 10k, 1m')
                             .setStyle(TextInputStyle.Short)
                             .setRequired(true),
                     ),

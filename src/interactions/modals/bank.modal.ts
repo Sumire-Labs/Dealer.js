@@ -12,7 +12,7 @@ import {
 import {buildBankViewData} from '../../database/services/bank-view.service.js';
 import {buildBankMainView} from '../../ui/builders/bank.builder.js';
 import {createFixedDeposit} from '../../database/services/fixed-deposit.service.js';
-import {formatChips} from '../../utils/formatters.js';
+import {formatChips, parseChipAmount} from '../../utils/formatters.js';
 import {configService} from '../../config/config.service.js';
 
 async function handleBankModal(interaction: ModalSubmitInteraction): Promise<void> {
@@ -23,7 +23,7 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
     switch (action) {
         case 'deposit': {
             const amountStr = interaction.fields.getTextInputValue('amount').trim();
-            const parsed = parseInt(amountStr);
+            const parsed = parseChipAmount(amountStr);
 
             if (isNaN(parsed) || parsed <= 0) {
                 await interaction.reply({
@@ -61,7 +61,7 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
 
         case 'withdraw': {
             const amountStr = interaction.fields.getTextInputValue('amount').trim();
-            const parsed = parseInt(amountStr);
+            const parsed = parseChipAmount(amountStr);
 
             if (isNaN(parsed) || parsed <= 0) {
                 await interaction.reply({
@@ -100,7 +100,7 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
         case 'transfer': {
             const recipientInput = interaction.fields.getTextInputValue('recipient').trim();
             const amountStr = interaction.fields.getTextInputValue('amount').trim();
-            const parsed = parseInt(amountStr);
+            const parsed = parseChipAmount(amountStr);
 
             if (isNaN(parsed) || parsed <= 0) {
                 await interaction.reply({
@@ -168,7 +168,7 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
             // From UserSelectMenu flow: customId = bank_modal:transfer_amount:{recipientId}
             const recipientId = parts[2];
             const amountStr = interaction.fields.getTextInputValue('amount').trim();
-            const parsed = parseInt(amountStr);
+            const parsed = parseChipAmount(amountStr);
 
             if (isNaN(parsed) || parsed <= 0) {
                 await interaction.reply({
@@ -217,7 +217,7 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
 
         case 'borrow': {
             const amountStr = interaction.fields.getTextInputValue('amount').trim();
-            const parsed = parseInt(amountStr);
+            const parsed = parseChipAmount(amountStr);
 
             if (isNaN(parsed) || parsed <= 0) {
                 await interaction.reply({
@@ -263,7 +263,7 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
 
         case 'repay': {
             const amountStr = interaction.fields.getTextInputValue('amount').trim();
-            const parsed = parseInt(amountStr);
+            const parsed = parseChipAmount(amountStr);
 
             if (isNaN(parsed) || parsed <= 0) {
                 await interaction.reply({
@@ -308,7 +308,7 @@ async function handleBankModal(interaction: ModalSubmitInteraction): Promise<voi
             // customId = bank_modal:fixed_create:{termDays}
             const termDays = parseInt(parts[2]);
             const amountStr = interaction.fields.getTextInputValue('amount').trim();
-            const parsed = parseInt(amountStr);
+            const parsed = parseChipAmount(amountStr);
 
             if (isNaN(parsed) || parsed <= 0) {
                 await interaction.reply({

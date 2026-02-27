@@ -102,10 +102,10 @@ async function handleJoin(
                 new TextInputBuilder()
                     .setCustomId('buyin_amount')
                     .setLabel(rangeLabel)
-                    .setPlaceholder('例: 10000')
+                    .setPlaceholder('例: 10000, 10k')
                     .setStyle(TextInputStyle.Short)
                     .setRequired(true)
-                    .setMinLength(3)
+                    .setMinLength(2)
                     .setMaxLength(10),
             ),
         );
@@ -259,7 +259,7 @@ async function handleRaiseModal(
                     .setPlaceholder(`例: ${minRaise.toString()}`)
                     .setStyle(TextInputStyle.Short)
                     .setRequired(true)
-                    .setMinLength(3)
+                    .setMinLength(2)
                     .setMaxLength(10),
             ),
         );

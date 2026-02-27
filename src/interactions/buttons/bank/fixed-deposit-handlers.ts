@@ -27,7 +27,7 @@ export async function handleFixedCreate(interaction: ButtonInteraction, action: 
                     .setCustomId('amount')
                     .setLabel(`預入額（最低: ${Number(configService.getBigInt(S.fixedDepositMinAmount)).toLocaleString()}）`)
                     .setStyle(TextInputStyle.Short)
-                    .setPlaceholder('例: 50000')
+                    .setPlaceholder('例: 50000, 50k, 1m')
                     .setRequired(true),
             ),
         );

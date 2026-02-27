@@ -5,7 +5,7 @@ import {S} from '../../config/setting-defs.js';
 import {findOrCreateUser} from '../../database/repositories/user.repository.js';
 import {removeChips} from '../../database/services/economy.service.js';
 import {addBetToSession, getActiveSession,} from '../../games/horse-race/race.session.js';
-import {formatChips} from '../../utils/formatters.js';
+import {formatChips, parseChipAmount} from '../../utils/formatters.js';
 
 async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promise<void> {
     // customId format: racebet:<channelId>:<horseIndex>
@@ -33,7 +33,7 @@ async function handleBetAmountModal(interaction: ModalSubmitInteraction): Promis
 
     // Parse and validate bet amount
     const amountStr = interaction.fields.getTextInputValue('bet_amount').trim();
-    const parsed = parseInt(amountStr);
+    const parsed = parseChipAmount(amountStr);
     if (isNaN(parsed) || parsed <= 0) {
         await interaction.reply({
             content: '有効な数値を入力してください。',

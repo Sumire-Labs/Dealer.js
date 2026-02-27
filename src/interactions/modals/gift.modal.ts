@@ -1,6 +1,7 @@
 import {MessageFlags, type ModalSubmitInteraction} from 'discord.js';
 import {registerModalHandler} from '../handler.js';
 import {buildGiftConfirmView} from '../../ui/builders/gift.builder.js';
+import {parseChipAmount} from '../../utils/formatters.js';
 
 async function handleGiftModal(interaction: ModalSubmitInteraction): Promise<void> {
     const parts = interaction.customId.split(':');
@@ -19,8 +20,8 @@ async function handleGiftModal(interaction: ModalSubmitInteraction): Promise<voi
 
     if (action === 'chips_input') {
         const receiverId = parts[3];
-        const amountStr = interaction.fields.getTextInputValue('amount').trim().replace(/,/g, '');
-        const amount = parseInt(amountStr);
+        const amountStr = interaction.fields.getTextInputValue('amount').trim();
+        const amount = parseChipAmount(amountStr);
 
         if (isNaN(amount) || amount < 1) {
             await interaction.reply({

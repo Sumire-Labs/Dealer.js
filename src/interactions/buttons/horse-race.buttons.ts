@@ -54,10 +54,10 @@ async function handleRaceButton(interaction: ButtonInteraction): Promise<void> {
                 new TextInputBuilder()
                     .setCustomId('bet_amount')
                     .setLabel(`ベット額（x${horse.odds} オッズ）`)
-                    .setPlaceholder('例: 5000')
+                    .setPlaceholder('例: 5000, 5k')
                     .setStyle(TextInputStyle.Short)
                     .setRequired(true)
-                    .setMinLength(3)
+                    .setMinLength(2)
                     .setMaxLength(10),
             ),
         );
