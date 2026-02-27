@@ -4,9 +4,12 @@ import {configService} from '../../config/config.service.js';
 import {S} from '../../config/setting-defs.js';
 import {findOrCreateUser} from '../../database/repositories/user.repository.js';
 import {chinchiroSoloSessions} from '../../interactions/buttons/chinchiro.buttons.js';
-import {getActiveChinchiroSession} from '../../games/chinchiro/chinchiro-table.session.js';
+import {getActiveChinchiroSession, removeActiveChinchiroSession} from '../../games/chinchiro/chinchiro-table.session.js';
 import {buildChinchiroModeSelectView} from '../../ui/builders/chinchiro-table.builder.js';
 import {formatChips} from '../../utils/formatters.js';
+
+/** Auto-clean stale sessions older than 10 minutes since last turn activity */
+const STALE_SESSION_MS = 10 * 60 * 1000;
 
 const data = new SlashCommandBuilder()
     .setName('chinchiro')
@@ -45,11 +48,17 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     // Check for existing table session in this channel
     const existingTable = getActiveChinchiroSession(interaction.channelId);
     if (existingTable && existingTable.phase !== 'resolved' && existingTable.phase !== 'cancelled') {
-        await interaction.reply({
-            content: 'このチャンネルではすでにチンチロテーブルが進行中です！',
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
+        // Auto-clean stale sessions (no activity for 10 minutes)
+        const lastActivity = existingTable.turnDeadline || existingTable.lobbyDeadline;
+        if (Date.now() - lastActivity > STALE_SESSION_MS) {
+            removeActiveChinchiroSession(interaction.channelId);
+        } else {
+            await interaction.reply({
+                content: 'このチャンネルではすでにチンチロテーブルが進行中です！',
+                flags: MessageFlags.Ephemeral,
+            });
+            return;
+        }
     }
 
     const user = await findOrCreateUser(userId);

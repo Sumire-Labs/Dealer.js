@@ -449,64 +449,70 @@ async function handleRoundResolution(
     channel: TextBasedChannel | null,
     session: ChinchiroTableSession,
 ): Promise<void> {
-    const roundResults = resolveRound(session);
-    const banker = session.players[session.bankerIndex];
-    let bankerNet = 0n;
-
-    // Process chip movements for each player
-    for (const result of roundResults) {
-        const player = session.players.find(p => p.userId === result.userId)!;
-
-        if (result.outcome === 'win') {
-            const winAmount = session.bet * BigInt(result.multiplier);
-            await addChips(player.userId, session.bet + winAmount, 'WIN', 'CHINCHIRO'); // return bet + profit
-            player.netResult += winAmount;
-            bankerNet -= winAmount;
-        } else if (result.outcome === 'draw') {
-            await addChips(player.userId, session.bet, 'WIN', 'CHINCHIRO'); // return bet
-            // no net change
-        } else {
-            // lose — bet already deducted
-            const loseAmount = session.bet * BigInt(result.multiplier);
-            if (result.multiplier > 1) {
-                // Hifumi: extra bet loss
-                try {
-                    await removeChips(player.userId, session.bet * BigInt(result.multiplier - 1), 'LOSS', 'CHINCHIRO');
-                } catch {
-                    // Not enough for extra penalty
-                }
-            }
-            player.netResult -= loseAmount;
-            bankerNet += loseAmount;
-        }
-    }
-
-    // Apply banker net
-    if (bankerNet > 0n) {
-        await addChips(banker.userId, bankerNet, 'WIN', 'CHINCHIRO');
-    } else if (bankerNet < 0n) {
-        try {
-            await removeChips(banker.userId, -bankerNet, 'LOSS', 'CHINCHIRO');
-        } catch {
-            // Banker can't pay full amount — they go broke
-        }
-    }
-    banker.netResult += bankerNet;
-
-    session.phase = 'round_result';
-
-    // Show round result
-    const resultView = buildChinchiroRoundResultView(session, roundResults, bankerNet);
-
+    let roundResults;
     try {
-        if (session.messageId && channel && 'messages' in channel) {
-            await channel.messages.edit(session.messageId, {
-                components: [resultView],
-                flags: MessageFlags.IsComponentsV2,
-            });
+        roundResults = resolveRound(session);
+        const banker = session.players[session.bankerIndex];
+        let bankerNet = 0n;
+
+        // Process chip movements for each player
+        for (const result of roundResults) {
+            const player = session.players.find(p => p.userId === result.userId)!;
+
+            if (result.outcome === 'win') {
+                const winAmount = session.bet * BigInt(result.multiplier);
+                await addChips(player.userId, session.bet + winAmount, 'WIN', 'CHINCHIRO'); // return bet + profit
+                player.netResult += winAmount;
+                bankerNet -= winAmount;
+            } else if (result.outcome === 'draw') {
+                await addChips(player.userId, session.bet, 'WIN', 'CHINCHIRO'); // return bet
+                // no net change
+            } else {
+                // lose — bet already deducted
+                const loseAmount = session.bet * BigInt(result.multiplier);
+                if (result.multiplier > 1) {
+                    // Hifumi: extra bet loss
+                    try {
+                        await removeChips(player.userId, session.bet * BigInt(result.multiplier - 1), 'LOSS', 'CHINCHIRO');
+                    } catch {
+                        // Not enough for extra penalty
+                    }
+                }
+                player.netResult -= loseAmount;
+                bankerNet += loseAmount;
+            }
+        }
+
+        // Apply banker net
+        if (bankerNet > 0n) {
+            await addChips(banker.userId, bankerNet, 'WIN', 'CHINCHIRO');
+        } else if (bankerNet < 0n) {
+            try {
+                await removeChips(banker.userId, -bankerNet, 'LOSS', 'CHINCHIRO');
+            } catch {
+                // Banker can't pay full amount — they go broke
+            }
+        }
+        banker.netResult += bankerNet;
+
+        session.phase = 'round_result';
+
+        // Show round result
+        const resultView = buildChinchiroRoundResultView(session, roundResults, bankerNet);
+
+        try {
+            if (session.messageId && channel && 'messages' in channel) {
+                await channel.messages.edit(session.messageId, {
+                    components: [resultView],
+                    flags: MessageFlags.IsComponentsV2,
+                });
+            }
+        } catch (err) {
+            logger.error('Failed to show Chinchiro round result', {error: String(err)});
         }
     } catch (err) {
-        logger.error('Failed to show Chinchiro round result', {error: String(err)});
+        logger.error('Chinchiro round resolution failed, cleaning up session', {error: String(err)});
+        removeActiveChinchiroSession(session.channelId);
     }
 }
 

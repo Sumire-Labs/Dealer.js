@@ -20,6 +20,7 @@ import {buildMissionNotification, updateMissionProgress} from '../../database/se
 import {
     type ChinchiroTableSession,
     getActiveChinchiroSession,
+    removeActiveChinchiroSession,
     setActiveChinchiroSession,
 } from '../../games/chinchiro/chinchiro-table.session.js';
 import {CHINCHIRO_LOBBY_DURATION_MS} from '../../config/constants.js';
@@ -291,13 +292,19 @@ async function handleTable(interaction: ButtonInteraction, parts: string[]): Pro
     const channelId = interaction.channelId;
 
     // Check for existing table session
+    const STALE_SESSION_MS = 10 * 60 * 1000;
     const existing = getActiveChinchiroSession(channelId);
     if (existing && existing.phase !== 'resolved' && existing.phase !== 'cancelled') {
-        await interaction.reply({
-            content: 'このチャンネルではすでにチンチロテーブルが進行中です！',
-            flags: MessageFlags.Ephemeral,
-        });
-        return;
+        const lastActivity = existing.turnDeadline || existing.lobbyDeadline;
+        if (Date.now() - lastActivity > STALE_SESSION_MS) {
+            removeActiveChinchiroSession(channelId);
+        } else {
+            await interaction.reply({
+                content: 'このチャンネルではすでにチンチロテーブルが進行中です！',
+                flags: MessageFlags.Ephemeral,
+            });
+            return;
+        }
     }
 
     // Check balance
