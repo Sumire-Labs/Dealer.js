@@ -81,8 +81,9 @@ export function buildInventoryView(
         // Skip collection reward flags
         if (inv.itemId.startsWith('COLLECTION_REWARD_')) continue;
 
-        // Apply filter
-        if (filter !== 'all' && item.category !== filter) continue;
+        // Apply filter (GOLDEN_BOX is craft-category but belongs in mystery filter)
+        const effectiveCategory = inv.itemId === 'GOLDEN_BOX' ? 'mystery' : item.category;
+        if (filter !== 'all' && effectiveCategory !== filter) continue;
 
         const isEquippedTitle = item.cosmeticType === 'title' && activeTitle === inv.itemId;
         const isEquippedBadge = item.cosmeticType === 'badge' && activeBadge === inv.itemId;
