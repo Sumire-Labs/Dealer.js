@@ -114,21 +114,22 @@ export function resolveSoloGame(
     }
     if (dealerHand.rank === 'menashi') {
         // Dealer menashi = player auto-wins with their multiplier
-        return { outcome: 'win', effectiveMultiplier: playerHand.multiplier };
+        // +1 because processGameResult treats multiplier as total payout (including bet return)
+        return { outcome: 'win', effectiveMultiplier: playerHand.multiplier + 1 };
     }
 
     // Hifumi (player) = auto-lose with -1 multiplier
     if (playerHand.rank === 'hifumi') {
         return { outcome: 'lose', effectiveMultiplier: playerHand.multiplier };
     }
-    // Hifumi (dealer) = player auto-wins with 2x
+    // Hifumi (dealer) = player auto-wins with 2x profit (3x total payout)
     if (dealerHand.rank === 'hifumi') {
-        return { outcome: 'win', effectiveMultiplier: 2 };
+        return { outcome: 'win', effectiveMultiplier: 3 };
     }
 
     const cmp = compareHands(playerHand, dealerHand);
     if (cmp > 0) {
-        return { outcome: 'win', effectiveMultiplier: playerHand.multiplier };
+        return { outcome: 'win', effectiveMultiplier: playerHand.multiplier + 1 };
     }
     if (cmp < 0) {
         return { outcome: 'lose', effectiveMultiplier: 0 };
